@@ -1,0 +1,112 @@
+/* Estilos customizados para o Painel de Controle de PDAs - Tema Discreto */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #f8fafc; /* Slate-50 */
+  color: #334155; /* Slate-700 */
+}
+
+/* Custom Scrollbar Discreta */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Navegação de Abas Discreta */
+.tab-btn {
+  font-weight: 600;
+  border-radius: 0.5rem;
+  transition: all 0.15s ease-in-out;
+}
+
+.tab-btn.active {
+  background-color: #334155; /* Slate-700 */
+  color: #ffffff;
+  border-color: #334155;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.tab-btn:not(.active) {
+  background-color: #ffffff;
+  color: #64748b; /* Slate-500 */
+  border-color: #e2e8f0;
+}
+
+.tab-btn:not(.active):hover {
+  background-color: #f1f5f9;
+  color: #1e293b;
+}
+
+/* Badges Discretas */
+.badge-disponivel {
+  background-color: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.badge-em-uso {
+  background-color: #fffbeb;
+  color: #92400e;
+  border: 1px solid #fef3c7;
+}
+
+.badge-avaria {
+  background-color: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+/* Botões Discretos */
+.btn-primary {
+  background-color: #334155;
+  color: #ffffff;
+  transition: background-color 0.15s ease;
+}
+
+.btn-primary:hover {
+  background-color: #1e293b;
+}
+
+.btn-success {
+  background-color: #059669;
+  color: #ffffff;
+  transition: background-color 0.15s ease;
+}
+
+.btn-success:hover {
+  background-color: #047857;
+}
+
+.btn-secondary {
+  background-color: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  transition: background-color 0.15s ease;
+}
+
+.btn-secondary:hover {
+  background-color: #e2e8f0;
+  color: #1e293b;
+}
+
+/* Impressão */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}

@@ -1,0 +1,2413 @@
+<!-- Define o tipo de documento como HTML5 para o navegador -->
+<!DOCTYPE html>
+<!-- Abre a tag html definindo o idioma padrao como Portugues do Brasil -->
+<html lang="pt-BR">
+<!-- Abre o cabecalho da pagina com as configuracoes de meta e links -->
+<head>
+    <!-- Define a codificacao de caracteres como UTF-8 para evitar problemas de acentuacao -->
+    <meta charset="UTF-8">
+    <!-- Define a responsividade da pagina ajustando o zoom conforme a tela do dispositivo -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Define o titulo da aba da pagina no navegador web -->
+    <title>Dashboard Logístico — Relatório Executivo</title>
+    <!-- Preconnect para acelerar carregamento de fontes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Importa a fonte Outfit do Google Fonts para a tipografia premium do dashboard -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Importa a biblioteca FontAwesome para os icones vetoriais utilizados na interface -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Importa a biblioteca Chart.js via CDN para a renderizacao dos graficos interativos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Vincula a folha de estilos local style.css -->
+    <link rel="stylesheet" href="style.css?v=90">
+<!-- Fecha o cabecalho da pagina html -->
+</head>
+<!-- Abre o corpo da pagina onde os elementos visuais estao localizados -->
+<body>
+    <!-- Container geral que encapsula todo o layout do dashboard -->
+    <div class="app-container">
+        <!-- Backdrop para fechar o menu no mobile ao clicar fora -->
+        <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+        <!-- Abre a barra lateral (Sidebar) utilizada para painel de filtros operacionais -->
+        <aside class="sidebar" id="sidebar">
+            <!-- Cabecalho interno da barra lateral contendo o logotipo -->
+            <div class="sidebar-header">
+                <!-- Abre o container do logotipo do sistema -->
+                <div class="logo">
+                    <!-- Icone de caminhao/logistica do FontAwesome -->
+                    <i class="fa-solid fa-truck-ramp-box"></i>
+                    <!-- Nome da marca ou logotipo do dashboard em degradê -->
+                    <span>J&T Express<small style="display: block; font-size: 11px; font-weight: 500; color: #9CA3AF; margin-top: 2px; letter-spacing: 0.5px; -webkit-text-fill-color: #9CA3AF; background: none;">by Gustavo Frederico</small></span>
+                <!-- Fecha o container do logotipo -->
+                </div>
+                <!-- Botão para fechar barra lateral no mobile -->
+                <button id="mobile-sidebar-close" class="mobile-close-btn" aria-label="Fechar filtros">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            <!-- Fecha o cabecalho da barra lateral -->
+            </div>
+            
+            <!-- Navegação por Abas na Barra Lateral -->
+            <div class="sidebar-nav">
+                <button id="nav-general" class="nav-item active">
+                    <i class="fa-solid fa-chart-line"></i> Expedido Não Chegou
+                </button>
+                <button id="nav-recebimento" class="nav-item">
+                    <i class="fa-solid fa-download"></i> Recebimento
+                </button>
+                <button id="nav-sem-mov" class="nav-item">
+                    <i class="fa-solid fa-clock-rotate-left"></i> Sem Movimentação
+                </button>
+                <button id="nav-controle" class="nav-item">
+                    <i class="fa-solid fa-list-check"></i> Fechamento
+                </button>
+                <button id="nav-volume-exp-dc-bau" class="nav-item">
+                    <i class="fa-solid fa-truck-ramp-box"></i> Volume exp DC BAU
+                </button>
+                <button id="nav-volumetria" class="nav-item">
+                    <i class="fa-solid fa-boxes-stacked"></i> Volumetria Diária
+                </button>
+                <button id="nav-ranking" class="nav-item">
+                    <i class="fa-solid fa-trophy"></i> Ranking
+                </button>
+                <button id="nav-pda" class="nav-item">
+                    <i class="fa-solid fa-barcode"></i> Controle de PDAs
+                </button>
+                <button id="nav-report-inicio" class="nav-item">
+                    <i class="fa-solid fa-flag-checkered"></i> Início de Operação
+                </button>
+            </div>
+            
+            <!-- Abre a secao de filtros operacionais da barra lateral -->
+            <div class="filter-section">
+                <!-- Titulo da secao de filtros com icone de funil -->
+                <h3><i class="fa-solid fa-filter"></i> Filtros Operacionais</h3>
+                
+                <!-- Filtros do Painel Geral -->
+                <div id="filters-general">
+                    <!-- Abre o grupo de controle de data inicial -->
+                    <div class="filter-group">
+                        <!-- Rotulo descritivo do campo de data inicial -->
+                        <label for="filter-start-date">Data Inicial</label>
+                        <!-- Campo de input tipo data para selecionar o inicio do periodo -->
+                        <input type="date" id="filter-start-date">
+                    <!-- Fecha o grupo de controle da data inicial -->
+                    </div>
+                    
+                    <!-- Abre o grupo de controle de data final -->
+                    <div class="filter-group">
+                        <!-- Rotulo descritivo do campo de data final -->
+                        <label for="filter-end-date">Data Final</label>
+                        <!-- Campo de input tipo data para selecionar o fim do periodo -->
+                        <input type="date" id="filter-end-date">
+                    <!-- Fecha o grupo de controle da data final -->
+                    </div>
+                    
+                    <!-- Abre o grupo de selecao da estacao de recebimento -->
+                    <div class="filter-group">
+                        <!-- Rotulo descritivo do campo de estacao de recebimento -->
+                        <label for="filter-receiving">Estação Recebimento</label>
+                        <!-- Campo dropdown select contendo as estacoes de recebimento -->
+                        <select id="filter-receiving">
+                            <!-- Opcao padrao para exibir dados de todas as estacoes de recebimento -->
+                            <option value="Todas">Todas as Estações</option>
+                        <!-- Fecha o campo dropdown select -->
+                        </select>
+                    <!-- Fecha o grupo de selecao da estacao de recebimento -->
+                    </div>
+                    
+                    <!-- Abre o grupo de selecao da estacao de registro -->
+                    <div class="filter-group">
+                        <!-- Rotulo descritivo do campo de estacao de registro -->
+                        <label for="filter-registering">Estação Registro</label>
+                        <!-- Campo dropdown select contendo as estacoes de registro -->
+                        <select id="filter-registering">
+                            <!-- Opcao padrao para exibir dados de todas as estacoes de registro -->
+                            <option value="Todas">Todas as Estações</option>
+                        <!-- Fecha o campo dropdown select -->
+                        </select>
+                    <!-- Fecha o grupo de selecao da estacao de registro -->
+                    </div>
+                    
+                    <!-- Abre o grupo de selecao de status das remessas -->
+                    <div class="filter-group">
+                        <!-- Rotulo descritivo do campo de status das remessas -->
+                        <label for="filter-status">Status</label>
+                        <!-- Campo dropdown select contendo os status disponiveis -->
+                        <select id="filter-status">
+                            <!-- Opcao padrao para nao filtrar por status especifico -->
+                            <option value="Todos">Todos os Status</option>
+                        <!-- Fecha o campo dropdown select -->
+                        </select>
+                    <!-- Fecha o grupo de selecao do status -->
+                    </div>
+                    
+                    <!-- Container para os botoes de acao de filtro e relatorio -->
+                    <div class="filter-actions">
+                        <!-- Botao secundario para resetar todos os filtros aplicados -->
+                        <button id="btn-reset-filters" class="btn btn-secondary">
+                            <!-- Icone de seta circular para indicar reset -->
+                            <i class="fa-solid fa-rotate-left"></i> Limpar Filtros
+                        <!-- Fecha o botao de limpar filtros -->
+                        </button>
+                        <!-- Botao principal com animacao pulse para baixar o PDF filtrado -->
+                        <button id="btn-pdf-report" class="btn btn-primary btn-generate-pdf">
+                            <!-- Icone de arquivo PDF do FontAwesome -->
+                            <i class="fa-solid fa-file-pdf"></i> Gerar Relatório PDF
+                        <!-- Fecha o botao de PDF -->
+                        </button>
+                    <!-- Fecha a secao de acoes de filtros -->
+                    </div>
+                </div>
+
+                <!-- Filtros do Painel Sem Movimentação -->
+                <div id="filters-sem-mov" style="display: none;">
+                    <!-- Dias de Atraso (Aging) Multi-select -->
+                    <div class="filter-group">
+                        <label>Dias de Atraso (Aging)</label>
+                        <div class="custom-multiselect" id="aging-multiselect">
+                            <button type="button" class="multiselect-trigger" id="aging-multiselect-trigger">
+                                <span>Todos os Agings</span>
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </button>
+                            <div class="multiselect-dropdown" id="aging-multiselect-dropdown" style="display: none;">
+                                <div class="multiselect-option-all">
+                                    <label>
+                                        <input type="checkbox" id="aging-select-all" checked>
+                                        <span>Selecionar Todos</span>
+                                    </label>
+                                </div>
+                                <div class="multiselect-options-container" id="aging-options-container">
+                                    <!-- Opções dinâmicas injetadas pelo JavaScript -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Base Origem -->
+                    <div class="filter-group">
+                        <label for="filter-sem-mov-base">Base Origem</label>
+                        <select id="filter-sem-mov-base">
+                            <option value="Todas">Todas as Bases</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Destino -->
+                    <div class="filter-group">
+                        <label for="filter-sem-mov-destino">Destino</label>
+                        <select id="filter-sem-mov-destino">
+                            <option value="Todos">Todos os Destinos</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Ações de Filtro Sem Movimentação -->
+                    <div class="filter-actions">
+                        <button id="btn-sem-mov-reset" class="btn btn-secondary">
+                            <i class="fa-solid fa-rotate-left"></i> Limpar Filtros
+                        </button>
+                        <button id="btn-sem-mov-pdf" class="btn btn-primary btn-generate-pdf">
+                            <i class="fa-solid fa-file-pdf"></i> Gerar Relatório PDF
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filtros do Painel Avarias -->
+                <div id="filters-avaria" style="display: none;">
+                    <!-- Data Inicial -->
+                    <div class="filter-group">
+                        <label for="filter-avaria-start-date">Data Inicial</label>
+                        <input type="date" id="filter-avaria-start-date">
+                    </div>
+                    
+                    <!-- Data Final -->
+                    <div class="filter-group">
+                        <label for="filter-avaria-end-date">Data Final</label>
+                        <input type="date" id="filter-avaria-end-date">
+                    </div>
+
+                    <!-- Base de Origem -->
+                    <div class="filter-group">
+                        <label for="filter-avaria-base">Base de Origem</label>
+                        <select id="filter-avaria-base">
+                            <option value="Todas">Todas as Bases</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Colaborador -->
+                    <div class="filter-group">
+                        <label for="filter-avaria-colaborador">Colaborador</label>
+                        <select id="filter-avaria-colaborador">
+                            <option value="Todos">Todos os Colaboradores</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Produto -->
+                    <div class="filter-group">
+                        <label for="filter-avaria-produto">Produto</label>
+                        <select id="filter-avaria-produto">
+                            <option value="Todos">Todos os Produtos</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Status -->
+                    <div class="filter-group">
+                        <label for="filter-avaria-status">Status</label>
+                        <select id="filter-avaria-status">
+                            <option value="Todos">Todos os Status</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Ações de Filtro Avarias -->
+                    <div class="filter-actions">
+                        <button id="btn-avaria-reset" class="btn btn-secondary">
+                            <i class="fa-solid fa-rotate-left"></i> Limpar Filtros
+                        </button>
+                        <button id="btn-avaria-pdf" class="btn btn-primary btn-generate-pdf">
+                            <i class="fa-solid fa-file-pdf"></i> Gerar Relatório PDF
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filtros e Ações do Fechamento -->
+                <div id="filters-controle" style="display: none;">
+                    <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 15px; line-height: 1.4;">
+                        O relatório de fechamento apresenta dados operacionais consolidados do dia.
+                    </p>
+                    <div class="filter-actions" style="margin-top: 20px;">
+                        <button id="btn-controle-pdf-sidebar" class="btn btn-primary btn-generate-pdf" style="width: 100%;">
+                            <i class="fa-solid fa-file-pdf"></i> Gerar Relatório PDF
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filtros e Ações do Volume exp DC BAU -->
+                <div id="filters-volume-exp-dc-bau" style="display: none;">
+                    <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 15px; line-height: 1.4;">
+                        Controle de volumes expedidos e cargas não entregues por veículo.
+                    </p>
+                    <div class="filter-group">
+                        <label for="filter-volume-exp-date">Data de Fechamento</label>
+                        <select id="filter-volume-exp-date">
+                            <option value="Todas">Todas as Datas</option>
+                        </select>
+                    </div>
+                    <div class="filter-actions" style="margin-top: 20px;">
+                        <button id="btn-volume-exp-refresh" class="btn btn-secondary" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <i class="fa-solid fa-arrows-rotate"></i> Recarregar Dados
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filtros e Ações do Recebimento -->
+                <div id="filters-recebimento" style="display: none;">
+                    <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 15px; line-height: 1.4;">
+                        Controle e análise de recebimento de cargas por data e veículo.
+                    </p>
+                    <div class="filter-group">
+                        <label for="filter-recebimento-date">Data de Recebimento</label>
+                        <select id="filter-recebimento-date">
+                            <!-- Preenchido dinamicamente via JS -->
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Filtros e Ações da Volumetria Diária -->
+                <div id="filters-volumetria" style="display: none;">
+                    <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 15px; line-height: 1.4;">
+                        Acompanhamento diário de volumetria, viagens, pedidos do sistema e volumes bipados no piso.
+                    </p>
+                    <div class="filter-group">
+                        <label for="filter-volumetria-status-viagem">Status de Viagem</label>
+                        <select id="filter-volumetria-status-viagem">
+                            <option value="Todos">Todos os Status</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-volumetria-pdd">PDD de Saída</label>
+                        <select id="filter-volumetria-pdd">
+                            <option value="Todos">Todos os PDDs</option>
+                        </select>
+                    </div>
+                    <div class="filter-actions" style="margin-top: 20px; display: flex; flex-direction: column; gap: 8px;">
+                        <button id="btn-volumetria-refresh" class="btn btn-secondary" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <i class="fa-solid fa-arrows-rotate"></i> Recarregar Dados
+                        </button>
+                        <button id="btn-volumetria-open-upload" class="btn btn-primary" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <i class="fa-solid fa-file-excel"></i> Importar Planilha
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filtros e Ações do Ranking -->
+                <div id="filters-ranking" style="display: none;">
+                    <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 15px; line-height: 1.4;">
+                        Análise de produtividade, ranking de bipes por operador e acompanhamento hora a hora.
+                    </p>
+                    <div class="filter-group">
+                        <label for="filter-ranking-setor">Setor Operacional</label>
+                        <select id="filter-ranking-setor">
+                            <option value="Todos">Todos os Setores</option>
+                            <option value="Coleta de Chegadas">Coleta de Chegadas</option>
+                            <option value="Inserido em Lote">Inserido em Lote</option>
+                            <option value="Expedição">Expedição</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-ranking-turno">Turno Operacional</label>
+                        <select id="filter-ranking-turno">
+                            <option value="Todos">Todos os Turnos</option>
+                            <option value="T1">Turno 1 (06h às 14h)</option>
+                            <option value="T2">Turno 2 (14h às 22h)</option>
+                            <option value="T3">Turno 3 (22h às 06h)</option>
+                        </select>
+                    </div>
+                    <div class="filter-actions" style="margin-top: 20px; display: flex; flex-direction: column; gap: 8px;">
+                        <button id="btn-ranking-refresh" class="btn btn-secondary" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <i class="fa-solid fa-arrows-rotate"></i> Recarregar Dados
+                        </button>
+                        <button id="btn-ranking-open-upload" class="btn btn-primary" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <i class="fa-solid fa-file-excel"></i> Importar Digitalização
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filtros do Painel de Controle de PDAs -->
+                <div id="filters-pda" style="display: none;">
+                    <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 15px; line-height: 1.4;">
+                        Gestão operacional dos 40 coletores/PDAs do DC Bauru, controle de retiradas, devoluções e inventário.
+                    </p>
+                    <div class="filter-actions" style="margin-top: 15px; display: flex; flex-direction: column; gap: 8px;">
+                        <a id="btn-pda-external" href="/pda/" target="_blank" class="btn btn-primary" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; box-sizing: border-box;">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir em Nova Aba
+                        </a>
+                        <button id="btn-pda-refresh" class="btn btn-secondary" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <i class="fa-solid fa-arrows-rotate"></i> Recarregar Painel
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filtros / Ações Rápidas do Report de Início -->
+                <div id="filters-report-inicio" style="display: none;">
+                    <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 15px; line-height: 1.4;">
+                        Indicadores de abertura de turno do DC Bauru, controle de efetivo CLT/Diaristas e disparo formatado para WhatsApp.
+                    </p>
+                    <div class="filter-actions" style="margin-top: 15px; display: flex; flex-direction: column; gap: 8px;">
+                        <button id="btn-report-inicio-sidebar-save" class="btn btn-primary" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <i class="fa-solid fa-floppy-disk"></i> Salvar no Banco
+                        </button>
+                        <button id="btn-report-inicio-sidebar-copy" class="btn btn-secondary" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <i class="fa-solid fa-copy"></i> Copiar WhatsApp
+                        </button>
+                        <button id="btn-report-inicio-sidebar-refresh" class="btn btn-secondary" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <i class="fa-solid fa-arrows-rotate"></i> Recarregar Dados
+                        </button>
+                    </div>
+                </div>
+
+            <!-- Fecha a secao de filtros da barra lateral -->
+            </div>
+            
+            <!-- Rodape da barra lateral com informações de versao -->
+            <div class="sidebar-footer">
+                <!-- Identifica a versao da aplicacao BI -->
+                <span>Versão 1.0.0</span>
+                <!-- Nome comercial do dashboard -->
+                <span>Dashboard Logístico</span>
+            <!-- Fecha o rodape da barra lateral -->
+            </div>
+        <!-- Fecha a barra lateral -->
+        </aside>
+
+        <!-- Abre a area de conteudo principal do dashboard à direita -->
+        <main class="main-content">
+            <!-- Barra de navegacao superior com titulo e relogio -->
+            <header class="navbar">
+                <!-- Bloco de titulo e descricao do dashboard -->
+                <div class="nav-title-container">
+                    <button id="mobile-sidebar-toggle" class="mobile-toggle-btn" aria-label="Abrir filtros">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <div class="nav-title">
+                        <!-- Titulo principal da pagina -->
+                        <h1>Expedido Não Chegou</h1>
+                        <!-- Subtitulo descritivo da pagina -->
+                        <p>Visão executiva operacional de remessas e tráfego</p>
+                    <!-- Fecha o bloco do titulo da barra superior -->
+                    </div>
+                </div>
+                <!-- Container de exibicao de data/hora atualizada em tempo real -->
+                <div class="system-time">
+                    <!-- Icone de relogio do FontAwesome -->
+                    <i class="fa-regular fa-clock"></i>
+                    <!-- Span textual que recebera o valor dinamico do relogio em JS -->
+                    <span id="live-clock">--:--:--</span>
+                <!-- Fecha o container de exibicao do relogio -->
+                </div>
+            <!-- Fecha a barra de navegacao superior -->
+            </header>
+
+            <div id="panel-general" class="content-panel">
+            <!-- Container das cartoes de metricas de desempenho (KPIs) -->
+            <section class="kpi-container">
+                <!-- Cartao KPI de contagem total de remessas -->
+                <div class="kpi-card" id="kpi-total">
+                    <!-- Icone azul contendo um simbolo de caixa -->
+                    <div class="kpi-icon icon-blue"><i class="fa-solid fa-box"></i></div>
+                    <!-- Area com a informacao e o valor numerico da metrica -->
+                    <div class="kpi-info">
+                        <!-- Titulo da metrica do cartao -->
+                        <h3>Total Remessas</h3>
+                        <!-- Valor dinamico a ser inserido por JS -->
+                        <span class="kpi-value" id="val-total">-</span>
+                    <!-- Fecha a area de informacoes do cartao -->
+                    </div>
+                <!-- Fecha o cartao de KPI total -->
+                </div>
+                
+                <!-- Cartao KPI de contagem de remessas concluidas -->
+                <div class="kpi-card" id="kpi-concluidas">
+                    <!-- Icone verde contendo um simbolo de check -->
+                    <div class="kpi-icon icon-green"><i class="fa-solid fa-circle-check"></i></div>
+                    <!-- Area com a informacao e valor numerico da metrica -->
+                    <div class="kpi-info">
+                        <!-- Titulo da metrica do cartao -->
+                        <h3>Concluídas</h3>
+                        <!-- Valor dinamico da metrica (quantidade) -->
+                        <span class="kpi-value" id="val-concluidas">-</span>
+                        <!-- Porcentagem dinamica de conclusao em verde -->
+                        <span class="kpi-pct pct-green" id="pct-concluidas">0%</span>
+                    <!-- Fecha a area de informacoes do cartao -->
+                    </div>
+                <!-- Fecha o cartao de KPI concluidas -->
+                </div>
+                
+                <!-- Cartao KPI de contagem de remessas pendentes -->
+                <div class="kpi-card" id="kpi-pendentes">
+                    <!-- Icone amarelo contendo um simbolo de relogio antigo -->
+                    <div class="kpi-icon icon-yellow"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                    <!-- Area com a informacao e valor numerico da metrica -->
+                    <div class="kpi-info">
+                        <!-- Titulo da metrica do cartao -->
+                        <h3>Pendentes</h3>
+                        <!-- Valor dinamico da metrica (quantidade) -->
+                        <span class="kpi-value" id="val-pendentes">-</span>
+                        <!-- Porcentagem dinamica de pendencia em amarelo -->
+                        <span class="kpi-pct pct-yellow" id="pct-pendentes">0%</span>
+                    <!-- Fecha a area de informacoes do cartao -->
+                    </div>
+                <!-- Fecha o cartao de KPI pendentes -->
+                </div>
+                
+                <!-- Cartao KPI de contagem de remessas criticas -->
+                <div class="kpi-card" id="kpi-criticas">
+                    <!-- Icone vermelho contendo um simbolo de alerta de triangulo -->
+                    <div class="kpi-icon icon-red"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                    <!-- Area com a informacao e valor numerico da metrica -->
+                    <div class="kpi-info">
+                        <!-- Titulo da metrica do cartao -->
+                        <h3>Críticas</h3>
+                        <!-- Valor dinamico da metrica (quantidade) -->
+                        <span class="kpi-value" id="val-criticas">-</span>
+                        <!-- Porcentagem dinamica de criticidade em vermelho -->
+                        <span class="kpi-pct pct-red" id="pct-criticas">0%</span>
+                    <!-- Fecha a area de informacoes do cartao -->
+                    </div>
+                <!-- Fecha o cartao de KPI criticas -->
+                </div>
+            <!-- Fecha a secao de KPIs -->
+            </section>
+
+            <!-- Seção de grid contendo os quatro paineis de graficos -->
+            <section class="charts-grid">
+                <!-- Painel do grafico de distribuicao por Status (Doughnut) -->
+                <div class="chart-card glass">
+                    <!-- Cabecalho interno do painel do grafico -->
+                    <div class="chart-header">
+                        <!-- Titulo do painel do grafico de status -->
+                        <h2>Quantidade por Status</h2>
+                    <!-- Fecha o cabecalho do painel do grafico -->
+                    </div>
+                    <!-- Wrapper de delimitacao de tamanho para renderizacao do canvas -->
+                    <div class="chart-wrapper">
+                        <!-- Canvas onde o Chart.js desenhara o grafico de Rosca -->
+                        <canvas id="chart-status"></canvas>
+                    <!-- Fecha o wrapper do grafico -->
+                    </div>
+                <!-- Fecha o painel do grafico de status -->
+                </div>
+
+                <!-- Painel do grafico de barras por Estacao de Recebimento -->
+                <div class="chart-card glass">
+                    <!-- Cabecalho interno do painel do grafico -->
+                    <div class="chart-header">
+                        <!-- Titulo do painel do grafico de recebimento -->
+                        <h2>Estação de Recebimento</h2>
+                    <!-- Fecha o cabecalho do painel do grafico -->
+                    </div>
+                    <!-- Wrapper de delimitacao de tamanho para renderizacao do canvas -->
+                    <div class="chart-wrapper">
+                        <!-- Canvas onde o Chart.js desenhara o grafico de Barras -->
+                        <canvas id="chart-receiving"></canvas>
+                    <!-- Fecha o wrapper do grafico -->
+                    </div>
+                <!-- Fecha o painel do grafico de recebimento -->
+                </div>
+
+                <!-- Painel do grafico de barras por Estacao de Registro -->
+                <div class="chart-card glass">
+                    <!-- Cabecalho interno do painel do grafico -->
+                    <div class="chart-header">
+                        <!-- Titulo do painel do grafico de registro -->
+                        <h2>Estação de Registro (Top 5)</h2>
+                    <!-- Fecha o cabecalho do painel do grafico -->
+                    </div>
+                    <!-- Wrapper de delimitacao de tamanho para renderizacao do canvas -->
+                    <div class="chart-wrapper">
+                        <!-- Canvas onde o Chart.js desenhara o grafico de Barras Top 5 -->
+                        <canvas id="chart-registering"></canvas>
+                    <!-- Fecha o wrapper do grafico -->
+                    </div>
+                <!-- Fecha o painel do grafico de registro -->
+                </div>
+
+                <!-- Painel do grafico de linha de Evolucao Diaria de Envios -->
+                <div class="chart-card glass">
+                    <!-- Cabecalho interno do painel do grafico -->
+                    <div class="chart-header">
+                        <!-- Titulo do painel do grafico de evolucao diaria -->
+                        <h2>Evolução Diária de Envios</h2>
+                    <!-- Fecha o cabecalho do painel do grafico -->
+                    </div>
+                    <!-- Wrapper de delimitacao de tamanho para renderizacao do canvas -->
+                    <div class="chart-wrapper">
+                        <!-- Canvas onde o Chart.js desenhara o grafico de Linha -->
+                        <canvas id="chart-evolution"></canvas>
+                    <!-- Fecha o wrapper do grafico -->
+                    </div>
+                <!-- Fecha o painel do grafico de evolucao diaria -->
+                </div>
+            <!-- Fecha a secao de grid de graficos -->
+            </section>
+
+            <!-- Secao de visualizacao e interacao da tabela detalhada de dados -->
+            <section class="table-section glass">
+                <!-- Cabecalho contendo o titulo e a barra de pesquisa -->
+                <div class="table-header">
+                    <!-- Titulo da secao da tabela -->
+                    <h2>Registros Detalhados</h2>
+                    <!-- Bloco da barra de pesquisa de registros -->
+                    <div class="table-search">
+                        <!-- Icone de lupa do FontAwesome -->
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <!-- Input de texto para filtrar remessas pelo numero de identificacao -->
+                        <input type="text" id="table-search-input" placeholder="Buscar remessa...">
+                    <!-- Fecha o bloco da barra de pesquisa -->
+                    </div>
+                <!-- Fecha o cabecalho da tabela -->
+                </div>
+                
+                <!-- Wrapper que permite rolagem horizontal em telas pequenas -->
+                <div class="table-wrapper">
+                    <!-- Tag da tabela HTML para exibicao dos registros de dados -->
+                    <table class="data-table" id="data-table">
+                        <!-- Cabecalho da tabela com os titulos das colunas -->
+                        <thead>
+                            <!-- Linha do cabecalho -->
+                            <tr>
+                                <!-- Coluna de Remessa -->
+                                <th>Remessa</th>
+                                <!-- Coluna de data/hora de envio -->
+                                <th>Hora Envio</th>
+                                <!-- Coluna de estacao de recebimento -->
+                                <th>Estação Recebimento</th>
+                                <!-- Coluna de estacao de registro -->
+                                <th>Estação Registro</th>
+                                <!-- Coluna de status da entrega -->
+                                <th>Status</th>
+                            <!-- Fecha a linha do cabecalho -->
+                            </tr>
+                        <!-- Fecha o cabecalho da tabela -->
+                        </thead>
+                        <!-- Corpo da tabela onde o JavaScript inserira as linhas de dados -->
+                        <tbody id="table-body">
+                            <!-- Linha e celula de carregamento padrao antes dos dados chegarem -->
+                            <tr>
+                                <!-- Celula ocupando as 5 colunas mostrando aviso de carregamento -->
+                                <td colspan="5" style="text-align: center;">Carregando dados logísticos...</td>
+                            <!-- Fecha a linha padrao -->
+                            </tr>
+                        <!-- Fecha o corpo da tabela -->
+                        </tbody>
+                    <!-- Fecha a tag da tabela -->
+                    </table>
+                <!-- Fecha o wrapper da tabela -->
+                </div>
+
+                <!-- Painel de rodape da tabela contendo a paginacao e info de registros -->
+                <div class="table-footer">
+                    <!-- Span que exibe o intervalo de registros exibidos no momento -->
+                    <span id="table-info">Mostrando 0-0 de 0 registros</span>
+                    <!-- Container dos botoes e numero de pagina ativa -->
+                    <div class="pagination">
+                        <!-- Botao para retroceder uma pagina com icone de seta esquerda -->
+                        <button id="btn-prev" class="pagination-btn"><i class="fa-solid fa-chevron-left"></i></button>
+                        <!-- Numero da pagina atual a ser alterado por JavaScript -->
+                        <span id="page-num">1</span>
+                        <!-- Botao para avancar uma pagina com icone de seta direita -->
+                        <button id="btn-next" class="pagination-btn"><i class="fa-solid fa-chevron-right"></i></button>
+                    <!-- Fecha o container de paginacao -->
+                    </div>
+                <!-- Fecha o rodape da tabela -->
+                </div>
+            <!-- Fecha a secao da tabela de dados -->
+            </section>
+            
+            </div> <!-- Fecha panel-general -->
+
+            <!-- Painel Sem Movimentação -->
+            <div id="panel-sem-mov" class="content-panel" style="display: none;">
+                <!-- Container das cartoes de metricas de desempenho (KPIs) -->
+                <section class="kpi-container">
+                    <!-- Total Sem Movimentação -->
+                    <div class="kpi-card" id="kpi-sem-mov-total">
+                        <div class="kpi-icon icon-blue"><i class="fa-solid fa-clock"></i></div>
+                        <div class="kpi-info">
+                            <h3>Total Sem Movimento</h3>
+                            <span class="kpi-value" id="val-sem-mov-total">-</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Multa Acumulada -->
+                    <div class="kpi-card" id="kpi-sem-mov-multa">
+                        <div class="kpi-icon icon-red"><i class="fa-solid fa-dollar-sign"></i></div>
+                        <div class="kpi-info">
+                            <h3>Multa Acumulada</h3>
+                            <span class="kpi-value" id="val-sem-mov-multa">-</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Média Dias Sem Movimentação -->
+                    <div class="kpi-card" id="kpi-sem-mov-aging">
+                        <div class="kpi-icon icon-yellow"><i class="fa-solid fa-hourglass-half"></i></div>
+                        <div class="kpi-info">
+                            <h3>Média Sem Movimento</h3>
+                            <span class="kpi-value" id="val-sem-mov-aging">-</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Maior Atraso -->
+                    <div class="kpi-card" id="kpi-sem-mov-max-dias">
+                        <div class="kpi-icon icon-red"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                        <div class="kpi-info">
+                            <h3>Maior Atraso</h3>
+                            <span class="kpi-value" id="val-sem-mov-max-dias">-</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Seção de grid contendo os quatro paineis de graficos -->
+                <section class="charts-grid">
+                    <!-- Painel do grafico de Contratos por Base (Bar) -->
+                    <div class="chart-card glass">
+                        <div class="chart-header">
+                            <h2>Contratos por Base</h2>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="chart-sem-mov-base"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Painel do grafico de Contratos por Destino (Bar) -->
+                    <div class="chart-card glass">
+                        <div class="chart-header">
+                            <h2>Contratos por Destino (Top 5)</h2>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="chart-sem-mov-destino"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Painel do grafico de Média Dias por Base (Bar) -->
+                    <div class="chart-card glass">
+                        <div class="chart-header">
+                            <h2>Média Dias Sem Mov. por Base</h2>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="chart-sem-mov-delay-base"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Painel do grafico de Distribuição por Aging (Doughnut) -->
+                    <div class="chart-card glass">
+                        <div class="chart-header">
+                            <h2>Distribuição por Aging</h2>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="chart-sem-mov-aging-dist"></canvas>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Secao de visualizacao e interacao da tabela detalhada de dados -->
+                <section class="table-section glass">
+                    <div class="table-header">
+                        <h2>Contratos Sem Movimentação Detalhados</h2>
+                        <div class="table-search">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="table-sem-mov-search-input" placeholder="Buscar remessa...">
+                        </div>
+                    </div>
+                    
+                    <div class="table-wrapper">
+                        <table class="data-table" id="data-table-sem-mov">
+                            <thead>
+                                <tr>
+                                    <th>Remessa</th>
+                                    <th>Última Operação</th>
+                                    <th>Problema</th>
+                                    <th>Aging</th>
+                                    <th>Dias Sem Mov.</th>
+                                    <th>Multa</th>
+                                    <th>Origem</th>
+                                    <th>Destino</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-sem-mov-body">
+                                <tr>
+                                    <td colspan="8" style="text-align: center;">Carregando contratos sem movimentação...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="table-footer">
+                        <span id="table-sem-mov-info">Mostrando 0-0 de 0 registros</span>
+                        <div class="pagination">
+                            <button id="btn-sem-mov-prev" class="pagination-btn"><i class="fa-solid fa-chevron-left"></i></button>
+                            <span id="page-sem-mov-num">1</span>
+                            <button id="btn-sem-mov-next" class="pagination-btn"><i class="fa-solid fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Painel Avarias -->
+            <div id="panel-avaria" class="content-panel" style="display: none;">
+                <!-- Container das cartoes de metricas de desempenho (KPIs) -->
+                <section class="kpi-container">
+                    <!-- Total de Avarias -->
+                    <div class="kpi-card" id="kpi-avaria-total">
+                        <div class="kpi-icon icon-red"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                        <div class="kpi-info">
+                            <h3>Total Avarias</h3>
+                            <span class="kpi-value" id="val-avaria-total">-</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Colaboradores Envolvidos -->
+                    <div class="kpi-card" id="kpi-avaria-colaboradores">
+                        <div class="kpi-icon icon-blue"><i class="fa-solid fa-users"></i></div>
+                        <div class="kpi-info">
+                            <h3>Colaboradores</h3>
+                            <span class="kpi-value" id="val-avaria-colaboradores">-</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Total Viagens (Carros) -->
+                    <div class="kpi-card" id="kpi-avaria-viagens">
+                        <div class="kpi-icon icon-yellow"><i class="fa-solid fa-truck"></i></div>
+                        <div class="kpi-info">
+                            <h3>Total Viagens</h3>
+                            <span class="kpi-value" id="val-avaria-viagens">-</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Produto mais afetado -->
+                    <div class="kpi-card" id="kpi-avaria-top-produto">
+                        <div class="kpi-icon icon-green"><i class="fa-solid fa-box-open"></i></div>
+                        <div class="kpi-info">
+                            <h3>Top Produto</h3>
+                            <span class="kpi-value" id="val-avaria-top-produto">-</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Seção de grid contendo os quatro paineis de graficos -->
+                <section class="charts-grid">
+                    <!-- Painel do grafico de Avarias por Colaborador (Bar) -->
+                    <div class="chart-card glass">
+                        <div class="chart-header">
+                            <h2>Avarias por Colaborador</h2>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="chart-avaria-colaborador"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Painel do grafico de Avarias por Produto (Bar) -->
+                    <div class="chart-card glass">
+                        <div class="chart-header">
+                            <h2>Avarias por Categoria de Produto</h2>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="chart-avaria-produto"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Painel do grafico de Distribuição de Status (Doughnut) -->
+                    <div class="chart-card glass">
+                        <div class="chart-header">
+                            <h2>Distribuição por Classificação</h2>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="chart-avaria-status-dist"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Painel do grafico de Evolução Diária (Line) -->
+                    <div class="chart-card glass">
+                        <div class="chart-header">
+                            <h2>Evolução Diária de Avarias</h2>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="chart-avaria-evolution"></canvas>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Secao de visualizacao e interacao da tabela detalhada de dados -->
+                <section class="table-section glass">
+                    <div class="table-header">
+                        <h2>Ocorrências de Avarias Detalhadas</h2>
+                        <div class="table-search">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="table-avaria-search-input" placeholder="Buscar viagem, produto ou motorista...">
+                        </div>
+                    </div>
+                    
+                    <div class="table-wrapper">
+                        <table class="data-table" id="data-table-avaria">
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>ID de Viagem (Carro)</th>
+                                    <th>Base</th>
+                                    <th>Produto</th>
+                                    <th>Status</th>
+                                    <th>ID Produto</th>
+                                    <th>Colaborador</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-avaria-body">
+                                <tr>
+                                    <td colspan="7" style="text-align: center;">Carregando ocorrências de avarias...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="table-footer">
+                        <span id="table-avaria-info">Mostrando 0-0 de 0 registros</span>
+                        <div class="pagination">
+                            <button id="btn-avaria-prev" class="pagination-btn"><i class="fa-solid fa-chevron-left"></i></button>
+                            <span id="page-avaria-num">1</span>
+                            <button id="btn-avaria-next" class="pagination-btn"><i class="fa-solid fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Painel Controle Bauru -->
+            <div id="panel-controle" class="content-panel" style="display: none;">
+                <!-- Container de KPIs do Controle Bauru -->
+                <section class="kpi-container">
+                    <!-- Total Presentes -->
+                    <div class="kpi-card" id="kpi-ctrl-presentes">
+                        <div class="kpi-icon icon-blue"><i class="fa-solid fa-users"></i></div>
+                        <div class="kpi-info">
+                            <h3>Total Presentes</h3>
+                            <span class="kpi-value" id="val-ctrl-presentes">-</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Produtividade PPH -->
+                    <div class="kpi-card" id="kpi-ctrl-pph">
+                        <div class="kpi-icon icon-green"><i class="fa-solid fa-gauge-high"></i></div>
+                        <div class="kpi-info">
+                            <h3>Produtividade (PPH)</h3>
+                            <span class="kpi-value" id="val-ctrl-pph">-</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Volume Recebido -->
+                    <div class="kpi-card" id="kpi-ctrl-recebido">
+                        <div class="kpi-icon icon-blue"><i class="fa-solid fa-download"></i></div>
+                        <div class="kpi-info">
+                            <h3>Volume Recebido</h3>
+                            <span class="kpi-value" id="val-ctrl-recebido">-</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Volume Expedido -->
+                    <div class="kpi-card" id="kpi-ctrl-expedido">
+                        <div class="kpi-icon icon-green"><i class="fa-solid fa-upload"></i></div>
+                        <div class="kpi-info">
+                            <h3>Volume Expedido</h3>
+                            <span class="kpi-value" id="val-ctrl-expedido">-</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Backlog Final -->
+                    <div class="kpi-card" id="kpi-ctrl-backlog">
+                        <div class="kpi-icon icon-red"><i class="fa-solid fa-boxes-stacked"></i></div>
+                        <div class="kpi-info">
+                            <h3>Backlog Final</h3>
+                            <span class="kpi-value" id="val-ctrl-backlog">-</span>
+                        </div>
+                    </div>
+
+                    <!-- Erros de Triagem -->
+                    <div class="kpi-card" id="kpi-ctrl-erros-triagem">
+                        <div class="kpi-icon icon-red"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                        <div class="kpi-info">
+                            <h3>Erros de Triagem</h3>
+                            <span class="kpi-value" id="val-ctrl-erros-triagem">-</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Grid de Detalhes de RH e Volumes -->
+                <section class="charts-grid">
+                    <!-- Recursos Humanos -->
+                    <div class="chart-card glass">
+                        <div class="chart-header">
+                            <h2>Recursos Humanos</h2>
+                        </div>
+                        <div class="info-list">
+                            <div class="info-item">
+                                <span class="info-label">HC Total Disponível</span>
+                                <span class="info-value" id="val-ctrl-hc-total">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Total Presentes</span>
+                                <span class="info-value" id="val-ctrl-presentes-rh">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">% Presença</span>
+                                <span class="info-value" id="val-ctrl-presenca-pct">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">H.C. Presente</span>
+                                <span class="info-value" id="val-ctrl-hc-presente">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Diaristas</span>
+                                <span class="info-value" id="val-ctrl-diaristas">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Folgas</span>
+                                <span class="info-value" id="val-ctrl-folgas">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Faltas</span>
+                                <span class="info-value" id="val-ctrl-faltas">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Atestados</span>
+                                <span class="info-value" id="val-ctrl-atestados">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Produtividade (PHH)</span>
+                                <span class="info-value" id="val-ctrl-produtividade-phh">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detalhamento de Volumes -->
+                    <div class="chart-card glass">
+                        <div class="chart-header">
+                            <h2>Fluxo de Volumes</h2>
+                        </div>
+                        <div class="info-list">
+                            <div class="info-item">
+                                <span class="info-label">Backlog Anterior</span>
+                                <span class="info-value" id="val-ctrl-backlog-anterior">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Volume Planejado</span>
+                                <span class="info-value" id="val-ctrl-vol-planejado">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Coleta Realizada</span>
+                                <span class="info-value" id="val-ctrl-coletas">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">% Expedição</span>
+                                <span class="info-value" id="val-ctrl-exp-pct">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Expedido BRE (SOC)</span>
+                                <span class="info-value" id="val-ctrl-exp-bre">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Expedido RAO (SOC)</span>
+                                <span class="info-value" id="val-ctrl-exp-rao">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Gráficos Analíticos -->
+                <section class="charts-grid">
+                    <!-- Evolução de Sem Movimentação -->
+                    <div class="chart-card glass" style="grid-column: 1 / -1;">
+                        <div class="chart-header">
+                            <h2>Histórico Sem Movimentação</h2>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="chart-ctrl-semmov"></canvas>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Tabela de Recebimento de Veículos -->
+                <section class="table-section glass">
+                    <div class="table-header">
+                        <h2>Recebimento de Veículos (Transporte)</h2>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="data-table" id="data-table-controle-transp">
+                            <thead>
+                                <tr>
+                                    <th>Veículo / SC</th>
+                                    <th>Vol. Planejado</th>
+                                    <th>Vol. Recebido</th>
+                                    <th>Previsão</th>
+                                    <th>Chegada</th>
+                                    <th>Deslacre</th>
+                                    <th>Fin. Bipagem</th>
+                                    <th>Status</th>
+                                    <th>ID Viagem</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-controle-transp-body">
+                                <tr>
+                                    <td colspan="9" style="text-align: center;">Carregando recebimentos de veículos...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Taxa de Expedição no Prazo (HUB -> PDD) -->
+                <section class="table-section glass" style="margin-top: 24px;">
+                    <div class="table-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                        <h2 style="display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-clock-rotate-left"></i> Taxa de Expedição no Prazo (HUB &rarr; PDD)
+                        </h2>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span id="badge-taxa-exp-total" class="badge" style="background: rgba(59, 130, 246, 0.2); color: #60A5FA; border: 1px solid rgba(59, 130, 246, 0.3); font-size: 12px; padding: 4px 10px; border-radius: 8px; font-weight: 600;">
+                                Total: -
+                            </span>
+                            <span id="badge-taxa-exp-geral" class="badge badge-concluido" style="font-size: 13px; padding: 5px 12px; font-weight: 700; border-radius: 8px;">
+                                Taxa Geral: -
+                            </span>
+                        </div>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="data-table" id="data-table-taxa-expedicao-prazo">
+                            <thead>
+                                <tr>
+                                    <th>Destino / Rota</th>
+                                    <th style="text-align: right;">Qtd a Expedir (HUB)</th>
+                                    <th style="text-align: right;">Qtd Expedida no Prazo</th>
+                                    <th style="text-align: right;">Qtd Fora do Prazo</th>
+                                    <th style="text-align: right;">Anormalidade</th>
+                                    <th style="text-align: center;">Taxa de Expedição no Prazo</th>
+                                    <th style="text-align: center;">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-taxa-expedicao-prazo-body">
+                                <tr>
+                                    <td colspan="7" style="text-align: center;">Carregando taxa de expedição no prazo...</td>
+                                </tr>
+                            </tbody>
+                            <tfoot id="table-taxa-expedicao-prazo-footer" style="font-weight: 700; background: rgba(255, 255, 255, 0.04); border-top: 1px solid rgba(255, 255, 255, 0.1);">
+                            </tfoot>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Fechamento de Turno & Detalhamento de Expedição -->
+                <section class="charts-grid" style="margin-top: 24px;">
+                    <!-- Detalhamento de Expedição (Rotas) -->
+                    <div class="chart-card glass" style="grid-column: span 2;">
+                        <div class="chart-header">
+                            <h2 style="display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-truck-ramp-box"></i> Detalhamento de Expedição (Rotas)</h2>
+                        </div>
+                        <div class="expedicao-tables-container">
+                            <!-- Tabela 1 (Esquerda) -->
+                            <div class="table-wrapper">
+                                <table class="data-table" id="data-table-controle-expedicao-1">
+                                    <thead>
+                                        <tr>
+                                            <th>Destino / Rota</th>
+                                            <th style="text-align: right;">Volume Expedido</th>
+                                            <th style="text-align: right;">Hora Real de Saída</th>
+                                            <th style="text-align: right;">Horário de Corte</th>
+                                            <th style="text-align: center;">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="table-controle-expedicao-body-1">
+                                        <tr>
+                                            <td colspan="5" style="text-align: center;">Carregando expedição...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- Tabela 2 (Direita) -->
+                            <div class="table-wrapper">
+                                <table class="data-table" id="data-table-controle-expedicao-2">
+                                    <thead>
+                                        <tr>
+                                            <th>Destino / Rota</th>
+                                            <th style="text-align: right;">Volume Expedido</th>
+                                            <th style="text-align: right;">Hora Real de Saída</th>
+                                            <th style="text-align: right;">Horário de Corte</th>
+                                            <th style="text-align: center;">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="table-controle-expedicao-body-2">
+                                        <tr>
+                                            <td colspan="5" style="text-align: center;">Carregando expedição...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gestão de Backlog & Sem Movimentação -->
+                    <div class="chart-card glass" style="grid-column: span 1; height: auto; min-height: 520px;">
+                        <div class="chart-header" style="display: flex; justify-content: space-between; align-items: center;">
+                            <h2 style="display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-gauge-high"></i> Gestão de Backlog & Sem Mov</h2>
+                            <span id="gestao-date-badge" class="badge" style="background: rgba(59, 130, 246, 0.2); color: #3B82F6; font-size: 11px; padding: 4px 8px; border-radius: 12px; font-weight: 600;">-</span>
+                        </div>
+                        <div class="card-body" style="padding: 16px; display: flex; flex-direction: column; gap: 20px;">
+                            <!-- Tabela Gestão -->
+                            <div class="table-wrapper" style="overflow-x: auto;">
+                                <table class="data-table" id="data-table-controle-gestao" style="font-size: 11px; width: 100%;">
+                                    <thead>
+                                        <tr>
+                                            <th style="padding: 6px;">Indicador</th>
+                                            <th style="padding: 6px; text-align: center;">1 Dia</th>
+                                            <th style="padding: 6px; text-align: center;">2 a 4 dias</th>
+                                            <th style="padding: 6px; text-align: center;">5 dias</th>
+                                            <th style="padding: 6px; text-align: center;">6 a 9 dias</th>
+                                            <th style="padding: 6px; text-align: center;">10 Dias +</th>
+                                            <th style="padding: 6px; text-align: center;">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="table-controle-gestao-body">
+                                        <tr>
+                                            <td colspan="7" style="text-align: center;">Carregando gestão...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <!-- Gráfico de Gestão -->
+                            <div style="flex-grow: 1; height: 220px; position: relative;">
+                                <canvas id="chart-controle-gestao"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Resumo de Fechamento de Turno -->
+                    <div class="chart-card glass" style="grid-column: span 1; height: auto; min-height: 520px; display: flex; flex-direction: column;">
+                        <div class="chart-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 12px; margin-bottom: 16px;">
+                            <h2 style="display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-file-invoice"></i> Resumo de Fechamento</h2>
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <button id="btn-copiar-resumo" class="btn-copy">
+                                    <i class="fa-solid fa-copy"></i> Copiar Resumo
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body" style="padding: 0px 16px 16px 16px; display: flex; flex-direction: column; gap: 15px; flex-grow: 1;">
+                            <textarea id="txt-resumo-fechamento" readonly style="width: 100%; flex-grow: 1; min-height: 360px; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; color: #E5E7EB; font-family: 'Outfit', monospace; font-size: 12px; padding: 12px; resize: none; outline: none; line-height: 1.6;"></textarea>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Painel Volume Expedido DC BAU -->
+            <div id="panel-volume-exp-dc-bau" class="content-panel" style="display: none;">
+                <!-- Container de KPIs -->
+                <section class="kpi-container">
+                    <!-- Volume Previsto -->
+                    <div class="kpi-card" id="kpi-vol-exp-previsto">
+                        <div class="kpi-icon icon-blue"><i class="fa-solid fa-box"></i></div>
+                        <div class="kpi-info">
+                            <h3>Volume Previsto</h3>
+                            <span class="kpi-value" id="val-vol-exp-previsto">-</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Volume Recebido -->
+                    <div class="kpi-card" id="kpi-vol-exp-recebido">
+                        <div class="kpi-icon icon-green"><i class="fa-solid fa-download"></i></div>
+                        <div class="kpi-info">
+                            <h3>Volume Recebido</h3>
+                            <span class="kpi-value" id="val-vol-exp-recebido">-</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Expedido Não Chegou -->
+                    <div class="kpi-card" id="kpi-vol-exp-nao-chegou">
+                        <div class="kpi-icon icon-red"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                        <div class="kpi-info">
+                            <h3>Expedido Não Chegou</h3>
+                            <span class="kpi-value" id="val-vol-exp-nao-chegou">-</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Eficiência de Recebimento -->
+                    <div class="kpi-card" id="kpi-vol-exp-eficiencia">
+                        <div class="kpi-icon icon-yellow"><i class="fa-solid fa-percent"></i></div>
+                        <div class="kpi-info">
+                            <h3>Eficiência de Recebimento</h3>
+                            <span class="kpi-value" id="val-vol-exp-eficiencia">-</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Grid de Gráfico e Tabela -->
+                <section class="charts-grid">
+                    <!-- Tabela de Detalhes -->
+                    <div class="chart-card glass" style="grid-column: span 2;">
+                        <div class="chart-header">
+                            <h2 style="display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-table-list"></i> Detalhes por Carro / Fluxo</h2>
+                        </div>
+                        <div class="table-wrapper" style="margin-top: 15px;">
+                            <table class="data-table" id="data-table-volume-exp">
+                                <thead>
+                                    <tr>
+                                        <th>Data</th>
+                                        <th>Carro / Rota / Destino</th>
+                                        <th style="text-align: right;">Volume Previsto</th>
+                                        <th style="text-align: right;">Volume Recebido</th>
+                                        <th style="text-align: right;">Diferença</th>
+                                        <th style="text-align: right;">Expedido Não Chegou</th>
+                                        <th style="text-align: center;">Eficiência</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-volume-exp-body">
+                                    <tr>
+                                        <td colspan="7" style="text-align: center;">Carregando dados...</td>
+                                    </tr>
+                                </tbody>
+                                <tfoot id="table-volume-exp-footer">
+                                    <!-- Preenchido dinamicamente com os Totais do Ciclo -->
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Gráfico Comparativo -->
+                    <div class="chart-card glass" style="grid-column: span 1;">
+                        <div class="chart-header">
+                            <h2 style="display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-chart-column"></i> Previsto vs Recebido</h2>
+                        </div>
+                        <div class="chart-wrapper" style="margin-top: 15px; height: 320px; position: relative;">
+                            <canvas id="chart-volume-exp-comparativo"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Gráfico Cargas Não Entregues -->
+                    <div class="chart-card glass" style="grid-column: span 1;">
+                        <div class="chart-header">
+                            <h2 style="display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-chart-pie"></i> Cargas Não Entregues por Carro</h2>
+                        </div>
+                        <div class="chart-wrapper" style="margin-top: 15px; height: 320px; position: relative;">
+                            <canvas id="chart-volume-exp-nao-chegou-dist"></canvas>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Painel Recebimento -->
+            <div id="panel-recebimento" class="content-panel" style="display: none;">
+                <style>
+                    @media (min-width: 1025px) {
+                        #panel-recebimento .kpi-container {
+                            grid-template-columns: repeat(3, 1fr) !important;
+                        }
+                    }
+                </style>
+                <!-- Container de KPIs -->
+                <section class="kpi-container">
+                    <!-- Recebimento Total -->
+                    <div class="kpi-card" id="kpi-receb-total-dia">
+                        <div class="kpi-icon icon-blue"><i class="fa-solid fa-box"></i></div>
+                        <div class="kpi-info">
+                            <h3>Recebimento Total (Dia)</h3>
+                            <span class="kpi-value" id="val-receb-total-dia">-</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Sem Bipe de Coleta -->
+                    <div class="kpi-card" id="kpi-receb-sem-bipe">
+                        <div class="kpi-icon icon-red"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                        <div class="kpi-info" style="width: 100%;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                                <h3>Sem Bipe de Coleta de Chegada</h3>
+                                <span class="badge" id="pct-receb-sem-bipe" style="font-size: 13px; padding: 2px 8px; border-radius: 4px; font-weight: bold; background-color: rgba(239, 68, 68, 0.15); color: #EF4444;">-</span>
+                            </div>
+                            <span class="kpi-value" id="val-receb-sem-bipe">-</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Diferença (Bipado) -->
+                    <div class="kpi-card" id="kpi-receb-diferenca">
+                        <div class="kpi-icon icon-green"><i class="fa-solid fa-check-double"></i></div>
+                        <div class="kpi-info" style="width: 100%;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                                <h3>Diferença (Bipado)</h3>
+                                <span class="badge" id="pct-receb-eficiencia" style="font-size: 13px; padding: 2px 8px; border-radius: 4px; font-weight: bold; background-color: rgba(16, 185, 129, 0.15); color: #10B981;">-</span>
+                            </div>
+                            <span class="kpi-value" id="val-receb-diferenca">-</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Grid de Gráficos e Tabelas -->
+                <section class="charts-grid">
+                    <!-- Gráfico de Totais por Veículo -->
+                    <div class="chart-card glass" style="grid-column: span 1;">
+                        <div class="chart-header">
+                            <h2 style="display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-chart-column"></i> Diferença de Coleta e Inserido em Lote por Caminhão</h2>
+                        </div>
+                        <div class="chart-wrapper" style="margin-top: 15px; height: 350px; position: relative;">
+                            <canvas id="chart-recebimento-comparativo"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Tabela Detalhada Consolidadada -->
+                    <div class="chart-card glass" style="grid-column: span 1;">
+                        <div class="chart-header">
+                            <h2 style="display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-table-list"></i> Detalhes Consolidados do Recebimento</h2>
+                        </div>
+                        <div class="table-wrapper" style="margin-top: 15px;">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Carro</th>
+                                        <th style="text-align: right;">Total</th>
+                                        <th style="text-align: right;">Coleta Chegada</th>
+                                        <th style="text-align: right;">Inserido Lote</th>
+                                        <th style="text-align: right;">Sem Bipe</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-recebimento-body">
+                                    <tr>
+                                        <td colspan="5" style="text-align: center;">Selecione uma data...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Histórico Comparativo (Últimos 5 Dias) -->
+                <section class="charts-grid" style="margin-top: 30px;">
+                    <!-- Gráfico Histórico de Recebimento e Sem Bipe -->
+                    <div class="chart-card glass" style="grid-column: span 2;">
+                        <div class="chart-header">
+                            <h2 style="display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-chart-line"></i> Histórico Comparativo (Últimos 5 Dias)</h2>
+                        </div>
+                        <div class="chart-wrapper" style="margin-top: 15px; height: 320px; position: relative;">
+                            <canvas id="chart-recebimento-historico"></canvas>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Painel Volumetria Diária -->
+            <div id="panel-volumetria" class="content-panel" style="display: none; flex-direction: column; gap: 16px;">
+                <style>
+                    #panel-volumetria .kpi-container {
+                        display: grid;
+                        grid-template-columns: repeat(5, 1fr);
+                        gap: 10px;
+                        margin-bottom: 0px;
+                    }
+                    @media (max-width: 1200px) {
+                        #panel-volumetria .kpi-container {
+                            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+                        }
+                    }
+                    #panel-volumetria .kpi-card {
+                        padding: 10px 14px;
+                        gap: 10px;
+                    }
+                    #panel-volumetria .kpi-card .kpi-icon {
+                        width: 38px;
+                        height: 38px;
+                        font-size: 16px;
+                    }
+                    #panel-volumetria .kpi-card h3 {
+                        font-size: 11px;
+                        margin-bottom: 2px;
+                    }
+                    #panel-volumetria .kpi-card .kpi-value {
+                        font-size: 19px;
+                    }
+                    #panel-volumetria .kpi-card .kpi-pct {
+                        font-size: 10.5px;
+                        padding: 2px 6px;
+                    }
+
+                    #table-volumetria {
+                        width: 100%;
+                        border-collapse: collapse;
+                    }
+                    #table-volumetria th {
+                        padding: 7px 8px !important;
+                        font-size: 11px !important;
+                        font-weight: 700;
+                        text-transform: uppercase;
+                        letter-spacing: 0.3px;
+                        white-space: nowrap;
+                    }
+                    #table-volumetria td {
+                        padding: 6px 8px !important;
+                        font-size: 11.5px !important;
+                        vertical-align: middle;
+                    }
+                    .volumetria-badge-transito {
+                        background: rgba(59, 130, 246, 0.15);
+                        color: #60A5FA;
+                        border: 1px solid rgba(59, 130, 246, 0.3);
+                        font-weight: 600;
+                        padding: 2px 6px;
+                        border-radius: 4px;
+                        font-size: 10.5px;
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 4px;
+                        white-space: nowrap;
+                    }
+                    .volumetria-badge-concluido {
+                        background: rgba(16, 185, 129, 0.15);
+                        color: #34D399;
+                        border: 1px solid rgba(16, 185, 129, 0.3);
+                        font-weight: 600;
+                        padding: 2px 6px;
+                        border-radius: 4px;
+                        font-size: 10.5px;
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 4px;
+                        white-space: nowrap;
+                    }
+                    .volumetria-badge-programado {
+                        background: rgba(245, 158, 11, 0.15);
+                        color: #FBBF24;
+                        border: 1px solid rgba(245, 158, 11, 0.3);
+                        font-weight: 600;
+                        padding: 2px 6px;
+                        border-radius: 4px;
+                        font-size: 10.5px;
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 4px;
+                        white-space: nowrap;
+                    }
+                    .badge-finalizado-red {
+                        background: #991B1B;
+                        color: #FFFFFF;
+                        font-weight: 700;
+                        padding: 2px 8px;
+                        border-radius: 12px;
+                        font-size: 10px;
+                        letter-spacing: 0.3px;
+                        display: inline-block;
+                        white-space: nowrap;
+                    }
+                    .volumetria-cell-input {
+                        background: rgba(255, 255, 255, 0.05);
+                        border: 1px solid rgba(255, 255, 255, 0.12);
+                        border-radius: 4px;
+                        color: #E5E7EB;
+                        font-family: monospace;
+                        font-size: 11px;
+                        padding: 3px 4px;
+                        text-align: center;
+                        width: 64px;
+                        height: 24px;
+                        box-sizing: border-box;
+                        transition: all 0.2s ease;
+                        outline: none;
+                    }
+                    .volumetria-cell-input:focus {
+                        background: rgba(0, 0, 0, 0.6);
+                        border-color: #3B82F6;
+                        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+                        color: #FFFFFF;
+                    }
+                    .volumetria-cell-input::placeholder {
+                        color: rgba(156, 163, 175, 0.4);
+                        font-style: italic;
+                        font-size: 10px;
+                    }
+                    .volumetria-bipado-input {
+                        width: 78px !important;
+                        text-align: right !important;
+                        font-weight: 700 !important;
+                        color: #34D399 !important;
+                        font-size: 12px !important;
+                        font-family: 'Outfit', monospace !important;
+                    }
+                    .volumetria-bipado-input::-webkit-outer-spin-button,
+                    .volumetria-bipado-input::-webkit-inner-spin-button {
+                        -webkit-appearance: none;
+                        margin: 0;
+                    }
+                    .volumetria-bipado-input[type=number] {
+                        -moz-appearance: textfield;
+                    }
+                    .volumetria-status-select {
+                        border-radius: 12px;
+                        font-size: 10px;
+                        font-weight: 700;
+                        letter-spacing: 0.3px;
+                        padding: 2px 8px;
+                        height: 24px;
+                        cursor: pointer;
+                        outline: none;
+                        border: 1px solid transparent;
+                        transition: all 0.2s ease;
+                        text-align: center;
+                        text-align-last: center;
+                    }
+                    .volumetria-status-select option {
+                        background: #111827;
+                        color: #FFFFFF;
+                        font-weight: 600;
+                    }
+                    .volumetria-obs-input {
+                        background: rgba(255, 255, 255, 0.05);
+                        border: 1px solid rgba(255, 255, 255, 0.12);
+                        border-radius: 4px;
+                        color: #E5E7EB;
+                        font-family: 'Outfit', sans-serif;
+                        font-size: 11px;
+                        padding: 3px 6px;
+                        width: 100%;
+                        min-width: 90px;
+                        max-width: 150px;
+                        height: 24px;
+                        box-sizing: border-box;
+                        transition: all 0.2s ease;
+                        outline: none;
+                    }
+                    .volumetria-obs-input:focus {
+                        background: rgba(0, 0, 0, 0.5);
+                        border-color: #3B82F6;
+                        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+                        color: #FFFFFF;
+                    }
+                    .volumetria-obs-input::placeholder {
+                        color: rgba(156, 163, 175, 0.4);
+                        font-style: italic;
+                        font-size: 10.5px;
+                    }
+                    .volumetria-top-bar {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        background: rgba(255, 255, 255, 0.03);
+                        border: 1px solid rgba(255, 255, 255, 0.08);
+                        border-radius: 10px;
+                        padding: 8px 14px;
+                        flex-wrap: wrap;
+                        gap: 10px;
+                    }
+                </style>
+
+                <!-- Barra de Ações Rápidas do Painel -->
+                <div class="volumetria-top-bar">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span class="badge" style="background: rgba(59, 130, 246, 0.2); color: #60A5FA; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600;">
+                            <i class="fa-solid fa-calendar-day" style="margin-right: 5px;"></i> Referência: <span id="volumetria-ref-date">-</span>
+                        </span>
+                        <span style="font-size: 11.5px; color: var(--text-muted);">
+                            Atualização: <strong id="volumetria-last-update" style="color: var(--text-primary);">-</strong>
+                        </span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <button id="btn-volumetria-copy-summary" class="btn btn-secondary" style="padding: 6px 12px; font-size: 11.5px;">
+                            <i class="fa-solid fa-copy"></i> Copiar Resumo
+                        </button>
+                        <button id="btn-volumetria-upload-trigger" class="btn btn-primary" style="padding: 6px 14px; font-size: 11.5px;">
+                            <i class="fa-solid fa-file-arrow-up"></i> Importar Planilha
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Container de KPIs (Layout Fiel à Planilha Operacional) -->
+                <section class="kpi-container">
+                    <!-- Previsto -->
+                    <div class="kpi-card" id="kpi-vol-previsto">
+                        <div class="kpi-icon icon-blue"><i class="fa-solid fa-clipboard-list"></i></div>
+                        <div class="kpi-info" style="width: 100%;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <h3>Previsto</h3>
+                                <button id="btn-edit-vol-previsto" title="Editar volume previsto" style="background: none; border: none; color: #60A5FA; cursor: pointer; font-size: 11px; padding: 2px 4px;"><i class="fa-solid fa-pen-to-square"></i></button>
+                            </div>
+                            <span class="kpi-value" id="val-vol-previsto">-</span>
+                        </div>
+                    </div>
+
+                    <!-- Bipado (Volume total da coluna bipado) -->
+                    <div class="kpi-card" id="kpi-vol-bipados">
+                        <div class="kpi-icon icon-green"><i class="fa-solid fa-barcode"></i></div>
+                        <div class="kpi-info">
+                            <h3>Bipado</h3>
+                            <span class="kpi-value" id="val-vol-bipados">-</span>
+                        </div>
+                    </div>
+
+                    <!-- Coletas -->
+                    <div class="kpi-card" id="kpi-vol-coletas">
+                        <div class="kpi-icon icon-yellow"><i class="fa-solid fa-truck-pickup"></i></div>
+                        <div class="kpi-info" style="width: 100%;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <h3>Coletas</h3>
+                                <button id="btn-edit-vol-coletas" title="Editar volume de coletas" style="background: none; border: none; color: #FBBF24; cursor: pointer; font-size: 11px; padding: 2px 4px;"><i class="fa-solid fa-pen-to-square"></i></button>
+                            </div>
+                            <span class="kpi-value" id="val-vol-coletas">-</span>
+                        </div>
+                    </div>
+
+                    <!-- Total no Piso -->
+                    <div class="kpi-card" id="kpi-vol-total-piso" style="border: 1px solid rgba(16, 185, 129, 0.3);">
+                        <div class="kpi-icon icon-green" style="background: rgba(16, 185, 129, 0.2);"><i class="fa-solid fa-layer-group"></i></div>
+                        <div class="kpi-info">
+                            <h3>Total no Piso</h3>
+                            <span class="kpi-value" id="val-vol-total-piso" style="color: #34D399;">-</span>
+                        </div>
+                    </div>
+
+                    <!-- Diferença / Eficiência -->
+                    <div class="kpi-card" id="kpi-vol-diferenca">
+                        <div class="kpi-icon icon-green"><i class="fa-solid fa-chart-line"></i></div>
+                        <div class="kpi-info">
+                            <h3>Diferença Bipagem</h3>
+                            <span class="kpi-value" id="val-vol-diferenca">-</span>
+                            <span class="kpi-pct pct-green" id="pct-vol-eficiencia">100%</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Tabela Principal de Volumetria Operacional -->
+                <section class="chart-card glass" style="width: 100%; padding: 14px 18px;">
+                    <div class="chart-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 8px;">
+                        <h2 style="display: flex; align-items: center; gap: 8px; font-size: 14px;">
+                            <i class="fa-solid fa-table-cells"></i> Controle de Volumetria e Viagens
+                        </h2>
+                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                            <span id="volumetria-save-status" style="display: none; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 6px; transition: all 0.3s; opacity: 0; border: 1px solid transparent;"></span>
+                            <button id="btn-volumetria-open-add-truck" class="btn btn-primary" style="padding: 5px 12px; font-size: 11.5px; display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #10B981, #059669); border: none; border-radius: 6px; color: #FFFFFF; font-weight: 600; cursor: pointer; box-shadow: 0 2px 6px rgba(16,185,129,0.3);">
+                                <i class="fa-solid fa-truck-medical"></i> + Caminhão Extra
+                            </button>
+                            <div class="search-box" style="position: relative;">
+                                <input type="text" id="volumetria-table-search" placeholder="Pesquisar ID, PDD..." style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 4px 10px; color: #FFFFFF; font-size: 11.5px; width: 180px;">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-wrapper" style="margin-top: 10px; overflow-x: auto;">
+                        <table class="data-table" id="table-volumetria">
+                            <thead>
+                                <tr>
+                                    <th>ID Transporte</th>
+                                    <th>Status Viagem</th>
+                                    <th>PDD Saída</th>
+                                    <th style="text-align: right;">Pedido Sist.</th>
+                                    <th style="text-align: center;">Prev. Chegada</th>
+                                    <th style="text-align: center;">Chegada Real</th>
+                                    <th style="text-align: center;">Início Coleta</th>
+                                    <th style="text-align: center;">Fim Coleta</th>
+                                    <th style="text-align: center;">Status</th>
+                                    <th>OBS</th>
+                                    <th style="text-align: right;">Bipado</th>
+                                    <th style="text-align: center; width: 45px;">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-volumetria-body">
+                                <tr>
+                                    <td colspan="12" style="text-align: center; padding: 16px;">Carregando dados de volumetria...</td>
+                                </tr>
+                            </tbody>
+                            <tfoot id="table-volumetria-footer" style="border-top: 2px solid rgba(255,255,255,0.2); font-weight: 700; background: rgba(255,255,255,0.04);">
+                                <tr>
+                                    <td colspan="3" style="text-align: right; color: #9CA3AF; padding: 6px 8px; font-size: 11px;">TOTAIS:</td>
+                                    <td style="text-align: right; color: #60A5FA; padding: 6px 8px; font-size: 11.5px;" id="foot-vol-previsto">-</td>
+                                    <td colspan="6"></td>
+                                    <td style="text-align: right; color: #34D399; padding: 6px 8px; font-size: 12px;" id="foot-vol-bipado">-</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Grid de Gráficos Analíticos -->
+                <section class="charts-grid">
+                    <!-- Gráfico Comparativo: Pedido Sistema vs Bipado por PDD -->
+                    <div class="chart-card glass" style="grid-column: span 2;">
+                        <div class="chart-header">
+                            <h2 style="display: flex; align-items: center; gap: 8px;">
+                                <i class="fa-solid fa-chart-column"></i> Comparativo: Pedido Sistema vs Volume Bipado por Viagem / PDD
+                            </h2>
+                        </div>
+                        <div class="chart-wrapper" style="margin-top: 15px; height: 320px; position: relative;">
+                            <canvas id="chart-volumetria-comparativo"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Gráfico Rosca: Composição do Volume no Piso -->
+                    <div class="chart-card glass" style="grid-column: span 1;">
+                        <div class="chart-header">
+                            <h2 style="display: flex; align-items: center; gap: 8px;">
+                                <i class="fa-solid fa-chart-pie"></i> Composição do Piso (Total)
+                            </h2>
+                        </div>
+                        <div class="chart-wrapper" style="margin-top: 15px; height: 320px; position: relative;">
+                            <canvas id="chart-volumetria-composicao"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Gráfico de Status de Viagem -->
+                    <div class="chart-card glass" style="grid-column: span 1;">
+                        <div class="chart-header">
+                            <h2 style="display: flex; align-items: center; gap: 8px;">
+                                <i class="fa-solid fa-route"></i> Distribuição por Status de Viagem
+                            </h2>
+                        </div>
+                        <div class="chart-wrapper" style="margin-top: 15px; height: 320px; position: relative;">
+                            <canvas id="chart-volumetria-status"></canvas>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Modal / Dropzone de Upload de Planilha de Volumetria -->
+            <div id="modal-volumetria-upload" class="modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 9999; align-items: center; justify-content: center;">
+                <div class="modal-card glass" style="background: #111827; border: 1px solid rgba(255,255,255,0.15); border-radius: 16px; padding: 24px; width: 90%; max-width: 500px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px;">
+                        <h3 style="display: flex; align-items: center; gap: 10px; font-size: 16px; color: #FFFFFF; margin: 0;">
+                            <i class="fa-solid fa-file-excel" style="color: #10B981;"></i> Importar Planilha de Volumetria
+                        </h3>
+                        <button id="btn-close-volumetria-modal" style="background: none; border: none; color: #9CA3AF; cursor: pointer; font-size: 18px;">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                    <p style="font-size: 13px; color: #9CA3AF; margin-bottom: 20px; line-height: 1.5;">
+                        Selecione ou arraste o arquivo Excel (.xlsx, .xls ou .csv) contendo a tabela de Volumetria para atualizar os dados operacionais do painel.
+                    </p>
+                    <div id="volumetria-dropzone" style="border: 2px dashed rgba(59, 130, 246, 0.4); border-radius: 12px; padding: 30px 20px; text-align: center; background: rgba(59, 130, 246, 0.05); cursor: pointer; transition: all 0.2s;">
+                        <i class="fa-solid fa-cloud-arrow-up" style="font-size: 36px; color: #60A5FA; margin-bottom: 12px;"></i>
+                        <p style="font-size: 14px; font-weight: 500; color: #FFFFFF; margin: 0 0 6px 0;">Clique para escolher ou arraste o arquivo aqui</p>
+                        <span style="font-size: 11px; color: #9CA3AF;">Suporta .xlsx, .xls e .csv</span>
+                        <input type="file" id="volumetria-file-input" accept=".xlsx,.xls,.csv" style="display: none;">
+                    </div>
+                    <div id="volumetria-upload-status" style="display: none; margin-top: 15px; padding: 10px; border-radius: 8px; font-size: 12px;"></div>
+                </div>
+            </div>
+
+            <!-- Modal: Adicionar Caminhão Extra (Volumetria Diária) -->
+            <div id="modal-volumetria-add-truck" class="modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(4px); z-index: 9999; justify-content: center; align-items: center; padding: 15px;">
+                <div class="glass" style="background: #111827; border: 1px solid rgba(255,255,255,0.15); border-radius: 14px; width: 100%; max-width: 580px; padding: 22px; box-shadow: 0 20px 30px rgba(0,0,0,0.6); color: #F3F4F6;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px; margin-bottom: 16px;">
+                        <h3 style="font-size: 15px; font-weight: 700; color: #FFFFFF; display: flex; align-items: center; gap: 8px; margin: 0;">
+                            <i class="fa-solid fa-truck-medical" style="color: #10B981;"></i> Adicionar Caminhão Extra / Viagem
+                        </h3>
+                        <button type="button" id="btn-close-volumetria-add-truck" style="background: none; border: none; color: #9CA3AF; cursor: pointer; font-size: 18px; line-height: 1;">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                    
+                    <form id="form-volumetria-add-truck" style="display: flex; flex-direction: column; gap: 12px;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div>
+                                <label style="display: block; font-size: 11px; font-weight: 600; color: #9CA3AF; margin-bottom: 4px; text-transform: uppercase;">
+                                    ID de Transporte <span style="color: #EF4444;">*</span>
+                                </label>
+                                <input type="text" id="add-vol-id-transporte" required placeholder="Ex: SRTR22605999999" style="width: 100%; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; padding: 7px 10px; color: #60A5FA; font-weight: 600; font-size: 12px;">
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 11px; font-weight: 600; color: #9CA3AF; margin-bottom: 4px; text-transform: uppercase;">
+                                    PDD de Saída <span style="color: #EF4444;">*</span>
+                                </label>
+                                <select id="add-vol-pdd-saida" required style="width: 100%; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; padding: 7px 10px; color: #FFFFFF; font-weight: 600; font-size: 12px;">
+                                    <option value="SP BRE" selected>SP BRE</option>
+                                    <option value="SN RAO">SN RAO</option>
+                                    <option value="F IBG-SP">F IBG-SP</option>
+                                    <option value="EXT -MG">EXT -MG</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div>
+                                <label style="display: block; font-size: 11px; font-weight: 600; color: #9CA3AF; margin-bottom: 4px; text-transform: uppercase;">
+                                    Pedido Sistêmico (Previsto) <span style="color: #EF4444;">*</span>
+                                </label>
+                                <input type="number" id="add-vol-pedido-sistema" required min="0" step="1" placeholder="Ex: 5000" style="width: 100%; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; padding: 7px 10px; color: #E5E7EB; font-weight: 600; font-size: 12px;">
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 11px; font-weight: 600; color: #9CA3AF; margin-bottom: 4px; text-transform: uppercase;">
+                                    Status da Viagem
+                                </label>
+                                <select id="add-vol-status-viagem" style="width: 100%; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; padding: 7px 10px; color: #34D399; font-weight: 600; font-size: 12px;">
+                                    <option value="Concluído: 已完成" selected>Concluído: 已完成</option>
+                                    <option value="Em Trânsito: 在途中">Em Trânsito: 在途中</option>
+                                    <option value="Programado: 已调度">Programado: 已调度</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+                            <div>
+                                <label style="display: block; font-size: 10px; font-weight: 600; color: #9CA3AF; margin-bottom: 4px;">PREV. CHEGADA</label>
+                                <input type="text" id="add-vol-previsao-chegada" placeholder="14:00" style="width: 100%; text-align: center; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; padding: 6px 4px; color: #FFFFFF; font-size: 11.5px;">
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 10px; font-weight: 600; color: #9CA3AF; margin-bottom: 4px;">CHEGADA REAL</label>
+                                <input type="text" id="add-vol-chegada-real" placeholder="--:--" style="width: 100%; text-align: center; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; padding: 6px 4px; color: #FFFFFF; font-size: 11.5px;">
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 10px; font-weight: 600; color: #9CA3AF; margin-bottom: 4px;">INÍCIO COLETA</label>
+                                <input type="text" id="add-vol-inicio-coleta" placeholder="--:--" style="width: 100%; text-align: center; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; padding: 6px 4px; color: #FFFFFF; font-size: 11.5px;">
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 10px; font-weight: 600; color: #9CA3AF; margin-bottom: 4px;">FIM COLETA</label>
+                                <input type="text" id="add-vol-fim-coleta" placeholder="--:--" style="width: 100%; text-align: center; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; padding: 6px 4px; color: #FFFFFF; font-size: 11.5px;">
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div>
+                                <label style="display: block; font-size: 11px; font-weight: 600; color: #9CA3AF; margin-bottom: 4px; text-transform: uppercase;">
+                                    Status Operacional
+                                </label>
+                                <select id="add-vol-status" style="width: 100%; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; padding: 7px 10px; color: #FBBF24; font-weight: 600; font-size: 12px;">
+                                    <option value="">-- EM BRANCO --</option>
+                                    <option value="NO PÁTIO">NO PÁTIO</option>
+                                    <option value="EM TRÂNSITO">EM TRÂNSITO</option>
+                                    <option value="EM ANDAMENTO">EM ANDAMENTO</option>
+                                    <option value="NO PISO">NO PISO</option>
+                                    <option value="FINALIZADO">FINALIZADO</option>
+                                    <option value="CANCELADO">CANCELADO</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 11px; font-weight: 600; color: #9CA3AF; margin-bottom: 4px; text-transform: uppercase;">
+                                    Volume Bipado Inicial
+                                </label>
+                                <input type="number" id="add-vol-bipado" value="0" min="0" step="1" style="width: 100%; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; padding: 7px 10px; color: #34D399; font-weight: 600; font-size: 12px;">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label style="display: block; font-size: 11px; font-weight: 600; color: #9CA3AF; margin-bottom: 4px; text-transform: uppercase;">
+                                Observações (OBS)
+                            </label>
+                            <input type="text" id="add-vol-obs" placeholder="Ex: Caminhão extra / Reforço operacional" value="Caminhão Extra" style="width: 100%; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; padding: 7px 10px; color: #FFFFFF; font-size: 12px;">
+                        </div>
+
+                        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 12px;">
+                            <button type="button" id="btn-cancel-volumetria-add-truck" class="btn btn-secondary" style="padding: 7px 14px; font-size: 12px;">
+                                Cancelar
+                            </button>
+                            <button type="submit" class="btn btn-primary" style="padding: 7px 16px; font-size: 12px; background: linear-gradient(135deg, #10B981, #059669); font-weight: 600;">
+                                <i class="fa-solid fa-plus"></i> Inserir Caminhão
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- ==================================================== -->
+            <!-- PAINEL 7: RANKING DE OPERADORES & PRODUTIVIDADE HORA A HORA -->
+            <!-- ==================================================== -->
+            <div id="panel-ranking" class="tab-panel" style="display: none; flex-direction: column; gap: 20px;">
+                
+                <!-- Barra de Ações Rápidas do Ranking -->
+                <div class="quick-actions-bar" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; background: rgba(255,255,255,0.02); padding: 12px 18px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                        <span class="badge" style="background: rgba(245, 158, 11, 0.2); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.4); font-weight: 600; padding: 4px 10px; border-radius: 20px; font-size: 12px;">
+                            <i class="fa-solid fa-trophy"></i> Painel de Ranking & Produtividade
+                        </span>
+                        <span class="badge" style="background: rgba(59, 130, 246, 0.15); color: #60A5FA; border: 1px solid rgba(59, 130, 246, 0.3); font-weight: 600; padding: 4px 10px; border-radius: 20px; font-size: 12px;">
+                            <i class="fa-solid fa-clock"></i> Turno: 16h00 às 07h00
+                        </span>
+                        <span id="ranking-date-badge" style="font-size: 13px; color: #9CA3AF;">
+                            <i class="fa-regular fa-calendar" style="margin-right: 4px;"></i> Ref: <strong style="color: #FFFFFF;" id="ranking-data-ref">--/--/----</strong>
+                        </span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span id="ranking-save-status" style="display: none; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 6px; transition: all 0.3s; opacity: 0; border: 1px solid transparent;"></span>
+                        <button id="btn-ranking-clear" class="btn btn-secondary" title="Limpar dados do ranking e iniciar novo turno" style="font-size: 12px; padding: 6px 12px; display: flex; align-items: center; gap: 6px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #F87171; font-weight: 600; border-radius: 8px; cursor: pointer;">
+                            <i class="fa-solid fa-trash-can"></i> Limpar / Novo Turno
+                        </button>
+                        <button id="btn-ranking-upload-trigger" class="btn btn-primary" style="font-size: 12px; padding: 6px 14px; display: flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #2563EB, #1D4ED8); border: none; color: #FFFFFF; font-weight: 600; border-radius: 8px; cursor: pointer;">
+                            <i class="fa-solid fa-cloud-arrow-up"></i> Subir Digitalização
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Grid de 3 Cards no Topo (Design Executivo) -->
+                <section class="kpi-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px;">
+                    <!-- Card 1: Previsto -->
+                    <div class="kpi-card" style="background: #0B111E; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 14px 18px; display: flex; align-items: center; gap: 14px; position: relative;">
+                        <div style="width: 44px; height: 44px; border-radius: 10px; background: rgba(37, 99, 235, 0.15); color: #3B82F6; border: 1px solid rgba(37, 99, 235, 0.3); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;">
+                            <i class="fa-solid fa-clipboard-list"></i>
+                        </div>
+                        <div style="display: flex; flex-direction: column; flex: 1;">
+                            <span style="font-size: 11.5px; color: #9CA3AF; font-weight: 500;">Previsto</span>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <span id="val-ranking-previsto" style="font-size: 20px; font-weight: 800; color: #FFFFFF;">0</span>
+                                <button id="btn-edit-ranking-previsto" title="Alterar valor previsto" style="background: none; border: none; color: #60A5FA; cursor: pointer; font-size: 11px; padding: 2px 4px; opacity: 0.8;"><i class="fa-solid fa-pen-to-square"></i></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 2: Bipado -->
+                    <div class="kpi-card" style="background: #0B111E; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 14px 18px; display: flex; align-items: center; gap: 14px;">
+                        <div style="width: 44px; height: 44px; border-radius: 10px; background: rgba(16, 185, 129, 0.15); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.3); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;">
+                            <i class="fa-solid fa-barcode"></i>
+                        </div>
+                        <div style="display: flex; flex-direction: column;">
+                            <span style="font-size: 11.5px; color: #9CA3AF; font-weight: 500;">Bipado</span>
+                            <span id="val-ranking-bipado" style="font-size: 20px; font-weight: 800; color: #FFFFFF;">0</span>
+                        </div>
+                    </div>
+
+                    <!-- Card 3: Coletas -->
+                    <div class="kpi-card" style="background: #0B111E; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 14px 18px; display: flex; align-items: center; gap: 14px;">
+                        <div style="width: 44px; height: 44px; border-radius: 10px; background: rgba(245, 158, 11, 0.15); color: #F59E0B; border: 1px solid rgba(245, 158, 11, 0.3); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;">
+                            <i class="fa-solid fa-truck-moving"></i>
+                        </div>
+                        <div style="display: flex; flex-direction: column;">
+                            <span style="font-size: 11.5px; color: #9CA3AF; font-weight: 500;">Coletas</span>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <span id="val-ranking-coletas" style="font-size: 20px; font-weight: 800; color: #FFFFFF;">0</span>
+                                <button id="btn-edit-ranking-coletas" title="Alterar valor de coletas" style="background: none; border: none; color: #F59E0B; cursor: pointer; font-size: 11px; padding: 2px 4px; opacity: 0.8;"><i class="fa-solid fa-pen-to-square"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ==================================================== -->
+                <!-- SEÇÃO 1: TABELA GERAL HORA A HORA (Visão Consolidada) -->
+                <!-- ==================================================== -->
+                <section class="chart-card glass" style="width: 100%; padding: 0; overflow: hidden; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); background: #0F172A;">
+                    <div style="background: #1E3A8A; padding: 8px 16px; display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="margin: 0; font-size: 13px; font-weight: 700; color: #FFFFFF; display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-clock" style="color: #93C5FD;"></i> Geral Hora a Hora
+                        </h3>
+                        <span style="font-size: 11px; color: #BFDBFE; font-weight: 500;">Visão por Setor Operacional</span>
+                    </div>
+                    <div class="table-wrapper" style="overflow-x: auto; max-height: none; overflow-y: visible;">
+                        <table class="data-table" id="table-ranking-geral-hora" style="width: 100%; border-collapse: collapse; margin: 0; font-size: 11.5px;">
+                            <thead>
+                                <tr style="background: #1E40AF; color: #FFFFFF;">
+                                    <th style="padding: 6px 10px; border: 1px solid rgba(255,255,255,0.1); width: 85px; text-align: center; font-weight: 700;">Hora</th>
+                                    <th style="padding: 6px 10px; border: 1px solid rgba(255,255,255,0.1); text-align: right; font-weight: 700; color: #93C5FD;">Coleta de Chegada</th>
+                                    <th style="padding: 6px 10px; border: 1px solid rgba(255,255,255,0.1); text-align: right; font-weight: 700; color: #FDE68A;">Criação de Lote</th>
+                                    <th style="padding: 6px 10px; border: 1px solid rgba(255,255,255,0.1); text-align: right; font-weight: 700; color: #C4B5FD;">Expedição</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-ranking-geral-hora-body">
+                                <tr>
+                                    <td colspan="4" style="text-align: center; padding: 14px; color: #9CA3AF;">Carregando dados hora a hora...</td>
+                                </tr>
+                            </tbody>
+                            <tfoot id="table-ranking-geral-hora-footer" style="background: #1E3A8A; color: #FFFFFF; font-weight: 800;">
+                                <!-- Preenchido dinamicamente via JS com TOTAL -->
+                            </tfoot>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- ==================================================== -->
+                <!-- SEÇÃO 2: RANKINGS POR SETOR (3 Tabelas Lado a Lado - TOP 10) -->
+                <!-- ==================================================== -->
+                <section style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; width: 100%;">
+                    
+                    <!-- 1. Ranking Coleta de Chegada (Top 10) -->
+                    <div class="chart-card glass" style="padding: 0; overflow: hidden; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); background: #0F172A;">
+                        <div style="background: #1E3A8A; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center;">
+                            <h4 style="margin: 0; font-size: 12.5px; font-weight: 700; color: #FFFFFF; display: flex; align-items: center; gap: 6px;">
+                                <i class="fa-solid fa-truck-ramp-box" style="color: #93C5FD;"></i> Coleta de Chegada
+                            </h4>
+                            <span id="badge-total-op-coleta" style="font-size: 11px; color: #93C5FD; font-weight: 600;">Top 10</span>
+                        </div>
+                        <div class="table-wrapper" style="overflow-x: auto; max-height: none; overflow-y: visible;">
+                            <table class="data-table" style="width: 100%; border-collapse: collapse; margin: 0; font-size: 11px;">
+                                <thead>
+                                    <tr style="background: #1E40AF; color: #FFFFFF;">
+                                        <th style="padding: 5px 8px; border: 1px solid rgba(255,255,255,0.1); width: 55px; text-align: center; font-weight: 700;">Posição</th>
+                                        <th style="padding: 5px 8px; border: 1px solid rgba(255,255,255,0.1); font-weight: 700;">Digitalizador</th>
+                                        <th style="padding: 5px 8px; border: 1px solid rgba(255,255,255,0.1); width: 85px; text-align: right; font-weight: 700;">Quantidade</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-ranking-sector-coleta-body">
+                                    <tr><td colspan="3" style="text-align: center; padding: 12px; color: #9CA3AF;">Carregando...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- 2. Ranking Criação de Lote (Top 10) -->
+                    <div class="chart-card glass" style="padding: 0; overflow: hidden; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); background: #0F172A;">
+                        <div style="background: #1E3A8A; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center;">
+                            <h4 style="margin: 0; font-size: 12.5px; font-weight: 700; color: #FFFFFF; display: flex; align-items: center; gap: 6px;">
+                                <i class="fa-solid fa-boxes-stacked" style="color: #FDE68A;"></i> Criação de Lote
+                            </h4>
+                            <span id="badge-total-op-lote" style="font-size: 11px; color: #FDE68A; font-weight: 600;">Top 10</span>
+                        </div>
+                        <div class="table-wrapper" style="overflow-x: auto; max-height: none; overflow-y: visible;">
+                            <table class="data-table" style="width: 100%; border-collapse: collapse; margin: 0; font-size: 11px;">
+                                <thead>
+                                    <tr style="background: #1E40AF; color: #FFFFFF;">
+                                        <th style="padding: 5px 8px; border: 1px solid rgba(255,255,255,0.1); width: 55px; text-align: center; font-weight: 700;">Posição</th>
+                                        <th style="padding: 5px 8px; border: 1px solid rgba(255,255,255,0.1); font-weight: 700;">Digitalizador</th>
+                                        <th style="padding: 5px 8px; border: 1px solid rgba(255,255,255,0.1); width: 85px; text-align: right; font-weight: 700;">Quantidade</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-ranking-sector-lote-body">
+                                    <tr><td colspan="3" style="text-align: center; padding: 12px; color: #9CA3AF;">Carregando...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- 3. Ranking Expedição (Top 10) -->
+                    <div class="chart-card glass" style="padding: 0; overflow: hidden; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); background: #0F172A;">
+                        <div style="background: #1E3A8A; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center;">
+                            <h4 style="margin: 0; font-size: 12.5px; font-weight: 700; color: #FFFFFF; display: flex; align-items: center; gap: 6px;">
+                                <i class="fa-solid fa-dolly" style="color: #C4B5FD;"></i> Expedição
+                            </h4>
+                            <span id="badge-total-op-exp" style="font-size: 11px; color: #C4B5FD; font-weight: 600;">Top 10</span>
+                        </div>
+                        <div class="table-wrapper" style="overflow-x: auto; max-height: none; overflow-y: visible;">
+                            <table class="data-table" style="width: 100%; border-collapse: collapse; margin: 0; font-size: 11px;">
+                                <thead>
+                                    <tr style="background: #1E40AF; color: #FFFFFF;">
+                                        <th style="padding: 5px 8px; border: 1px solid rgba(255,255,255,0.1); width: 55px; text-align: center; font-weight: 700;">Posição</th>
+                                        <th style="padding: 5px 8px; border: 1px solid rgba(255,255,255,0.1); font-weight: 700;">Digitalizador</th>
+                                        <th style="padding: 5px 8px; border: 1px solid rgba(255,255,255,0.1); width: 85px; text-align: right; font-weight: 700;">Quantidade</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-ranking-sector-exp-body">
+                                    <tr><td colspan="3" style="text-align: center; padding: 12px; color: #9CA3AF;">Carregando...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+
+            <!-- Visão Integrada: Painel de Controle de PDAs (36 Coletores) -->
+            <div id="panel-pda" class="content-panel" style="display: none; flex-direction: column; gap: 16px; width: 100%;">
+                <!-- Barra de Ações Rápidas do Painel de PDAs -->
+                <div class="glass" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; padding: 14px 20px; border-radius: 14px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="background: rgba(37, 99, 235, 0.2); color: #60A5FA; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; border: 1px solid rgba(59, 130, 246, 0.3);">
+                            <i class="fa-solid fa-barcode"></i>
+                        </div>
+                        <div>
+                            <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: #FFFFFF; display: flex; align-items: center; gap: 8px;">
+                                Quadro Geral de Controle de PDAs
+                                <span class="badge" style="background: rgba(16, 185, 129, 0.2); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 11px; padding: 2px 8px; border-radius: 12px;">40 Coletores</span>
+                            </h3>
+                            <p style="margin: 2px 0 0 0; font-size: 12px; color: #94A3B8;">Ações diretas de retirada, devolução, status em tempo real e inventário</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <button id="btn-pda-refresh-top" class="btn btn-secondary" style="font-size: 12px; padding: 8px 14px; border-radius: 8px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                            <i class="fa-solid fa-arrows-rotate"></i> Recarregar
+                        </button>
+                        <a id="btn-pda-open-tab" href="/pda/" target="_blank" class="btn btn-primary" style="font-size: 12px; padding: 8px 14px; border-radius: 8px; display: flex; align-items: center; gap: 6px; text-decoration: none; cursor: pointer;">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir em Nova Aba
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Container com Iframe Embutido -->
+                <div class="glass" style="padding: 0; overflow: hidden; border-radius: 14px; background: #0f172a; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25); min-height: 850px; height: calc(100vh - 170px); position: relative;">
+                    <iframe id="iframe-pda" src="/pda/" style="width: 100%; height: 100%; border: none; display: block; border-radius: 14px; background: #f8fafc;" title="Controle e Gestão de PDAs"></iframe>
+                </div>
+            </div>
+
+            <!-- Visão Integrada: Painel Report de Início da Operação (DC Bauru) -->
+            <div id="panel-report-inicio" class="content-panel" style="display: none; flex-direction: column; gap: 16px; width: 100%;">
+                
+                <!-- Barra de Ações Rápidas do Painel -->
+                <div class="glass" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; padding: 14px 20px; border-radius: 14px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="background: rgba(99, 102, 241, 0.2); color: #818CF8; width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; border: 1px solid rgba(99, 102, 241, 0.3);">
+                            <i class="fa-solid fa-chart-column"></i>
+                        </div>
+                        <div>
+                            <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: #FFFFFF; display: flex; align-items: center; gap: 8px;">
+                                📊 Report de Início da Operação
+                                <span class="badge" style="background: rgba(16, 185, 129, 0.2); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 11px; padding: 2px 8px; border-radius: 12px;">
+                                    <i class="fa-solid fa-database"></i> 100% Salvo no Banco
+                                </span>
+                            </h3>
+                            <p style="margin: 2px 0 0 0; font-size: 12px; color: #94A3B8;">Indicadores de abertura de turno do DC Bauru e envio formatado para WhatsApp</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <button id="btn-rep-panel-refresh" class="btn btn-secondary" style="font-size: 12px; padding: 8px 14px; border-radius: 8px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                            <i class="fa-solid fa-arrows-rotate"></i> Recarregar
+                        </button>
+                        <button id="btn-rep-panel-copy-top" class="btn btn-secondary" style="font-size: 12px; padding: 8px 14px; border-radius: 8px; background: rgba(37, 211, 102, 0.15); border: 1px solid rgba(37, 211, 102, 0.3); color: #25D366; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                            <i class="fa-brands fa-whatsapp"></i> Copiar WhatsApp
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Cards de Indicadores de Destaque -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px;">
+                    <div class="glass" style="padding: 16px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; border-left: 3px solid #60A5FA;">
+                        <div>
+                            <span style="font-size: 11px; font-weight: 600; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px;">Data / Início</span>
+                            <div id="rep-kpi-data" style="font-size: 18px; font-weight: 700; color: #FFFFFF; margin-top: 4px;">06/10/2026 (15:11)</div>
+                        </div>
+                        <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(96, 165, 250, 0.12); display: flex; align-items: center; justify-content: center; color: #60A5FA; font-size: 17px;">
+                            <i class="fa-regular fa-calendar-check"></i>
+                        </div>
+                    </div>
+
+                    <div class="glass" style="padding: 16px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; border-left: 3px solid #F59E0B;">
+                        <div>
+                            <span style="font-size: 11px; font-weight: 600; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px;">Backlog / Previsto</span>
+                            <div id="rep-kpi-volume" style="font-size: 18px; font-weight: 700; color: #FFFFFF; margin-top: 4px;">692 / 53.903</div>
+                        </div>
+                        <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(245, 158, 11, 0.12); display: flex; align-items: center; justify-content: center; color: #F59E0B; font-size: 17px;">
+                            <i class="fa-solid fa-boxes-stacked"></i>
+                        </div>
+                    </div>
+
+                    <div class="glass" style="padding: 16px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; border-left: 3px solid #34D399;">
+                        <div>
+                            <span style="font-size: 11px; font-weight: 600; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px;">CLTs Presentes</span>
+                            <div id="rep-kpi-clt" style="font-size: 18px; font-weight: 700; color: #FFFFFF; margin-top: 4px;">32 (18h) | — (22h)</div>
+                        </div>
+                        <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(52, 211, 153, 0.12); display: flex; align-items: center; justify-content: center; color: #34D399; font-size: 17px;">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                    </div>
+
+                    <div class="glass" style="padding: 16px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; border-left: 3px solid #A78BFA;">
+                        <div>
+                            <span style="font-size: 11px; font-weight: 600; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px;">Diaristas (15h / 20h)</span>
+                            <div id="rep-kpi-diaristas" style="font-size: 18px; font-weight: 700; color: #A78BFA; margin-top: 4px;">18/20 (15h) | —/10 (20h)</div>
+                        </div>
+                        <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(167, 139, 250, 0.12); display: flex; align-items: center; justify-content: center; color: #A78BFA; font-size: 17px;">
+                            <i class="fa-solid fa-user-gear"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Painel Principal em 2 Colunas (Formulário + Preview WhatsApp) -->
+                <div style="display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 16px; align-items: start;">
+                    
+                    <!-- Coluna 1: Formulário de Atualização Operacional -->
+                    <div class="glass" style="padding: 20px; border-radius: 14px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px; margin-bottom: 16px;">
+                            <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: #FFFFFF; display: flex; align-items: center; gap: 8px;">
+                                <i class="fa-solid fa-pen-to-square" style="color: #818CF8;"></i> Atualizar Dados da Operação
+                            </h4>
+                            <span style="font-size: 11px; color: #94A3B8;"><i class="fa-solid fa-database text-emerald-400"></i> Gravação em SQLite</span>
+                        </div>
+
+                        <form id="form-report-inicio-panel" style="display: flex; flex-direction: column; gap: 12px;">
+                            
+                            <!-- Grade de Campos Operacionais -->
+                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                                <div>
+                                    <label style="display: block; font-size: 11px; font-weight: 600; color: #94A3B8; text-transform: uppercase; margin-bottom: 4px;">Data de Referência</label>
+                                    <input type="text" id="panel-rep-data" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #FFF; padding: 8px 10px; font-size: 12px;">
+                                </div>
+                                <div>
+                                    <label style="display: block; font-size: 11px; font-weight: 600; color: #94A3B8; text-transform: uppercase; margin-bottom: 4px;">Início da Operação</label>
+                                    <input type="text" id="panel-rep-inicio" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #FFF; padding: 8px 10px; font-size: 12px;">
+                                </div>
+                                <div>
+                                    <label style="display: block; font-size: 11px; font-weight: 600; color: #94A3B8; text-transform: uppercase; margin-bottom: 4px;">Backlog Inicial</label>
+                                    <input type="text" id="panel-rep-backlog" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #FFF; padding: 8px 10px; font-size: 12px;">
+                                </div>
+                                <div>
+                                    <label style="display: block; font-size: 11px; font-weight: 600; color: #94A3B8; text-transform: uppercase; margin-bottom: 4px;">Volume Previsto</label>
+                                    <input type="text" id="panel-rep-volume" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #FFF; padding: 8px 10px; font-size: 12px;">
+                                </div>
+                                <div>
+                                    <label style="display: block; font-size: 11px; font-weight: 600; color: #94A3B8; text-transform: uppercase; margin-bottom: 4px;">CLTs Presentes 18h</label>
+                                    <input type="text" id="panel-rep-clt18" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #FFF; padding: 8px 10px; font-size: 12px;">
+                                </div>
+                                <div>
+                                    <label style="display: block; font-size: 11px; font-weight: 600; color: #94A3B8; text-transform: uppercase; margin-bottom: 4px;">Absenteísmo 18h</label>
+                                    <input type="text" id="panel-rep-abs18" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #FFF; padding: 8px 10px; font-size: 12px;">
+                                </div>
+                                <div>
+                                    <label style="display: block; font-size: 11px; font-weight: 600; color: #94A3B8; text-transform: uppercase; margin-bottom: 4px;">CLTs Presentes 22h</label>
+                                    <input type="text" id="panel-rep-clt22" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #FFF; padding: 8px 10px; font-size: 12px;">
+                                </div>
+                                <div>
+                                    <label style="display: block; font-size: 11px; font-weight: 600; color: #94A3B8; text-transform: uppercase; margin-bottom: 4px;">Absenteísmo 22h</label>
+                                    <input type="text" id="panel-rep-abs22" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #FFF; padding: 8px 10px; font-size: 12px;">
+                                </div>
+                                <div>
+                                    <label style="display: block; font-size: 11px; font-weight: 600; color: #94A3B8; text-transform: uppercase; margin-bottom: 4px;">Diaristas Solicitados (15:00)</label>
+                                    <input type="text" id="panel-rep-diasol15" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #FFF; padding: 8px 10px; font-size: 12px;">
+                                </div>
+                                <div>
+                                    <label style="display: block; font-size: 11px; font-weight: 600; color: #94A3B8; text-transform: uppercase; margin-bottom: 4px;">Diaristas Presentes (15:00)</label>
+                                    <input type="text" id="panel-rep-diapres15" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #FFF; padding: 8px 10px; font-size: 12px;">
+                                </div>
+                                <div>
+                                    <label style="display: block; font-size: 11px; font-weight: 600; color: #94A3B8; text-transform: uppercase; margin-bottom: 4px;">Diaristas Solicitados (20:00)</label>
+                                    <input type="text" id="panel-rep-diasol20" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #FFF; padding: 8px 10px; font-size: 12px;">
+                                </div>
+                                <div>
+                                    <label style="display: block; font-size: 11px; font-weight: 600; color: #94A3B8; text-transform: uppercase; margin-bottom: 4px;">Diaristas Presentes (20:00)</label>
+                                    <input type="text" id="panel-rep-diapres20" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #FFF; padding: 8px 10px; font-size: 12px;">
+                                </div>
+                                <div style="grid-column: span 2;">
+                                    <label style="display: block; font-size: 11px; font-weight: 600; color: #94A3B8; text-transform: uppercase; margin-bottom: 4px;">PHD Previsto</label>
+                                    <input type="text" id="panel-rep-phd" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #FFF; padding: 8px 10px; font-size: 12px;">
+                                </div>
+                            </div>
+
+                            <!-- Observações Operacionais -->
+                            <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 4px;">
+                                <div>
+                                    <label style="display: block; font-size: 11px; font-weight: 600; color: #94A3B8; text-transform: uppercase; margin-bottom: 4px;">Falta Injustificada (Qtd & Nomes)</label>
+                                    <textarea id="panel-rep-falta" rows="2" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #FFF; padding: 8px 10px; font-size: 12px; resize: vertical;"></textarea>
+                                </div>
+                                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                                    <div>
+                                        <label style="display: block; font-size: 11px; font-weight: 600; color: #94A3B8; text-transform: uppercase; margin-bottom: 4px;">Atestados</label>
+                                        <input type="text" id="panel-rep-atestados" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #FFF; padding: 8px 10px; font-size: 12px;">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; font-size: 11px; font-weight: 600; color: #94A3B8; text-transform: uppercase; margin-bottom: 4px;">Pontos de Atenção</label>
+                                        <input type="text" id="panel-rep-atencao" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #FFF; padding: 8px 10px; font-size: 12px;">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px;">
+                                <button type="submit" class="btn btn-primary" style="font-size: 13px; padding: 10px 22px; background: linear-gradient(135deg, #4F46E5, #6366F1); border: none; color: #FFF; font-weight: 700; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);">
+                                    <i class="fa-solid fa-floppy-disk"></i> Salvar no Banco de Dados
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Coluna 2: Preview Formatado para WhatsApp -->
+                    <div class="glass" style="padding: 20px; border-radius: 14px; display: flex; flex-direction: column; gap: 12px; background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(37, 211, 102, 0.25);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px;">
+                            <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: #FFFFFF; display: flex; align-items: center; gap: 8px;">
+                                <i class="fa-brands fa-whatsapp" style="color: #25D366; font-size: 18px;"></i> Preview WhatsApp Formatado
+                            </h4>
+                            <button id="btn-rep-panel-copy" class="btn btn-primary" style="font-size: 12px; padding: 7px 16px; background: linear-gradient(135deg, #059669, #10B981); border: none; color: #FFF; font-weight: 700; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);">
+                                <i class="fa-solid fa-copy"></i> Copiar Texto
+                            </button>
+                        </div>
+                        <textarea id="panel-rep-preview-text" readonly style="width: 100%; box-sizing: border-box; min-height: 440px; height: 100%; background: #070B13; color: #34D399; font-family: 'Courier New', Courier, monospace; font-size: 12.5px; line-height: 1.55; padding: 14px; border-radius: 10px; border: 1px solid rgba(37, 211, 102, 0.2); resize: none; outline: none;"></textarea>
+                        <div id="panel-rep-feedback" style="display: none; padding: 8px 12px; border-radius: 8px; font-size: 12px; text-align: center; font-weight: 600;"></div>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Modal / Dropzone de Upload de Planilha de Ranking / Digitalização (Multi-Setor) -->
+            <div id="modal-ranking-upload" class="modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(5px); z-index: 9999; align-items: center; justify-content: center;">
+                <div class="modal-card glass" style="background: #111827; border: 1px solid rgba(255,255,255,0.15); border-radius: 16px; padding: 24px; width: 90%; max-width: 560px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px;">
+                        <h3 style="display: flex; align-items: center; gap: 10px; font-size: 16px; color: #FFFFFF; margin: 0;">
+                            <i class="fa-solid fa-cloud-arrow-up" style="color: #60A5FA;"></i> Importar Relatório do B.I / Digitalização
+                        </h3>
+                        <button id="btn-close-ranking-modal" style="background: none; border: none; color: #9CA3AF; cursor: pointer; font-size: 18px;">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                    <p style="font-size: 12.5px; color: #9CA3AF; margin-bottom: 16px; line-height: 1.5;">
+                        Suba a <strong>planilha geral exportada direto do B.I</strong> (o sistema separa automaticamente Coleta, Lote e Expedição) ou suba os arquivos de cada setor separadamente.
+                    </p>
+
+                    <!-- Dropzone Geral (B.I Geral / Multi-Abas / Multi-Arquivos) -->
+                    <div id="ranking-dropzone" style="border: 2px dashed rgba(59, 130, 246, 0.45); border-radius: 12px; padding: 26px 20px; text-align: center; background: rgba(59, 130, 246, 0.06); cursor: pointer; transition: all 0.2s; margin-bottom: 16px;">
+                        <i class="fa-solid fa-file-excel" style="font-size: 34px; color: #60A5FA; margin-bottom: 10px;"></i>
+                        <p style="font-size: 14px; font-weight: 600; color: #FFFFFF; margin: 0 0 4px 0;">Clique ou arraste a planilha do B.I aqui</p>
+                        <span style="font-size: 11.5px; color: #9CA3AF;">Suporta arquivo único do B.I (.xlsx, .xls, .csv) com todos os setores ou múltiplos arquivos</span>
+                        <input type="file" id="ranking-file-input" accept=".xlsx,.xls,.csv" multiple style="display: none;">
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                        <div style="flex: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
+                        <span style="font-size: 10.5px; color: #6B7280; text-transform: uppercase; font-weight: 600;">ou envie por setor individual</span>
+                        <div style="flex: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
+                    </div>
+
+                    <!-- Botões de Upload Específicos por Setor -->
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 10px;">
+                        <!-- 1. Coleta -->
+                        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; padding: 10px 8px; text-align: center;">
+                            <div style="font-size: 11px; font-weight: 700; color: #93C5FD; margin-bottom: 6px;"><i class="fa-solid fa-truck-ramp-box"></i> 1. Coleta</div>
+                            <button class="btn btn-outline" id="btn-upload-coleta" style="font-size: 10.5px; padding: 4px 8px; width: 100%; border-color: rgba(59, 130, 246, 0.4); color: #93C5FD; cursor: pointer;">Subir Coleta</button>
+                            <input type="file" id="ranking-file-coleta" accept=".xlsx,.xls,.csv" style="display: none;">
+                        </div>
+
+                        <!-- 2. Lote -->
+                        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; padding: 10px 8px; text-align: center;">
+                            <div style="font-size: 11px; font-weight: 700; color: #FDE68A; margin-bottom: 6px;"><i class="fa-solid fa-boxes-stacked"></i> 2. Lote</div>
+                            <button class="btn btn-outline" id="btn-upload-lote" style="font-size: 10.5px; padding: 4px 8px; width: 100%; border-color: rgba(245, 158, 11, 0.4); color: #FDE68A; cursor: pointer;">Subir Lote</button>
+                            <input type="file" id="ranking-file-lote" accept=".xlsx,.xls,.csv" style="display: none;">
+                        </div>
+
+                        <!-- 3. Expedição -->
+                        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 8px; padding: 10px 8px; text-align: center;">
+                            <div style="font-size: 11px; font-weight: 700; color: #C4B5FD; margin-bottom: 6px;"><i class="fa-solid fa-dolly"></i> 3. Expedição</div>
+                            <button class="btn btn-outline" id="btn-upload-exp" style="font-size: 10.5px; padding: 4px 8px; width: 100%; border-color: rgba(139, 92, 246, 0.4); color: #C4B5FD; cursor: pointer;">Subir Expedição</button>
+                            <input type="file" id="ranking-file-exp" accept=".xlsx,.xls,.csv" style="display: none;">
+                        </div>
+                    </div>
+
+                    <div id="ranking-upload-status" style="display: none; margin-top: 14px; padding: 10px 14px; border-radius: 8px; font-size: 12px; font-weight: 500;"></div>
+                </div>
+            </div>
+
+            </div>
+
+                    <!-- Fecha a area de conteudo principal -->
+        </main>
+    <!-- Fecha o container geral da aplicacao -->
+    </div>
+    
+    <!-- Importa a logica do dashboard no arquivo local app.js -->
+    <script src="app.js?v=90"></script>
+<!-- Fecha o corpo do documento html -->
+</body>
+<!-- Fecha a tag html -->
+</html>

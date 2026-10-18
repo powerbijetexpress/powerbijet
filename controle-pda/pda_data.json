@@ -1,0 +1,362 @@
+{
+  "exported_at": "2026-10-18 20:51:37",
+  "frota": [
+    {
+      "codigo": "PDA-00",
+      "status": "Disponível",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-01",
+      "status": "Disponível",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-02",
+      "status": "Em Uso",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-03",
+      "status": "Em Uso",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-04",
+      "status": "Disponível",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-05",
+      "status": "Disponível",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-06",
+      "status": "Disponível",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-07",
+      "status": "Disponível",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-08",
+      "status": "Disponível",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-09",
+      "status": "Disponível",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-10",
+      "status": "Disponível",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-11",
+      "status": "Disponível",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-12",
+      "status": "Disponível",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-13",
+      "status": "Disponível",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-14",
+      "status": "Em Uso",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-15",
+      "status": "Disponível",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-16",
+      "status": "Disponível",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-17",
+      "status": "Disponível",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-18",
+      "status": "Disponível",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-19",
+      "status": "Disponível",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-20",
+      "status": "Disponível",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-21",
+      "status": "Disponível",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-22",
+      "status": "Disponível",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-23",
+      "status": "Disponível",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-24",
+      "status": "Disponível",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-25",
+      "status": "Disponível",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-26",
+      "status": "Disponível",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-27",
+      "status": "Disponível",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-28",
+      "status": "Disponível",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-29",
+      "status": "Disponível",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-30",
+      "status": "Disponível",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-31",
+      "status": "Disponível",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-32",
+      "status": "Disponível",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-33",
+      "status": "Disponível",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-34",
+      "status": "Disponível",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-35",
+      "status": "Disponível",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-36",
+      "status": "Disponível",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-37",
+      "status": "Disponível",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-38",
+      "status": "Disponível",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-39",
+      "status": "Disponível",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-40",
+      "status": "Disponível",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-41",
+      "status": "Disponível",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-42",
+      "status": "Disponível",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-43",
+      "status": "Disponível",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-44",
+      "status": "Disponível",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-45",
+      "status": "Disponível",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-46",
+      "status": "Disponível",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-47",
+      "status": "Disponível",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-48",
+      "status": "Disponível",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-49",
+      "status": "Disponível",
+      "obs": "OK"
+    },
+    {
+      "codigo": "PDA-50",
+      "status": "Disponível",
+      "obs": "OK"
+    }
+  ],
+  "autorizados": {
+    "08h": [
+      "GIOVANNY",
+      "JOAO MENDES"
+    ],
+    "14h": [
+      "Vinicius Nascimento"
+    ],
+    "15h": [
+      "PABLO",
+      "CRISTIANE",
+      "ISABELLA",
+      "ANGELA",
+      "BRUNO",
+      "GABRIEL",
+      "JULIANA",
+      "VITORIA",
+      "LUAN"
+    ],
+    "23h": [
+      "Matheus Nascimento",
+      "Kaue pedrozo",
+      "Amanda",
+      "Gabriel oliveira",
+      "William",
+      "João Pedro"
+    ]
+  },
+  "registros": [
+    {
+      "id": "REG-01",
+      "pda": "PDA-01",
+      "turno": "15h",
+      "responsavel": "",
+      "setor": "Expedição",
+      "dataRetirada": "2026-10-09T00:27:30.474446",
+      "dataDevolucao": "2026-10-09T00:27:00.000Z",
+      "status": "Devolvido",
+      "obsRetirada": null,
+      "obsDevolucao": null,
+      "estadoDevolucao": null
+    },
+    {
+      "id": "REG-04",
+      "pda": "PDA-14",
+      "turno": "15h",
+      "responsavel": "BRUNO",
+      "setor": "Recebimento",
+      "dataRetirada": "2026-10-08T06:18:04.830265",
+      "dataDevolucao": null,
+      "status": "Em Uso",
+      "obsRetirada": null,
+      "obsDevolucao": null,
+      "estadoDevolucao": null
+    },
+    {
+      "id": "REG-03",
+      "pda": "PDA-03",
+      "turno": "15h",
+      "responsavel": "CRISTIANE",
+      "setor": "Lacre",
+      "dataRetirada": "2026-10-08T06:18:04.830265",
+      "dataDevolucao": null,
+      "status": "Em Uso",
+      "obsRetirada": null,
+      "obsDevolucao": null,
+      "estadoDevolucao": null
+    },
+    {
+      "id": "REG-02",
+      "pda": "PDA-02",
+      "turno": "15h",
+      "responsavel": "PABLO",
+      "setor": "Lacre",
+      "dataRetirada": "2026-10-08T06:18:04.830265",
+      "dataDevolucao": null,
+      "status": "Em Uso",
+      "obsRetirada": null,
+      "obsDevolucao": null,
+      "estadoDevolucao": null
+    }
+  ],
+  "report_inicio": {
+    "id": 1,
+    "data_ref": "*06/10/2026*",
+    "backlog_inicial": "692",
+    "volume_previsto": "53.903",
+    "inicio_operacao": "15:11",
+    "clts_presentes_18h": "32",
+    "absenteismo_18h": "4",
+    "clts_presentes_23h": "—",
+    "absenteismo_23h": "—",
+    "diaristas_solicitados_15h": "20",
+    "diaristas_presentes_15h": "18",
+    "diaristas_solicitados_20h": "10",
+    "diaristas_presentes_20h": "—",
+    "phd_previsto": "—",
+    "obs_falta_injustificada": "4 — GIOVANA TEIXEIRA GRILLO DAMADA DAVI CARLOS DE PINHO BATISTA LISLAINE CHAVES DE CAMILO LUIS CARLOS PERES DA SILVA",
+    "obs_atestados": "N/A",
+    "obs_pontos_atencao": "N/A",
+    "raw_text": "📊 REPORT DE INÍCIO DA OPERAÇÃO\n\n📅 Data: *06/10/2026*\n\n📦 Backlog Inicial: 692\n📦 Volume previsto: 53.903\n🕒 Início da operação: 15:11\n👥 CLTs presentes 18hrs: 32\n❌ Absenteísmo 18hrs: 4\n👥 CLTs presentes 22hrs: —\n❌ Absenteísmo 22hrs: —\n👷 Diaristas solicitados (15:00): 20\n✅ Diaristas presentes (15:00): 18\n👷 Diaristas solicitados (20:00): 10\n✅ Diaristas presentes (20:00): —\n📈 PHD previsto: —\n\n\n📝 Observações:\n\n- Falta injustificada: 4 — GIOVANA TEIXEIRA GRILLO DAMADA DAVI CARLOS DE PINHO BATISTA LISLAINE CHAVES DE CAMILO LUIS CARLOS PERES DA SILVA\n\n- Atestados: N/A\n\n- Pontos de atenção: N/A"
+  }
+}

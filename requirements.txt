@@ -1,0 +1,14 @@
+# Flask e o micro-framework web para servir as APIs e o template HTML
+Flask>=3.0.0
+# pandas e utilizado para carregar, tratar e filtrar a planilha de dados do Excel
+pandas>=2.0.0
+# openpyxl e o motor necessario para o pandas ler arquivos de formato .xlsx (Excel)
+openpyxl>=3.1.5
+# reportlab e a biblioteca utilizada no backend para gerar os relatorios executivos em PDF
+reportlab>=4.4.6
+# gunicorn e o servidor de producao HTTP para rodar o Flask na nuvem
+gunicorn>=21.2.0
+# psycopg2-binary para conexao com banco de dados PostgreSQL na nuvem (Render, Supabase, Neon)
+psycopg2-binary>=2.9.9
+# requests para comunicacao interna HTTP com o microservico do WhatsApp Bot
+requests>=2.28.0
