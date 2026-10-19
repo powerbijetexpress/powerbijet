@@ -16,7 +16,7 @@ from datetime import datetime
 # Importacao da biblioteca pandas para manipulacao estruturada de tabelas e dados logisticos
 import pandas as pd
 # Importacao de classes centrais do Flask para servir paginas, JSON e transferir arquivos gerados
-from flask import Flask, jsonify, request, send_file, render_template, send_from_directory, redirect
+from flask import Flask, jsonify, request, send_file, render_template, send_from_directory, redirect, Response
 
 # Importacao do modulo de Banco de Dados relacional SQLite
 import db
@@ -5905,6 +5905,22 @@ def controle_pda_files(filename):
 @app.route('/app.js')
 @app.route('/static/app.js')
 def root_app_js():
+    candidates = [
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), 'app.js'),
+        os.path.join(app.root_path, 'app.js'),
+        os.path.join(app.root_path, 'static', 'app.js'),
+        'app.js'
+    ]
+    for c in candidates:
+        if os.path.exists(c):
+            try:
+                with open(c, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                resp = Response(content, mimetype='application/javascript')
+                resp.headers['Content-Type'] = 'application/javascript; charset=utf-8'
+                return resp
+            except Exception:
+                pass
     return send_from_directory(app.root_path, 'app.js', mimetype='application/javascript')
 
 @app.route('/style.css')
@@ -5912,6 +5928,22 @@ def root_app_js():
 @app.route('/static/style.css')
 @app.route('/static/styles.css')
 def root_style_css():
+    candidates = [
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), 'style.css'),
+        os.path.join(app.root_path, 'style.css'),
+        os.path.join(app.root_path, 'static', 'style.css'),
+        'style.css'
+    ]
+    for c in candidates:
+        if os.path.exists(c):
+            try:
+                with open(c, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                resp = Response(content, mimetype='text/css')
+                resp.headers['Content-Type'] = 'text/css; charset=utf-8'
+                return resp
+            except Exception:
+                pass
     return send_from_directory(app.root_path, 'style.css', mimetype='text/css')
 
 # ==============================================================================
