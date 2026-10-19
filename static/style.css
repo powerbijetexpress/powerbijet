@@ -1,0 +1,1578 @@
+/* Base Variables & Reset - Cabecalho de configuracao de variaveis globais e reset de layout */
+:root {
+    /* Define a cor de fundo primaria do dashboard em tom azul escuro quase preto */
+    --bg-primary: #080B11;
+    /* Define a cor de fundo secundaria para a barra lateral em tom azul escuro cinzento */
+    --bg-secondary: #0F131E;
+    /* Define a cor de fundo dos paineis e cards de alta performance */
+    --bg-card: #0E1322;
+    /* Define a cor translúcida das bordas finas para o efeito de vidro */
+    --border-color: rgba(255, 255, 255, 0.08);
+    /* Define a cor azul brilhante para destaque de bordas ativas ao passar o mouse */
+    --border-hover: rgba(59, 130, 246, 0.4);
+    
+    /* Define a cor principal do texto em tom cinza muito claro para excelente contraste */
+    --text-primary: #F3F4F6;
+    /* Define a cor secundaria do texto em tom cinza medio */
+    --text-secondary: #9CA3AF;
+    /* Define a cor escura para textos menos importantes ou marcas d'água */
+    --text-muted: #6B7280;
+    
+    /* Define o tom azul eletrico para icones e botoes primarios */
+    --color-blue: #3B82F6;
+    /* Define o azul escuro utilizado em degradês corporativos */
+    --color-blue-dark: #1E3A8A;
+    /* Define a cor verde para sinalizar sucesso e remessas concluidas */
+    --color-green: #10B981;
+    /* Define a tonalidade escura de verde para preenchimento de fundos de badges */
+    --color-green-dark: #064E3B;
+    /* Define a cor amarela/laranja para indicar pendencias operacionais */
+    --color-yellow: #F59E0B;
+    /* Define o tom escuro de amarelo para textos de aviso */
+    --color-yellow-dark: #78350F;
+    /* Define a cor vermelha viva para sinalizar erros ou atrasos criticos */
+    --color-red: #EF4444;
+    /* Define a tonalidade escura de vermelho para preenchimento de badges de erro */
+    --color-red-dark: #7F1D1D;
+    
+    /* Define a fonte Outfit como padrao do sistema */
+    --font-primary: 'Outfit', sans-serif;
+    /* Define a transicao leve de alta performance */
+    --transition-smooth: all 0.15s ease;
+}
+
+/* Zeramento basico de margens e preenchimentos para consistência entre navegadores */
+* {
+    /* Zera a margem externa de todos os elementos */
+    margin: 0;
+    /* Zera a margem interna (padding) de todos os elementos */
+    padding: 0;
+    /* Define o modelo de caixa como border-box para incluir bordas no calculo de tamanho */
+    box-sizing: border-box;
+}
+
+/* Estilizacao geral do corpo da pagina */
+body {
+    /* Aplica a tipografia Outfit como fonte principal */
+    font-family: var(--font-primary);
+    /* Define a cor de fundo escura do corpo do documento - ligeiramente mais escura no desktop para profundidade */
+    background-color: #040508;
+    /* Define a cor clara padrao do texto do documento */
+    color: var(--text-primary);
+    /* Oculta barra de rolagem horizontal desnecessaria */
+    overflow-x: hidden;
+    /* Define a altura do corpo como 100% da viewport vertical */
+    height: 100vh;
+}
+
+/* Layout geral do Container Principal */
+.app-container {
+    /* Habilita flexbox para alinhar a barra lateral e a area de conteudo principal */
+    display: flex;
+    /* Ocupa 100% da altura util da tela */
+    height: 100vh;
+    /* Ocupa 100% da largura util da tela no maximo */
+    width: 100%;
+    /* Limita o esticamento em telas muito largas (monitores desktop) */
+    max-width: 1600px;
+    /* Centraliza o painel na tela */
+    margin: 0 auto;
+    /* Adiciona a cor de fundo padrao do dashboard */
+    background-color: var(--bg-primary);
+    /* Sombra elegante ao redor do container no desktop */
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+}
+
+/* Barra Lateral (Sidebar) de Filtros */
+.sidebar {
+    /* Define a largura fixa de 270 pixels para o painel de filtros - reduzido para melhor aproveitamento de tela */
+    width: 270px;
+    /* Aplica a cor de fundo secundaria escura */
+    background-color: var(--bg-secondary);
+    /* Desenha uma linha fina divisória vertical do lado direito do painel */
+    border-right: 1px solid var(--border-color);
+    /* Alinha o cabecalho, os filtros e o rodape verticalmente usando flexbox */
+    display: flex;
+    /* Direciona o alinhamento flexbox para coluna */
+    flex-direction: column;
+    /* Impede que o painel lateral seja esmagado em telas menores */
+    flex-shrink: 0;
+    /* Mantem o painel acima de elementos flutuantes na tela */
+    z-index: 10;
+}
+
+/* Cabecalho da barra lateral contendo o logo */
+.sidebar-header {
+    /* Adiciona espacamento interno de 20 pixels */
+    padding: 20px;
+    /* Desenha uma linha fina divisória horizontal na base do cabecalho */
+    border-bottom: 1px solid var(--border-color);
+}
+
+/* Container do logotipo */
+.logo {
+    /* Alinha icone e texto horizontalmente com flexbox */
+    display: flex;
+    /* Centraliza os itens verticalmente */
+    align-items: center;
+    /* Define espaco de 12 pixels entre icone e texto */
+    gap: 12px;
+}
+
+/* Icone vetorial do logo */
+.logo i {
+    /* Define o tamanho do icone */
+    font-size: 24px;
+    /* Aplica a cor azul de destaque ao icone */
+    color: var(--color-blue);
+    /* Cria um efeito de brilho neon azul suave atras do icone */
+    filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.5));
+}
+
+/* Nome comercial do logotipo */
+.logo span {
+    /* Ajusta o tamanho da fonte */
+    font-size: 22px;
+    /* Define peso de fonte em negrito */
+    font-weight: 700;
+    /* Ajusta o espacamento entre letras */
+    letter-spacing: 0.5px;
+    /* Cria um degradê de branco para azul para aplicar no texto do logo */
+    background: linear-gradient(135deg, #FFF, var(--color-blue));
+    /* Recorta o fundo degradê no formato das letras do texto */
+    -webkit-background-clip: text;
+    /* Oculta a cor sólida nativa do texto para revelar o degradê */
+    -webkit-text-fill-color: transparent;
+}
+
+/* Secao rolável contendo os controles de filtros */
+.filter-section {
+    /* Espacamento interno de 20 pixels */
+    padding: 20px;
+    /* Permite que o bloco cresca ocupando o espaco vertical restante */
+    flex-grow: 1;
+    /* Habilita rolagem vertical automatica se a lista de filtros exceder o espaço */
+    overflow-y: auto;
+}
+
+/* Titulo da secao de filtros */
+.filter-section h3 {
+    /* Ajusta tamanho da fonte */
+    font-size: 14px;
+    /* Coloca todas as letras em maiusculo */
+    text-transform: uppercase;
+    /* Adiciona espacamento entre letras */
+    letter-spacing: 1px;
+    /* Aplica cor cinza para texto secundario */
+    color: var(--text-secondary);
+    /* Adiciona espaco de 20 pixels na base do titulo */
+    margin-bottom: 20px;
+    /* Alinha icone e titulo usando flexbox */
+    display: flex;
+    /* Centraliza verticalmente */
+    align-items: center;
+    /* Espaco de 8 pixels entre icone e texto */
+    gap: 8px;
+}
+
+/* Container de controle de cada campo individual de filtro */
+.filter-group {
+    /* Adiciona espaco de 20 pixels na base do grupo para separar os filtros */
+    margin-bottom: 20px;
+}
+
+/* Rotulo do campo de filtro */
+.filter-group label {
+    /* Define como bloco para que o rotulo fique acima do campo */
+    display: block;
+    /* Ajusta o tamanho da fonte */
+    font-size: 12px;
+    /* Peso da fonte em negrito medio */
+    font-weight: 500;
+    /* Aplica a cor cinza no rotulo */
+    color: var(--text-secondary);
+    /* Adiciona espaco de 8 pixels entre rotulo e campo de input */
+    margin-bottom: 8px;
+}
+
+/* Inputs de data e seletores dropdown da barra lateral */
+.filter-group input[type="date"],
+.filter-group select {
+    /* Ocupa 100% da largura util da barra lateral */
+    width: 100%;
+    /* Aplica fundo preto extremamente transparente */
+    background-color: rgba(255, 255, 255, 0.03);
+    /* Desenha borda fina escura ao redor do campo */
+    border: 1px solid var(--border-color);
+    /* Arredonda os cantos dos campos em 8 pixels */
+    border-radius: 8px;
+    /* Espacamento interno de 10 pixels verticais e 14 pixels horizontais */
+    padding: 10px 14px;
+    /* Define cor branca para a escrita */
+    color: var(--text-primary);
+    /* Garante uso da fonte Outfit */
+    font-family: var(--font-primary);
+    /* Ajusta tamanho da fonte */
+    font-size: 14px;
+    /* Oculta contorno padrao azul do navegador */
+    outline: none;
+    /* Aplica transicao suave para alteracao de cor ao focar no campo */
+    transition: var(--transition-smooth);
+}
+
+/* Efeito ao focar ou clicar no input/dropdown */
+.filter-group input[type="date"]:focus,
+.filter-group select:focus {
+    /* Altera a borda para azul de destaque */
+    border-color: var(--color-blue);
+    /* Aumenta a opacidade do fundo do campo */
+    background-color: rgba(255, 255, 255, 0.05);
+    /* Adiciona um anel de brilho azul sutil ao redor do campo focando ele */
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+/* Ajuste estetico para os dropdowns no Windows Chrome */
+.filter-group select option {
+    /* Define fundo escuro solido para as opcoes do menu suspenso */
+    background-color: var(--bg-secondary);
+    /* Define texto claro para as opcoes */
+    color: var(--text-primary);
+}
+
+/* Secao inferior de botoes de acao de filtro */
+.filter-actions {
+    /* Margem de 30 pixels acima do bloco de botoes */
+    margin-top: 30px;
+    /* Alinha os botoes em coluna usando flexbox */
+    display: flex;
+    /* Direciona em coluna */
+    flex-direction: column;
+    /* Espacamento de 12 pixels entre os botoes */
+    gap: 12px;
+}
+
+/* Estilo Base de Botao */
+.btn {
+    /* Ocupa toda a largura util lateral */
+    width: 100%;
+    /* Adiciona espacamento interno */
+    padding: 12px;
+    /* Remove bordas nativas de botao */
+    border: none;
+    /* Arredonda cantos do botao em 8 pixels */
+    border-radius: 8px;
+    /* Fonte oficial Outfit */
+    font-family: var(--font-primary);
+    /* Negrito de destaque */
+    font-weight: 600;
+    /* Tamanho de letra */
+    font-size: 14px;
+    /* Altera o cursor do mouse para maozinha indicando clique */
+    cursor: pointer;
+    /* Alinha icone e texto do botao usando flexbox */
+    display: flex;
+    /* Centraliza verticalmente */
+    align-items: center;
+    /* Centraliza horizontalmente */
+    justify-content: center;
+    /* Espaco de 8 pixels entre icone e texto do botao */
+    gap: 8px;
+    /* Aplica transicoes suaves para efeitos de mouse */
+    transition: var(--transition-smooth);
+}
+
+/* Botao Primario - Gerar Relatorio PDF */
+.btn-primary {
+    /* Aplica gradiente degradê em tom azul brilhante no fundo do botao */
+    background: linear-gradient(135deg, var(--color-blue), #2563EB);
+    /* Cor branca do texto */
+    color: #FFF;
+    /* Adiciona sombra azul brilhante sob o botao */
+    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
+}
+
+/* Efeito de mouse sobre o botao primario */
+.btn-primary:hover {
+    /* Eleva ligeiramente o botao para cima em 2 pixels */
+    transform: translateY(-2px);
+    /* Aumenta a dispersao da sombra dando efeito de flutuacao */
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+    /* Aumenta a luminosidade do gradiente de fundo */
+    filter: brightness(1.1);
+}
+
+/* Botao Secundario - Limpar Filtros */
+.btn-secondary {
+    /* Fundo escuro levemente transparente */
+    background-color: rgba(255, 255, 255, 0.05);
+    /* Borda fina semitransparente ao redor do botao */
+    border: 1px solid var(--border-color);
+    /* Texto claro */
+    color: var(--text-primary);
+}
+
+/* Efeito de mouse sobre o botao secundario */
+.btn-secondary:hover {
+    /* Escurece levemente o fundo do botao */
+    background-color: rgba(255, 255, 255, 0.08);
+    /* Altera a cor da borda para cinza claro */
+    border-color: var(--text-secondary);
+}
+
+/* Rodape da Barra Lateral */
+.sidebar-footer {
+    /* Espacamento interno */
+    padding: 16px 20px;
+    /* Traca linha superior fina separadora */
+    border-top: 1px solid var(--border-color);
+    /* Alinha os itens distribuindo os espacos entre eles */
+    display: flex;
+    /* Distribui extremidades */
+    justify-content: space-between;
+    /* Letra pequena discreta */
+    font-size: 11px;
+    /* Cor cinza escura */
+    color: var(--text-muted);
+}
+
+/* Area de Conteudo Principal */
+.main-content {
+    /* Permite que a area ocupe todo o espaco de tela restante horizontal */
+    flex-grow: 1;
+    /* Alinha os cards, graficos e tabelas verticalmente com flexbox */
+    display: flex;
+    /* Direciona flexbox para coluna */
+    flex-direction: column;
+    /* Mantem altura maxima de tela */
+    height: 100vh;
+    /* Habilita rolagem vertical se o conteudo for maior que a tela */
+    overflow-y: auto;
+    /* Espacamento interno da area - reduzido para 24px para visual mais compacto */
+    padding: 24px;
+    /* Aplica dois degradês radiais discretos nos cantos superior esquerdo e inferior direito para visual de profundidade */
+    background-image: radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.03) 0px, transparent 50%),
+                      radial-gradient(at 100% 100%, rgba(79, 70, 229, 0.03) 0px, transparent 50%);
+}
+
+/* Barra de Navegacao Superior */
+.navbar {
+    /* Alinha o bloco de titulos e o relogio horizontalmente */
+    display: flex;
+    /* Distribui nas extremidades opostas */
+    justify-content: space-between;
+    /* Centraliza verticalmente */
+    align-items: center;
+    /* Espacamento na base para afastar dos cartoes KPI */
+    margin-bottom: 30px;
+    /* Impede o encolhimento da barra de navegacao */
+    flex-shrink: 0;
+}
+
+/* Titulo Principal do Dashboard */
+.nav-title h1 {
+    /* Define tamanho grande para a tipografia */
+    font-size: 28px;
+    /* Letra extra negrito */
+    font-weight: 800;
+    /* Aproxima ligeiramente as letras para visual moderno */
+    letter-spacing: -0.5px;
+    /* Cria um degradê sutil cinza/branco para o texto do titulo */
+    background: linear-gradient(to right, #FFFFFF, #E5E7EB);
+    /* Recorta o degradê de fundo nas letras */
+    -webkit-background-clip: text;
+    /* Deixa o preenchimento invisivel para revelar o degradê */
+    -webkit-text-fill-color: transparent;
+    /* Espaco de 4 pixels abaixo do titulo principal */
+    margin-bottom: 4px;
+}
+
+/* Subtitulo da Barra Superior */
+.nav-title p {
+    /* Letra pequena */
+    font-size: 14px;
+    /* Cor cinza claro */
+    color: var(--text-secondary);
+}
+
+/* Widget de Relogio Digital */
+.system-time {
+    /* Fundo escuro do widget */
+    background-color: var(--bg-secondary);
+    /* Borda fina divisória */
+    border: 1px solid var(--border-color);
+    /* Preenchimento interno lateral e vertical */
+    padding: 8px 16px;
+    /* Arredonda completamente os cantos em formato capsula */
+    border-radius: 20px;
+    /* Alinha o icone e o relogio horizontalmente */
+    display: flex;
+    /* Centraliza */
+    align-items: center;
+    /* Espacamento de 8 pixels entre icone e texto */
+    gap: 8px;
+    /* Fonte pequena */
+    font-size: 13px;
+    /* Peso médio */
+    font-weight: 500;
+    /* Texto cinza claro */
+    color: var(--text-secondary);
+}
+
+/* Icone do Relogio */
+.system-time i {
+    /* Altera a cor do icone de relogio para azul eletrico */
+    color: var(--color-blue);
+}
+
+/* Secao de Metricas e Indicadores (KPIs) */
+.kpi-container {
+    /* Distribui os 4 cards em grid de 4 colunas identicas */
+    display: grid;
+    /* 4 colunas de tamanho fracionario igual */
+    grid-template-columns: repeat(4, 1fr);
+    /* Espacamento de 20 pixels entre os cards */
+    gap: 20px;
+    /* Espacamento na base para afastar dos graficos */
+    margin-bottom: 30px;
+    /* Impede o encolhimento do container de cartoes */
+    flex-shrink: 0;
+}
+
+/* Estilo do Card KPI individual */
+.kpi-card {
+    /* Fundo escuro solido e leve */
+    background-color: var(--bg-card);
+    /* Traca borda fina transparente */
+    border: 1px solid var(--border-color);
+    /* Arredonda cantos do cartao em 16 pixels */
+    border-radius: 14px;
+    /* Preenchimento interno do cartao */
+    padding: 20px;
+    /* Alinha icone e dados horizontalmente */
+    display: flex;
+    /* Centraliza verticalmente */
+    align-items: center;
+    /* Espacamento de 16 pixels entre o icone e os textos do card */
+    gap: 16px;
+    /* Transicao leve */
+    transition: var(--transition-smooth);
+}
+
+/* Efeito de mouse sobre o card de KPI */
+.kpi-card:hover {
+    /* Eleva ligeiramente o cartao em 2 pixels */
+    transform: translateY(-2px);
+    /* Altera a cor da borda do card para indicar interacao ativa */
+    border-color: var(--border-hover);
+}
+
+/* Container do Icone do Card */
+.kpi-icon {
+    /* Largura fixa da caixa do icone */
+    width: 52px;
+    /* Altura fixa */
+    height: 52px;
+    /* Arredondamento suave dos cantos do icone */
+    border-radius: 12px;
+    /* Centraliza verticalmente e horizontalmente o icone interno */
+    display: flex;
+    /* Centraliza */
+    align-items: center;
+    /* Centraliza */
+    justify-content: center;
+    /* Tamanho do icone vetorial */
+    font-size: 22px;
+}
+
+/* Estilos de Cores Especificos de Icones de KPIs */
+.icon-blue {
+    /* Fundo azul translucido */
+    background-color: rgba(59, 130, 246, 0.1);
+    /* Icone azul solido */
+    color: var(--color-blue);
+    /* Borda azul translúcida */
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+.icon-green {
+    /* Fundo verde translucido */
+    background-color: rgba(16, 185, 129, 0.1);
+    /* Icone verde solido */
+    color: var(--color-green);
+    /* Borda verde translúcida */
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+.icon-yellow {
+    /* Fundo amarelo translucido */
+    background-color: rgba(245, 158, 11, 0.1);
+    /* Icone amarelo solido */
+    color: var(--color-yellow);
+    /* Borda amarela translúcida */
+    border: 1px solid rgba(245, 158, 11, 0.2);
+}
+.icon-red {
+    /* Fundo vermelho translucido */
+    background-color: rgba(239, 68, 68, 0.1);
+    /* Icone vermelho solido */
+    color: var(--color-red);
+    /* Borda vermelha translúcida */
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+.icon-purple {
+    /* Fundo roxo translucido */
+    background-color: rgba(139, 92, 246, 0.1);
+    /* Icone roxo solido */
+    color: #8B5CF6;
+    /* Borda roxa translúcida */
+    border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+/* Container de informacoes textuais do card */
+.kpi-info {
+    /* Alinha titulo e valor verticalmente em coluna */
+    display: flex;
+    /* Direciona em coluna */
+    flex-direction: column;
+    /* Posicionamento relativo para controle do indicador de porcentagem absoluta */
+    position: relative;
+    /* Ocupa toda a largura interna restante do card */
+    width: 100%;
+}
+
+/* Titulo da Metrica */
+.kpi-info h3 {
+    /* Fonte pequena */
+    font-size: 13px;
+    /* Peso médio */
+    font-weight: 500;
+    /* Cor cinza claro */
+    color: var(--text-secondary);
+    /* Margem de 6 pixels na base */
+    margin-bottom: 6px;
+}
+
+/* Numero do Valor Consolidado */
+.kpi-value {
+    /* Letra grande de destaque */
+    font-size: 26px;
+    /* Negrito forte */
+    font-weight: 700;
+    /* Texto branco */
+    color: #FFF;
+    /* Remove espacamentos extras verticais na linha */
+    line-height: 1;
+    /* Impede o cifrao R$ e o valor de quebrarem em duas linhas */
+    white-space: nowrap;
+}
+
+/* Badge de Porcentagem absoluta no canto inferior direito do card */
+.kpi-pct {
+    /* Posicionamento absoluto para travar no canto do card */
+    position: absolute;
+    /* Alinha à direita */
+    right: 0;
+    /* Alinha na base */
+    bottom: 0;
+    /* Letra pequena discreta */
+    font-size: 11px;
+    /* Negrito extra forte */
+    font-weight: 700;
+    /* Espacamento interno do badge */
+    padding: 2px 6px;
+    /* Arredonda os cantinhos do badge */
+    border-radius: 4px;
+}
+
+/* Cores de fundo e escrita especificas das porcentagens nos cards */
+.pct-green { background-color: rgba(16, 185, 129, 0.1); color: var(--color-green); }
+.pct-yellow { background-color: rgba(245, 158, 11, 0.1); color: var(--color-yellow); }
+.pct-red { background-color: rgba(239, 68, 68, 0.1); color: var(--color-red); }
+
+/* Grid de Layout de Graficos */
+.charts-grid {
+    /* Traca layout em grid de 2 colunas */
+    display: grid;
+    /* Divide em duas colunas identicas */
+    grid-template-columns: repeat(2, 1fr);
+    /* Espacamento de 20 pixels entre os paineis de graficos */
+    gap: 20px;
+    /* Margem na base para afastar da tabela */
+    margin-bottom: 30px;
+}
+
+/* Painel de Grafico individual */
+.chart-card {
+    /* Fundo escuro solido e leve */
+    background-color: var(--bg-card);
+    /* Borda fina semitransparente */
+    border: 1px solid var(--border-color);
+    /* Cantos arredondados em 14 pixels */
+    border-radius: 14px;
+    /* Espacamento interno */
+    padding: 20px;
+    /* Transicao suave de cor de borda */
+    transition: var(--transition-smooth);
+}
+
+/* Efeito de mouse sobre o painel do grafico */
+.chart-card:hover {
+    /* Destaca a borda ao passar o mouse */
+    border-color: var(--border-hover);
+}
+
+/* Cabecalho interno do painel do grafico */
+.chart-header {
+    /* Espacamento na base para afastar do desenho do grafico */
+    margin-bottom: 20px;
+    /* Alinha o titulo horizontalmente */
+    display: flex;
+    /* Separa extremidades */
+    justify-content: space-between;
+    /* Centraliza verticalmente */
+    align-items: center;
+}
+
+/* Titulo do Grafico */
+.chart-header h2 {
+    /* Tamanho de letra */
+    font-size: 16px;
+    /* Negrito medio */
+    font-weight: 600;
+    /* Texto claro */
+    color: var(--text-primary);
+}
+
+/* Wrapper de delimitacao e dimensionamento dos graficos */
+.chart-wrapper {
+    /* Define altura fixa de 250 pixels para o canvas do grafico */
+    height: 250px;
+    /* Posicionamento relativo essencial para dimensionamento correto do Chart.js */
+    position: relative;
+    /* Centraliza o canvas interno com flexbox */
+    display: flex;
+    /* Centraliza */
+    align-items: center;
+    /* Centraliza */
+    justify-content: center;
+}
+
+/* Forca o canvas a respeitar o tamanho definido pelo container pai do grid */
+canvas {
+    /* Largura total */
+    width: 100% !important;
+    /* Altura total */
+    height: 100% !important;
+}
+
+/* Secao da Tabela de Dados Detalhados */
+.table-section {
+    /* Fundo escuro com transparencia */
+    background-color: var(--bg-card);
+    /* Efeito glassmorphism blur */
+    backdrop-filter: blur(12px);
+    /* Suporte Safari */
+    -webkit-backdrop-filter: blur(12px);
+    /* Borda fina semitransparente */
+    border: 1px solid var(--border-color);
+    /* Cantos arredondados em 16 pixels */
+    border-radius: 16px;
+    /* Espacamento interno */
+    padding: 24px;
+    /* Espacamento na base da secao */
+    margin-bottom: 30px;
+}
+
+/* Cabecalho da Secao da Tabela */
+.table-header {
+    /* Alinha titulo da tabela e barra de pesquisa nas pontas opostas */
+    display: flex;
+    /* Distribui horizontalmente */
+    justify-content: space-between;
+    /* Centraliza verticalmente */
+    align-items: center;
+    /* Afasta a tabela das linhas */
+    margin-bottom: 20px;
+}
+
+/* Titulo da Secao da Tabela */
+.table-header h2 {
+    /* Tamanho de letra */
+    font-size: 16px;
+    /* Negrito */
+    font-weight: 600;
+}
+
+/* Bloco da Barra de Pesquisa de Remessas */
+.table-search {
+    /* Posicionamento relativo para fixar o icone de lupa */
+    position: relative;
+    /* Largura fixa de 300 pixels */
+    width: 300px;
+}
+
+/* Icone de Lupa na Pesquisa */
+.table-search i {
+    /* Posiciona absolutamente dentro do bloco */
+    position: absolute;
+    /* Alinha 12 pixels a partir da esquerda */
+    left: 12px;
+    /* Move verticalmente ate o centro da caixa */
+    top: 50%;
+    /* Desloca 50% de sua altura para cima para centralizacao exata */
+    transform: translateY(-50%);
+    /* Cor de texto cinza escura discreta */
+    color: var(--text-muted);
+}
+
+/* Campo input da pesquisa */
+.table-search input {
+    /* Ocupa a largura util de 300 pixels */
+    width: 100%;
+    /* Fundo preto extremamente transparente */
+    background-color: rgba(255, 255, 255, 0.03);
+    /* Borda fina semitransparente */
+    border: 1px solid var(--border-color);
+    /* Formato capsula arredondado nas pontas */
+    border-radius: 20px;
+    /* Espacamento interno: abre espaco na esquerda para a lupa nao sobrepor o texto */
+    padding: 8px 12px 8px 36px;
+    /* Texto claro */
+    color: var(--text-primary);
+    /* Fonte Outfit */
+    font-family: var(--font-primary);
+    /* Tamanho de letra */
+    font-size: 13px;
+    /* Oculta contorno padrao do browser */
+    outline: none;
+    /* Transicao suave ao focar */
+    transition: var(--transition-smooth);
+}
+
+/* Efeito de clique e foco no campo de pesquisa */
+.table-search input:focus {
+    /* Altera borda para azul brilhante */
+    border-color: var(--color-blue);
+    /* Aumenta opacidade do fundo do campo */
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Wrapper de rolagem da tabela */
+.table-wrapper {
+    /* Habilita barra de rolagem horizontal se a tabela for maior que a tela do dispositivo */
+    overflow-x: auto;
+    /* Margem na base para separar da paginacao */
+    margin-bottom: 15px;
+}
+
+/* Tabela HTML */
+.data-table {
+    /* Ocupa 100% da largura do container */
+    width: 100%;
+    /* Remove espacamentos duplos nas bordas de celulas */
+    border-collapse: collapse;
+    /* Alinha todo o texto à esquerda */
+    text-align: left;
+}
+
+/* Cabecalho de Colunas da Tabela (th) */
+.data-table th {
+    /* Espacamento interno vertical e horizontal da celula de titulo */
+    padding: 14px 16px;
+    /* Traca linha divisoria fina horizontal na base do cabecalho */
+    border-bottom: 1px solid var(--border-color);
+    /* Cor cinza claro */
+    color: var(--text-secondary);
+    /* Negrito medio */
+    font-weight: 600;
+    /* Tamanho da letra */
+    font-size: 13px;
+    /* Fundo levemente visivel */
+    background-color: rgba(255, 255, 255, 0.01);
+}
+
+/* Celulas de Dados da Tabela (td) */
+.data-table td {
+    /* Espacamento interno das celulas de dados */
+    padding: 14px 16px;
+    /* Traca linha divisoria horizontal sutil entre as linhas de dados */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    /* Letra de tamanho 13 */
+    font-size: 13px;
+    /* Texto branco */
+    color: var(--text-primary);
+}
+
+/* Efeito de foco ao passar o mouse sobre a linha da tabela (tr) */
+.data-table tbody tr {
+    /* Transicao suave de cor de fundo */
+    transition: var(--transition-smooth);
+}
+
+/* Mouse sobre a linha da tabela */
+.data-table tbody tr:hover {
+    /* Destaca a linha inteira aplicando fundo levemente claro */
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+/* Emblemas de status (Badges) */
+.badge {
+    /* Exibe como bloco inline respeitando largura e margens internas */
+    display: inline-block;
+    /* Espacamento interno vertical e horizontal do emblema */
+    padding: 4px 10px;
+    /* Cantos completamente arredondados capsula */
+    border-radius: 12px;
+    /* Fonte pequena */
+    font-size: 11px;
+    /* Negrito de destaque */
+    font-weight: 600;
+}
+
+/* Badge Concluído (Verde) */
+.badge-concluido {
+    /* Fundo verde escuro translucido */
+    background-color: rgba(16, 185, 129, 0.1);
+    /* Texto verde claro brilhante */
+    color: var(--color-green);
+    /* Borda verde translucida fina */
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+/* Badge Pendente (Amarelo) */
+.badge-pendente {
+    /* Fundo amarelo escuro translucido */
+    background-color: rgba(245, 158, 11, 0.1);
+    /* Texto amarelo claro brilhante */
+    color: var(--color-yellow);
+    /* Borda amarela translucida fina */
+    border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+/* Badge Crítico (Vermelho) */
+.badge-critico {
+    /* Fundo vermelho escuro translucido */
+    background-color: rgba(239, 68, 68, 0.1);
+    /* Texto vermelho claro brilhante */
+    color: var(--color-red);
+    /* Borda vermelha translucida fina */
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+/* Aliases de badges e neutro */
+.badge-success {
+    background-color: rgba(16, 185, 129, 0.12);
+    color: var(--color-green);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+}
+.badge-warning {
+    background-color: rgba(245, 158, 11, 0.12);
+    color: var(--color-yellow);
+    border: 1px solid rgba(245, 158, 11, 0.25);
+}
+.badge-danger {
+    background-color: rgba(239, 68, 68, 0.12);
+    color: var(--color-red);
+    border: 1px solid rgba(239, 68, 68, 0.25);
+}
+.badge-neutral {
+    background-color: rgba(156, 163, 175, 0.12);
+    color: var(--text-secondary);
+    border: 1px solid rgba(156, 163, 175, 0.25);
+}
+
+/* Linha de Consolidação / Totalizador no Rodapé da Tabela */
+.data-table tfoot {
+    background: linear-gradient(180deg, rgba(17, 24, 39, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%);
+    border-top: 2px solid rgba(59, 130, 246, 0.45);
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.data-table tfoot tr td {
+    padding: 13px 16px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #FFFFFF;
+    border-bottom: none;
+}
+
+.data-table tfoot tr td.total-label {
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    font-weight: 800;
+    color: #93C5FD;
+}
+
+/* Subtítulo e Chip de ID de Viagem / Manifesto / Tarefa */
+.trip-id-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 7px;
+    border-radius: 6px;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    color: #93C5FD;
+    background: rgba(59, 130, 246, 0.12);
+    border: 1px solid rgba(59, 130, 246, 0.28);
+    cursor: pointer;
+    transition: var(--transition-smooth);
+    user-select: none;
+    margin-top: 3px;
+    width: fit-content;
+}
+
+.trip-id-chip:hover {
+    background: rgba(59, 130, 246, 0.25);
+    border-color: rgba(96, 165, 250, 0.6);
+    color: #FFFFFF;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.trip-id-chip:active {
+    transform: translateY(0);
+}
+
+.trip-id-chip i {
+    font-size: 10px;
+    opacity: 0.85;
+}
+
+/* Toast moderno de feedback para cópia */
+.copy-toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: rgba(17, 24, 39, 0.95);
+    color: #FFFFFF;
+    border: 1px solid rgba(59, 130, 246, 0.5);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 15px rgba(59, 130, 246, 0.3);
+    backdrop-filter: blur(10px);
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 99999;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+}
+
+.copy-toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.copy-toast i {
+    color: #10B981;
+    font-size: 15px;
+}
+
+/* Painel de Controle de Paginacao */
+.table-footer {
+    /* Alinha o texto explicativo de registros e os botoes de pagina nas pontas */
+    display: flex;
+    /* Distribui horizontalmente nas extremidades */
+    justify-content: space-between;
+    /* Centraliza verticalmente */
+    align-items: center;
+    /* Fonte pequena */
+    font-size: 12px;
+    /* Cor cinza escura */
+    color: var(--text-muted);
+}
+
+/* Container de Botoes de Pagina */
+.pagination {
+    /* Alinha os botoes e o numero da pagina na horizontal */
+    display: flex;
+    /* Centraliza verticalmente */
+    align-items: center;
+    /* Espaco de 12 pixels entre os botoes e indicador de pagina */
+    gap: 12px;
+}
+
+/* Botao de Paginacao */
+.pagination-btn {
+    /* Fundo preto semitransparente */
+    background-color: rgba(255, 255, 255, 0.03);
+    /* Borda fina divisória */
+    border: 1px solid var(--border-color);
+    /* Icone branco */
+    color: var(--text-primary);
+    /* Largura quadrada fixa de 32 pixels */
+    width: 32px;
+    /* Altura quadrada fixa de 32 pixels */
+    height: 32px;
+    /* Cantos levemente arredondados em 8 pixels */
+    border-radius: 8px;
+    /* Centraliza o icone interno do botao */
+    display: flex;
+    /* Centraliza */
+    align-items: center;
+    /* Centraliza */
+    justify-content: center;
+    /* Maozinha indicativa ao passar o mouse */
+    cursor: pointer;
+    /* Transicao suave ao interagir */
+    transition: var(--transition-smooth);
+}
+
+/* Mouse sobre o botao de paginacao (se nao estiver desabilitado) */
+.pagination-btn:hover:not(:disabled) {
+    /* Preenche o fundo com azul brilhante de destaque */
+    background-color: var(--color-blue);
+    /* Altera a borda para a cor azul brilhante */
+    border-color: var(--color-blue);
+}
+
+/* Botao de paginacao desabilitado (ex: anterior na pagina 1) */
+.pagination-btn:disabled {
+    /* Reduz a opacidade tornando-o cinza apagado */
+    opacity: 0.3;
+    /* Altera o cursor do mouse para sinal de proibido */
+    cursor: not-allowed;
+}
+
+/* Indicador textual da pagina ativa */
+#page-num {
+    /* Negrito */
+    font-weight: 600;
+    /* Letra branca */
+    color: var(--text-primary);
+}
+
+/* Classe utilitaria para adicionar sombra glassmorphism mais densa */
+.glass {
+    /* Projeta sombra escura difusa ao redor do painel */
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* Container de Título da Navbar (alinhamento com toggle no mobile) */
+.nav-title-container {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+/* Botões do mobile escondidos por padrão no desktop */
+.mobile-toggle-btn,
+.mobile-close-btn {
+    display: none;
+}
+
+/* Backdrop da barra lateral para mobile */
+.sidebar-backdrop {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(15, 19, 30, 0.7);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 999;
+}
+
+.sidebar-backdrop.active {
+    display: block;
+}
+
+/* Regras de Media Queries para telas de tablets (ate 1200px) */
+@media (max-width: 1200px) {
+    /* Ajusta os cards KPIs superiores para 2 colunas ao invés de 4 */
+    .kpi-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    /* Estica os paineis de graficos em 1 coluna única vertical */
+    .charts-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Regras de Media Queries para telas de celulares (ate 768px) */
+@media (max-width: 768px) {
+    /* Não empilha a barra lateral no fluxo principal; agora ela é um Drawer lateral */
+    .app-container {
+        flex-direction: row;
+    }
+    
+    /* Configuração da barra lateral como gaveta (Drawer) */
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: -270px; /* Escondido fora da tela */
+        width: 270px;
+        height: 100vh;
+        z-index: 1000;
+        transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: none;
+    }
+    
+    /* Quando ativo, desliza para dentro da tela */
+    .sidebar.active {
+        left: 0;
+        box-shadow: 5px 0 25px rgba(0, 0, 0, 0.5);
+    }
+    
+    /* Botões de abrir/fechar sidebar no mobile */
+    .mobile-toggle-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 42px;
+        height: 42px;
+        background-color: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        color: var(--text-primary);
+        font-size: 18px;
+        cursor: pointer;
+        transition: var(--transition-smooth);
+        flex-shrink: 0;
+    }
+    
+    .mobile-toggle-btn:hover {
+        background-color: rgba(255, 255, 255, 0.08);
+        border-color: var(--color-blue);
+    }
+    
+    .mobile-close-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        background: none;
+        border: none;
+        color: var(--text-secondary);
+        font-size: 22px;
+        cursor: pointer;
+        transition: var(--transition-smooth);
+    }
+    
+    .mobile-close-btn:hover {
+        color: var(--text-primary);
+    }
+    
+    /* Ajustes na Navbar */
+    .navbar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+    
+    .system-time {
+        align-self: flex-end;
+    }
+    
+    .nav-title h1 {
+        font-size: 22px;
+    }
+    
+    .nav-title p {
+        font-size: 12px;
+    }
+    
+    /* Ajuste de espaçamento da área principal */
+    .main-content {
+        padding: 16px;
+        width: 100%;
+    }
+    
+    /* Grade 2x2 para KPIs superiores */
+    .kpi-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+    
+    .kpi-card {
+        padding: 14px;
+        gap: 12px;
+        border-radius: 12px;
+    }
+    
+    .kpi-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+        border-radius: 8px;
+    }
+    
+    .kpi-value {
+        font-size: 18px;
+    }
+    
+    .kpi-info h3 {
+        font-size: 11px;
+        margin-bottom: 2px;
+    }
+    
+    /* Ajustes nas tabelas */
+    .table-section {
+        padding: 16px;
+        margin-bottom: 20px;
+    }
+    
+    .table-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+    
+    .table-search {
+        width: 100%;
+    }
+}
+
+/* Animacao Keyframes de efeito pulsar para chamar atencao do botao de PDF */
+@keyframes pulse {
+    0% {
+        /* Inicia com anel de brilho zerado nas pontas do botao */
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.6);
+    }
+    70% {
+        /* Dispersa o anel de brilho expandindo ate 10 pixels e sumindo */
+        box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+    }
+    100% {
+        /* Reseta para reiniciar o loop continuo */
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+    }
+}
+
+/* Aplica o efeito pulsar continuamente ao botao de PDF */
+.btn-generate-pdf {
+    /* Executa a animacao 'pulse' ciclicamente a cada 2 segundos */
+    animation: pulse 2s infinite;
+}
+/* Interrompe a animacao pulsar quando o usuario estiver com o mouse sobre o botao */
+.btn-generate-pdf:hover {
+    /* Desativa animacao */
+    animation: none;
+}
+
+/* --- NOVOS ESTILOS PARA VISÃO SEM MOVIMENTAÇÃO --- */
+
+/* Navegação por abas na barra lateral */
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.nav-item {
+    background: none;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    color: var(--text-secondary);
+    font-family: var(--font-primary);
+    font-size: 14px;
+    font-weight: 500;
+    padding: 10px 14px;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: var(--transition-smooth);
+    width: 100%;
+}
+
+.nav-item:hover {
+    background-color: rgba(255, 255, 255, 0.03);
+    color: var(--text-primary);
+}
+
+.nav-item.active {
+    background-color: rgba(59, 130, 246, 0.1);
+    border-color: rgba(59, 130, 246, 0.2);
+    color: var(--color-blue);
+    font-weight: 600;
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.1);
+}
+
+.nav-item i {
+    font-size: 16px;
+    width: 20px;
+    text-align: center;
+}
+
+/* Painéis de Conteúdo */
+.content-panel {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+/* Indicador de página específico para Sem Movimento */
+#page-sem-mov-num {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* Custom Multi-select Dropdown */
+.custom-multiselect {
+    position: relative;
+    width: 100%;
+}
+
+.multiselect-trigger {
+    width: 100%;
+    background-color: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: var(--text-primary);
+    font-family: var(--font-primary);
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: var(--transition-smooth);
+    text-align: left;
+}
+
+.multiselect-trigger:focus {
+    border-color: var(--color-blue);
+    background-color: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.multiselect-trigger span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 200px;
+}
+
+.multiselect-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    margin-top: 4px;
+    max-height: 250px;
+    overflow-y: auto;
+    z-index: 50;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    padding: 8px 0;
+}
+
+.multiselect-option-all {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 4px;
+}
+
+.multiselect-options-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.multiselect-dropdown label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+    margin-bottom: 0; /* Sobrescreve margem padrão do label */
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 400;
+}
+
+.multiselect-dropdown label:hover {
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+.multiselect-dropdown input[type="checkbox"] {
+    cursor: pointer;
+    accent-color: var(--color-blue);
+    width: 15px;
+    height: 15px;
+}
+
+/* --- NOVOS ESTILOS PARA VISÃO CONTROLE BAURU --- */
+
+/* Estilos para lista de informações chave-valor (RH e Volumes) */
+.info-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 10px 0;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.info-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.info-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.info-value {
+    font-size: 15px;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+/* Estilos para as observações de fechamento de turno */
+.notes-wrapper {
+    padding: 10px 0;
+    max-height: 280px;
+    overflow-y: auto;
+}
+
+.notes-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.notes-list li {
+    position: relative;
+    padding-left: 24px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--text-primary);
+}
+
+.notes-list li::before {
+    content: "•";
+    position: absolute;
+    left: 8px;
+    color: var(--color-blue);
+    font-weight: bold;
+    font-size: 18px;
+    top: -2px;
+}
+
+#list-controle-motivos li::before {
+    color: var(--color-red);
+}
+
+#list-controle-pontos li::before {
+    color: var(--color-yellow);
+}
+
+/* Container para tabelas de expedição lado a lado */
+.expedicao-tables-container {
+    display: flex;
+    gap: 40px;
+    margin-top: 15px;
+}
+
+.expedicao-tables-container .table-wrapper {
+    flex: 1;
+}
+
+.expedicao-tables-container .table-wrapper:first-child {
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    padding-right: 20px;
+}
+
+.expedicao-tables-container .data-table th,
+.expedicao-tables-container .data-table td {
+    padding: 6px 10px;
+    font-size: 12px;
+}
+
+@media (max-width: 768px) {
+    .expedicao-tables-container {
+        flex-direction: column;
+        gap: 20px;
+    }
+    .expedicao-tables-container .table-wrapper:first-child {
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        padding-right: 0;
+        padding-bottom: 20px;
+    }
+}
+
+/* Estilos para o botão de copiar resumo */
+.btn-copy {
+    background: #3B82F6;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.2s, transform 0.1s;
+}
+
+.btn-copy:hover {
+    background: #2563EB;
+}
+
+.btn-copy:active {
+    transform: scale(0.95);
+}
+
+/* --- ESTILOS PARA UPLOAD DE BEEPS NA PRODUÇÃO --- */
+.dropzone {
+    border: 1px dashed rgba(255, 255, 255, 0.15) !important;
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.02) !important;
+    transition: all 0.2s ease;
+}
+
+.dropzone:hover {
+    border-color: #3B82F6 !important;
+    background: rgba(59, 130, 246, 0.05) !important;
+}
+
+.dropzone:hover span {
+    color: var(--text-primary) !important;
+}
+
+.dropzone.dragover {
+    border-color: #10B981 !important;
+    background: rgba(16, 185, 129, 0.08) !important;
+}
+
+.dropzone.dragover span {
+    color: #34D399 !important;
+}
+
+.upload-group label {
+    font-weight: 500;
+}
+

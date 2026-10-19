@@ -56,7 +56,7 @@ _last_controle_download_time = 0.0
 # Controla o tempo da última atualização da planilha de avarias em memória
 _last_avaria_download_time = 0.0
 
-# Desativa o cache do navegador para rotas de API e aplica compressão GZIP de alta performance
+# Desativa o cache do navegador para rotas dinamicas e garante headers CORS
 @app.after_request
 def add_header(response):
     response.headers['Access-Control-Allow-Origin'] = '*'
@@ -66,27 +66,6 @@ def add_header(response):
         response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
         response.headers['Pragma'] = 'no-cache'
         response.headers['Expires'] = '-1'
-        
-    # Compressão GZIP de alta velocidade (compresslevel=4) para respostas JSON/HTML > 1KB
-    accept_encoding = request.headers.get('Accept-Encoding', '')
-    if (
-        'gzip' in accept_encoding.lower()
-        and 200 <= response.status_code < 300
-        and not getattr(response, 'direct_passthrough', False)
-        and not response.headers.get('Content-Encoding')
-    ):
-        try:
-            import gzip
-            data = response.get_data()
-            if len(data) > 1024:
-                compressed_data = gzip.compress(data, compresslevel=4)
-                if len(compressed_data) < len(data):
-                    response.set_data(compressed_data)
-                    response.headers['Content-Encoding'] = 'gzip'
-                    response.headers['Content-Length'] = len(compressed_data)
-        except Exception:
-            pass
-
     return response
 
 
@@ -5924,13 +5903,16 @@ def controle_pda_files(filename):
     return send_from_directory(pda_dir, filename)
 
 @app.route('/app.js')
+@app.route('/static/app.js')
 def root_app_js():
-    return send_from_directory(app.root_path, 'app.js')
+    return send_from_directory(app.root_path, 'app.js', mimetype='application/javascript')
 
 @app.route('/style.css')
 @app.route('/styles.css')
+@app.route('/static/style.css')
+@app.route('/static/styles.css')
 def root_style_css():
-    return send_from_directory(app.root_path, 'style.css')
+    return send_from_directory(app.root_path, 'style.css', mimetype='text/css')
 
 # ==============================================================================
 # APIS DO CONTROLE DE PDAs E REPORT DE INÍCIO (PERSISTÊNCIA 100% NO BANCO)
