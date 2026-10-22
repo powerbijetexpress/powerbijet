@@ -242,7 +242,7 @@ Volume Previsto: 11583
 Volume Recebido: 13178
 Expedido não chegou SP BRE 3: 637
 
-Data 20.10.2026
+Data 21.10.2026
 
 SRTR22606361411
 Volume Previsto: 9626
