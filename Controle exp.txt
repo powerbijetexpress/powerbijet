@@ -567,4 +567,24 @@ Expedido não chegou F IBG-SP: 18
 SRTR22606683440
 Volume Previsto: 1165
 Volume Recebido: 1236
-Expedido não chegou EXT-MG: 
+Expedido não chegou EXT-MG: 49
+
+SRTR22606663731
+Volume Previsto: 2937
+Volume Recebido: 2305
+Expedido não chegou SP BRE 4: 111
+
+SETR22606729551
+Volume Previsto: 5001
+Volume Recebido: 5275
+Expedido não chegou SP BRE 3: 231
+
+SRTR22606682060
+Volume Previsto: 21779
+Volume Recebido: 18741
+Expedido não chegou SP BRE 2: 634
+
+SRTR22606668491
+Volume Previsto: 7389
+Volume Recebido: 9957
+Expedido não chegou SP BRE 1: 441
