@@ -547,3 +547,9 @@ Volume Previsto: 6900
 Volume Recebido: 9765
 Expedido não chegou SP BRE 2: 185
 
+Data 30.10.2026
+
+SRTR22606662051
+Volume Previsto: 4192
+Volume Recebido: 3797
+Expedido não chegou SP BRE 5: 214 
