@@ -543,14 +543,29 @@
           </div>
         </div>
 
-        <!-- Responsável -->
+        <!-- Operador / Responsável -->
         <div>
-          <label for="selectModalResponsavel" class="block text-xs font-semibold text-slate-600 uppercase mb-1">
-            Responsável Autorizado <span class="text-rose-500">*</span>
+          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">
+            Operador / Responsável <span class="text-rose-500">*</span>
           </label>
-          <select id="selectModalResponsavel" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-slate-400 font-medium text-slate-800">
-            <option value="">-- Selecione o Responsável --</option>
-          </select>
+          <div class="space-y-1.5">
+            <!-- Campo de texto livre para digitar o nome do operador -->
+            <div class="relative">
+              <input type="text" id="inputModalOperadorNome" placeholder="Digite o nome do operador..." class="w-full bg-white border border-slate-300 rounded-lg pl-8 pr-2.5 py-1.5 text-xs focus:ring-1 focus:ring-slate-400 font-medium text-slate-800">
+              <i class="fa-solid fa-user text-slate-400 absolute left-2.5 top-2.5 text-xs"></i>
+            </div>
+            
+            <!-- Opção de selecionar da lista de autorizados -->
+            <div class="flex items-center gap-1.5 text-[10px] text-slate-400 font-medium">
+              <span class="h-px bg-slate-200 flex-1"></span>
+              <span>ou selecione na lista</span>
+              <span class="h-px bg-slate-200 flex-1"></span>
+            </div>
+
+            <select id="selectModalResponsavel" onchange="if(this.value) { document.getElementById('inputModalOperadorNome').value = this.value; }" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-slate-400 font-medium text-slate-700">
+              <option value="">-- Selecione o Responsável do Turno --</option>
+            </select>
+          </div>
         </div>
 
         <!-- Setor -->
@@ -643,6 +658,6 @@
   </footer>
 
   <!-- SCRIPT DA APLICAÇÃO -->
-  <script src="app.js?v=20261102_1"></script>
+  <script src="app.js?v=20261102_2"></script>
 </body>
 </html>

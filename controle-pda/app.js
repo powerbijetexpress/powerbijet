@@ -782,9 +782,11 @@ class PDAControlApp {
   openModalRetiradaRapida(codigoPda) {
     const elCod = document.getElementById('modalRetiradaPdaCodigo');
     const elHid = document.getElementById('modalRetiradaPdaHidden');
+    const elNome = document.getElementById('inputModalOperadorNome');
     const elObs = document.getElementById('inputModalObs');
     if (elCod) elCod.innerText = codigoPda;
     if (elHid) elHid.value = codigoPda;
+    if (elNome) elNome.value = '';
     if (elObs) elObs.value = '';
     
     const r15 = document.querySelector('input[name="modalTurno"][value="15h"]');
@@ -792,6 +794,7 @@ class PDAControlApp {
 
     this.updateModalResponsaveis('15h');
     document.getElementById('modalRetiradaRapida')?.classList.remove('hidden');
+    setTimeout(() => elNome?.focus(), 50);
   }
 
   closeModalRetiradaRapida() {
@@ -829,12 +832,12 @@ class PDAControlApp {
 
     const pdaCodigo = (document.getElementById('modalRetiradaPdaHidden')?.value || '').trim();
     const turno = document.querySelector('input[name="modalTurno"]:checked')?.value || '15h';
-    const responsavel = (document.getElementById('selectModalResponsavel')?.value || '').trim();
+    const responsavel = (document.getElementById('inputModalOperadorNome')?.value || document.getElementById('selectModalResponsavel')?.value || '').trim();
     const setor = (document.getElementById('selectModalSetor')?.value || '').trim();
     const obs = (document.getElementById('inputModalObs')?.value || '').trim();
 
     if (!responsavel || !setor || !pdaCodigo) {
-      this.showToast('Preencha os campos obrigatórios (Responsável e Setor).', 'warning');
+      this.showToast('Preencha os campos obrigatórios (Operador e Setor).', 'warning');
       return;
     }
 
