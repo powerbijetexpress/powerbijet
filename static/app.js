@@ -880,6 +880,8 @@ function initDashboardApp() {
 
     // Inicializa Gestor do Report de Início da Operação
     initReportInicioManager();
+    // Inicializa Gestor de Scripts Operacionais
+    initScriptsPanel();
 }
 
 // Dispara a inicialização assim que o DOM estiver pronto ou imediatamente se já carregou
@@ -1457,9 +1459,9 @@ function switchTab(tab) {
         document.querySelector(".nav-title p").textContent = "Visão executiva de danos a produtos e desempenho de colaboradores";
         if (shouldReloadTab(tab)) refreshAvariaData();
     } else if (tab === "controle") {
-        document.querySelector(".nav-title h1").textContent = "Fechamento";
-        document.querySelector(".nav-title p").textContent = "Relatório consolidado operacional, recebimento de veículos, RH e fechamento de turno";
-        if (shouldReloadTab(tab)) loadControleData();
+        document.querySelector(".nav-title h1").textContent = "Scripts";
+        document.querySelector(".nav-title p").textContent = "Modelos operacionais padronizados para cópia e envio de mensagens via WhatsApp";
+        initScriptsPanel();
     } else if (tab === "producao") {
         document.querySelector(".nav-title h1").textContent = "Produção e Produtividade";
         document.querySelector(".nav-title p").textContent = "Indicadores de produtividade por canal, PPH e alocação de equipe do DC Bauru";
@@ -2159,6 +2161,8 @@ function generateAvariaPdfReport() {
 // --- NOVAS FUNÇÕES PARA VISÃO CONTROLE BAURU ---
 
 async function loadControleData() {
+    // Aba Fechamento foi substituída por Scripts (não busca mais os dados de fechamento)
+    return;
     try {
         const response = await fetch(`${API_BASE}/api/controle/data?_=${Date.now()}`);
         const data = await response.json();
@@ -5493,3 +5497,204 @@ function initReportInicioManager() {
 
 
 
+
+
+// ============================================================================
+// GESTÃO DE SCRIPTS OPERACIONAIS (RESUMO DE FECHAMENTO & INÍCIO DE OPERAÇÃO)
+// ============================================================================
+
+const SCRIPT_FECHAMENTO_TEMPLATE = `🎯 RESUMO DE FECHAMENTO OPERACIONAL
+
+📅 Data: 00/00/0000
+
+📦Backlog inicial:0
+🚚Volume recebido: 0000
+🚚Coleta: 0000
+
+🕒Inicio da operação DC: 00:00
+🏁Fim da Operação: 00:00
+⏰ Horário de corte: ✅
+📦 Pacotes expedidos: 00000
+📦 Backlog final: 0
+📦 Avarias: 0
+🚚 Rotas expedidas: 0
+🚚Rotas Fora do prazo: 0
+
+TAXA DE EXPEDIÇÃO NO PRAZO
+00%
+00%
+
+Obs: `;
+
+const SCRIPT_INICIO_TEMPLATE = `📊 REPORT DE INÍCIO DA OPERAÇÃO
+
+📅 Data: *00/00/0000*
+
+📦 Backlog Inicial: 
+📦 Volume previsto: 
+📦 Volume Coleta: 
+👥 CLTs presentes coleta: 
+❌ Absenteísmo Coleta: 
+🕒 Início da operação DC:  
+👥 CLTs presentes 15hrs: 
+❌ Absenteísmo 15hrs: 
+👥 SMN presentes 15h: 
+❌ Absenteísmo SMN 15h: 
+👥 CLTs presentes 23h: 
+❌ Absenteísmo 23h: 
+👥 SMN presentes 22h: 
+❌ Absenteísmo SMN 22h: 
+👷 Diaristas solicitados (10:00): 
+✅ Diaristas presentes (10:00):  
+👷 Diaristas solicitados (15:00): 
+✅ Diaristas presentes (15:00): 
+👷 Diaristas solicitados (18:00): 
+✅ Diaristas presentes (18:00):
+Total HC Mão na caixa: 
+
+📈 PHD previsto:  
+
+
+📝 Observações:
+
+- Falta injustificada: 
+
+
+- Atestados: 
+
+
+- Pontos de atenção:`;
+
+let scriptsPanelInitialized = false;
+
+function initScriptsPanel() {
+    const txtFechamento = document.getElementById("script-fechamento-text");
+    const txtInicio = document.getElementById("script-inicio-text");
+
+    if (txtFechamento) {
+        const savedFechamento = localStorage.getItem("script_fechamento_content");
+        if (savedFechamento && savedFechamento.trim().length > 0) {
+            txtFechamento.value = savedFechamento;
+        } else if (!txtFechamento.value || !txtFechamento.value.trim()) {
+            txtFechamento.value = SCRIPT_FECHAMENTO_TEMPLATE;
+        }
+    }
+
+    if (txtInicio) {
+        const savedInicio = localStorage.getItem("script_inicio_content");
+        if (savedInicio && savedInicio.trim().length > 0) {
+            txtInicio.value = savedInicio;
+        } else if (!txtInicio.value || !txtInicio.value.trim()) {
+            txtInicio.value = SCRIPT_INICIO_TEMPLATE;
+        }
+    }
+
+    if (scriptsPanelInitialized) return;
+    scriptsPanelInitialized = true;
+
+    // Auto-save no localStorage
+    if (txtFechamento) {
+        txtFechamento.addEventListener("input", () => {
+            localStorage.setItem("script_fechamento_content", txtFechamento.value);
+        });
+    }
+
+    if (txtInicio) {
+        txtInicio.addEventListener("input", () => {
+            localStorage.setItem("script_inicio_content", txtInicio.value);
+        });
+    }
+
+    // Copiar com feedback visual
+    function copyWithFeedback(text, btn) {
+        if (!text) return;
+        const doSuccess = () => {
+            if (!btn) return;
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> Copiado!';
+            btn.style.filter = "brightness(1.2)";
+            setTimeout(() => {
+                btn.innerHTML = originalHtml;
+                btn.style.filter = "";
+            }, 2000);
+        };
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(doSuccess).catch(() => {
+                fallbackCopy(text);
+                doSuccess();
+            });
+        } else {
+            fallbackCopy(text);
+            doSuccess();
+        }
+    }
+
+    function fallbackCopy(text) {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+            document.execCommand("copy");
+        } catch(e) {}
+        document.body.removeChild(ta);
+    }
+
+    // Botões Card 1 (Fechamento)
+    const btnCopyFechamento = document.getElementById("btn-copy-script-fechamento");
+    if (btnCopyFechamento) {
+        btnCopyFechamento.addEventListener("click", () => {
+            copyWithFeedback(txtFechamento ? txtFechamento.value : SCRIPT_FECHAMENTO_TEMPLATE, btnCopyFechamento);
+        });
+    }
+
+    const btnResetFechamento = document.getElementById("btn-reset-script-fechamento");
+    if (btnResetFechamento) {
+        btnResetFechamento.addEventListener("click", () => {
+            if (confirm("Deseja restaurar o modelo original do Resumo de Fechamento?")) {
+                if (txtFechamento) {
+                    txtFechamento.value = SCRIPT_FECHAMENTO_TEMPLATE;
+                    localStorage.setItem("script_fechamento_content", SCRIPT_FECHAMENTO_TEMPLATE);
+                }
+            }
+        });
+    }
+
+    // Botões Card 2 (Início da Operação)
+    const btnCopyInicio = document.getElementById("btn-copy-script-inicio");
+    if (btnCopyInicio) {
+        btnCopyInicio.addEventListener("click", () => {
+            copyWithFeedback(txtInicio ? txtInicio.value : SCRIPT_INICIO_TEMPLATE, btnCopyInicio);
+        });
+    }
+
+    const btnResetInicio = document.getElementById("btn-reset-script-inicio");
+    if (btnResetInicio) {
+        btnResetInicio.addEventListener("click", () => {
+            if (confirm("Deseja restaurar o modelo original do Report de Início da Operação?")) {
+                if (txtInicio) {
+                    txtInicio.value = SCRIPT_INICIO_TEMPLATE;
+                    localStorage.setItem("script_inicio_content", SCRIPT_INICIO_TEMPLATE);
+                }
+            }
+        });
+    }
+
+    // Botões da Barra Lateral
+    const btnSideFechamento = document.getElementById("btn-side-copy-fechamento");
+    if (btnSideFechamento) {
+        btnSideFechamento.addEventListener("click", () => {
+            copyWithFeedback(txtFechamento ? txtFechamento.value : SCRIPT_FECHAMENTO_TEMPLATE, btnSideFechamento);
+        });
+    }
+
+    const btnSideInicio = document.getElementById("btn-side-copy-inicio");
+    if (btnSideInicio) {
+        btnSideInicio.addEventListener("click", () => {
+            copyWithFeedback(txtInicio ? txtInicio.value : SCRIPT_INICIO_TEMPLATE, btnSideInicio);
+        });
+    }
+}
