@@ -836,8 +836,8 @@ def get_pda_data():
         cursor.execute("SELECT codigo, status, obs FROM tb_pda_frota;")
         frota_rows = cursor.fetchall()
         
-        if len(frota_rows) < 51:
-            seed_pda_initial_data()
+        if len(frota_rows) == 0:
+            seed_pda_initial_data(force=True)
             cursor.execute("SELECT codigo, status, obs FROM tb_pda_frota;")
             frota_rows = cursor.fetchall()
 
@@ -1118,11 +1118,30 @@ def save_pda_frota_item(codigo, status="Disponível", obs="OK"):
     _backup_pda_json(data)
     return True
 
-def seed_pda_initial_data():
-    """Inicializa e padroniza automaticamente os 51 PDAs (PDA-00 a PDA-50), autorizados e report de início."""
+def delete_pda_frota_item(codigo):
+    """Exclui um PDA específico da frota e cancela pendências ativas dele."""
+    init_db()
+    cod = normalize_pda_codigo(codigo)
+    if not cod:
+        return False
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM tb_pda_frota WHERE codigo = ?;", (cod,))
+        cursor.execute("DELETE FROM tb_pda_registros WHERE pda = ? AND (data_devolucao IS NULL OR status = 'Em Uso');", (cod,))
+        conn.commit()
+    data = get_pda_data()
+    _backup_pda_json(data)
+    return True
+
+def seed_pda_initial_data(force=False):
+    """Inicializa os PDAs apenas se a tabela tb_pda_frota estiver vazia (ou force=True)."""
     init_db()
     with get_connection() as conn:
         cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) AS total FROM tb_pda_frota;")
+        total = cursor.fetchone()["total"]
+        if total > 0 and not force:
+            return
         
         # 1. Limpa registros duplicados / códigos com 3 dígitos (ex: PDA-037 -> PDA-37)
         cursor.execute("SELECT codigo, status, obs FROM tb_pda_frota;")

@@ -456,8 +456,15 @@
 
           <form onsubmit="pdaApp.addPda(event)" class="flex gap-2">
             <input type="text" id="addPdaCodigo" required placeholder="Código do novo PDA (Ex: PDA-41)..." class="flex-1 bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-slate-400">
-            <button type="submit" class="bg-slate-800 hover:bg-slate-900 text-white font-semibold px-3 py-1.5 rounded-lg text-xs transition">
+            <button type="submit" class="bg-slate-800 hover:bg-slate-900 text-white font-semibold px-3 py-1.5 rounded-lg text-xs transition flex items-center gap-1">
               <i class="fa-solid fa-plus"></i> Cadastrar
+            </button>
+          </form>
+
+          <form onsubmit="pdaApp.excluirPdaPorForm(event)" class="flex gap-2">
+            <input type="text" id="delPdaCodigo" required placeholder="Código do PDA para excluir (Ex: PDA-51)..." class="flex-1 bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-rose-400">
+            <button type="submit" class="bg-rose-700 hover:bg-rose-800 text-white font-semibold px-3 py-1.5 rounded-lg text-xs transition flex items-center gap-1">
+              <i class="fa-solid fa-trash-can"></i> Excluir
             </button>
           </form>
 
@@ -636,6 +643,6 @@
   </footer>
 
   <!-- SCRIPT DA APLICAÇÃO -->
-  <script src="app.js?v=20261009_2"></script>
+  <script src="app.js?v=20261102_1"></script>
 </body>
 </html>

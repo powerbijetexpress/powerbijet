@@ -5994,11 +5994,18 @@ def api_pda_registro():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
-@app.route('/api/pda/frota', methods=['POST', 'OPTIONS'])
+@app.route('/api/pda/frota', methods=['POST', 'DELETE', 'OPTIONS'])
 def api_pda_frota():
     if request.method == 'OPTIONS':
         return jsonify({"success": True}), 200
     try:
+        if request.method == 'DELETE':
+            codigo = request.args.get('codigo') or (request.get_json(silent=True) or {}).get('codigo')
+            if not codigo:
+                return jsonify({"success": False, "error": "Código do PDA obrigatório"}), 400
+            db.delete_pda_frota_item(str(codigo).strip())
+            return jsonify({"success": True, "message": f"{codigo} excluído com sucesso", "data": db.get_pda_data()})
+            
         payload = request.get_json(force=True)
         codigo = payload.get("codigo")
         status = payload.get("status", "Disponível")

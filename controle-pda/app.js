@@ -712,7 +712,12 @@ class PDAControlApp {
           <div class="bg-slate-50 rounded-xl border border-amber-300 p-3 shadow-xs transition flex flex-col justify-between space-y-2.5">
             <div class="flex items-center justify-between">
               <span class="text-sm font-bold text-slate-900 tracking-tight">${pda.codigo}</span>
-              <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+              <div class="flex items-center gap-1.5">
+                <button onclick="pdaApp.excluirPda('${pda.codigo}', event)" class="opacity-40 hover:opacity-100 text-slate-400 hover:text-rose-600 transition p-0.5 rounded cursor-pointer" title="Excluir ${pda.codigo}">
+                  <i class="fa-solid fa-trash-can text-[10px]"></i>
+                </button>
+                <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+              </div>
             </div>
             <div class="text-xs text-slate-700 space-y-0.5">
               <span class="text-[10px] font-bold text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded inline-block mb-0.5">${regAtual ? regAtual.setor : 'Em Uso'}</span>
@@ -729,7 +734,12 @@ class PDAControlApp {
           <div class="bg-slate-50 rounded-xl border border-rose-300 p-3 shadow-xs transition flex flex-col justify-between space-y-2.5">
             <div class="flex items-center justify-between">
               <span class="text-sm font-bold text-slate-900 tracking-tight">${pda.codigo}</span>
-              <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+              <div class="flex items-center gap-1.5">
+                <button onclick="pdaApp.excluirPda('${pda.codigo}', event)" class="opacity-40 hover:opacity-100 text-slate-400 hover:text-rose-600 transition p-0.5 rounded cursor-pointer" title="Excluir ${pda.codigo}">
+                  <i class="fa-solid fa-trash-can text-[10px]"></i>
+                </button>
+                <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+              </div>
             </div>
             <div class="text-xs text-rose-800 space-y-0.5">
               <span class="text-[10px] font-semibold text-rose-800 bg-rose-50 px-1.5 py-0.5 rounded inline-block mb-0.5">Avaria</span>
@@ -746,7 +756,12 @@ class PDAControlApp {
           <div class="bg-white rounded-xl border border-slate-200 p-3 shadow-xs hover:border-emerald-300 hover:shadow-sm transition flex flex-col justify-between space-y-2.5">
             <div class="flex items-center justify-between">
               <span class="text-sm font-bold text-slate-800 tracking-tight">${pda.codigo}</span>
-              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              <div class="flex items-center gap-1.5">
+                <button onclick="pdaApp.excluirPda('${pda.codigo}', event)" class="opacity-40 hover:opacity-100 text-slate-400 hover:text-rose-600 transition p-0.5 rounded cursor-pointer" title="Excluir ${pda.codigo}">
+                  <i class="fa-solid fa-trash-can text-[10px]"></i>
+                </button>
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              </div>
             </div>
             <div>
               <span class="text-[10px] font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 inline-block mb-0.5">Disponível</span>
@@ -1456,6 +1471,54 @@ class PDAControlApp {
         this.applyServerData(json.data);
       }
     } catch (err) {}
+  }
+
+  
+  async excluirPda(codigo, event) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    
+    if (!codigo) return;
+    
+    // Confirmação prática
+    const confirmar = confirm(`Deseja realmente excluir o ${codigo} do controle de PDAs?`);
+    if (!confirmar) return;
+
+    // 1. Remove da frota local
+    this.frota = this.frota.filter(p => p.codigo !== codigo);
+    this.saveFrota(false);
+    this.renderAll();
+    this.showToast(`${codigo} excluído com sucesso!`, 'success');
+
+    // 2. Chama backend API para remover do banco SQLite
+    try {
+      const json = await this.requestApi(`/api/pda/frota?codigo=${encodeURIComponent(codigo)}`, {
+        method: 'DELETE'
+      });
+      if (json && json.success && json.data) {
+        this.applyServerData(json.data);
+      }
+    } catch (err) {
+      console.error('Erro ao excluir PDA no backend:', err);
+    }
+  }
+
+  async excluirPdaPorForm(e) {
+    e.preventDefault();
+    const input = document.getElementById('delPdaCodigo');
+    if (!input) return;
+    const codigo = input.value.trim().toUpperCase();
+    if (!codigo) return;
+
+    if (!this.frota.some(p => p.codigo === codigo)) {
+      this.showToast(`O código ${codigo} não existe na frota.`, 'warning');
+      return;
+    }
+
+    input.value = '';
+    await this.excluirPda(codigo);
   }
 
   exportExcel() {
