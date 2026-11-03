@@ -60,7 +60,7 @@
                     <i class="fa-solid fa-clock-rotate-left"></i> Sem Movimentação
                 </button>
                 <button id="nav-controle" class="nav-item">
-                    <i class="fa-solid fa-list-check"></i> Fechamento
+                    <i class="fa-solid fa-scroll"></i> Script
                 </button>
                 <button id="nav-volume-exp-dc-bau" class="nav-item">
                     <i class="fa-solid fa-truck-ramp-box"></i> Volume exp DC BAU
@@ -269,14 +269,17 @@
                     </div>
                 </div>
 
-                <!-- Filtros e Ações do Fechamento -->
+                <!-- Filtros e Ações do Painel de Scripts -->
                 <div id="filters-controle" style="display: none;">
                     <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 15px; line-height: 1.4;">
-                        O relatório de fechamento apresenta dados operacionais consolidados do dia.
+                        Scripts padronizados para comunicação operacional e envio rápido via WhatsApp.
                     </p>
-                    <div class="filter-actions" style="margin-top: 20px;">
-                        <button id="btn-controle-pdf-sidebar" class="btn btn-primary btn-generate-pdf" style="width: 100%;">
-                            <i class="fa-solid fa-file-pdf"></i> Gerar Relatório PDF
+                    <div class="filter-actions" style="margin-top: 15px; display: flex; flex-direction: column; gap: 10px;">
+                        <button id="btn-side-copy-fechamento" class="btn btn-secondary" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <i class="fa-solid fa-copy"></i> Copiar Fechamento
+                        </button>
+                        <button id="btn-side-copy-inicio" class="btn btn-secondary" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <i class="fa-solid fa-copy"></i> Copiar Início Op.
                         </button>
                     </div>
                 </div>
@@ -918,327 +921,74 @@
                 </section>
             </div>
 
-            <!-- Painel Controle Bauru -->
-            <div id="panel-controle" class="content-panel" style="display: none;">
-                <!-- Container de KPIs do Controle Bauru -->
-                <section class="kpi-container">
-                    <!-- Total Presentes -->
-                    <div class="kpi-card" id="kpi-ctrl-presentes">
-                        <div class="kpi-icon icon-blue"><i class="fa-solid fa-users"></i></div>
-                        <div class="kpi-info">
-                            <h3>Total Presentes</h3>
-                            <span class="kpi-value" id="val-ctrl-presentes">-</span>
+            <!-- Painel de Scripts Operacionais -->
+            <div id="panel-controle" class="content-panel" style="display: none; flex-direction: column; gap: 20px; width: 100%;">
+                
+                <!-- Barra Superior do Painel de Scripts -->
+                <div class="glass" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; padding: 16px 22px; border-radius: 14px;">
+                    <div style="display: flex; align-items: center; gap: 14px;">
+                        <div style="background: rgba(99, 102, 241, 0.2); color: #818CF8; width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; border: 1px solid rgba(99, 102, 241, 0.3);">
+                            <i class="fa-solid fa-scroll"></i>
+                        </div>
+                        <div>
+                            <h3 style="margin: 0; font-size: 17px; font-weight: 700; color: #FFFFFF; display: flex; align-items: center; gap: 8px;">
+                                📜 Scripts Operacionais DC Bauru
+                                <span class="badge" style="background: rgba(16, 185, 129, 0.2); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 11px; padding: 2px 8px; border-radius: 12px;">
+                                    <i class="fa-brands fa-whatsapp"></i> WhatsApp
+                                </span>
+                            </h3>
+                            <p style="margin: 2px 0 0 0; font-size: 12px; color: #94A3B8;">Modelos de mensagens e comunicados operacionais prontos para cópia e edição</p>
                         </div>
                     </div>
+                </div>
+
+                <!-- Scripts Lado a Lado (Grid Responsiva) -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(460px, 1fr)); gap: 20px; align-items: stretch;">
                     
-                    <!-- Produtividade PPH -->
-                    <div class="kpi-card" id="kpi-ctrl-pph">
-                        <div class="kpi-icon icon-green"><i class="fa-solid fa-gauge-high"></i></div>
-                        <div class="kpi-info">
-                            <h3>Produtividade (PPH)</h3>
-                            <span class="kpi-value" id="val-ctrl-pph">-</span>
-                        </div>
-                    </div>
-                    
-                    <!-- Volume Recebido -->
-                    <div class="kpi-card" id="kpi-ctrl-recebido">
-                        <div class="kpi-icon icon-blue"><i class="fa-solid fa-download"></i></div>
-                        <div class="kpi-info">
-                            <h3>Volume Recebido</h3>
-                            <span class="kpi-value" id="val-ctrl-recebido">-</span>
-                        </div>
-                    </div>
-                    
-                    <!-- Volume Expedido -->
-                    <div class="kpi-card" id="kpi-ctrl-expedido">
-                        <div class="kpi-icon icon-green"><i class="fa-solid fa-upload"></i></div>
-                        <div class="kpi-info">
-                            <h3>Volume Expedido</h3>
-                            <span class="kpi-value" id="val-ctrl-expedido">-</span>
-                        </div>
-                    </div>
-                    
-                    <!-- Backlog Final -->
-                    <div class="kpi-card" id="kpi-ctrl-backlog">
-                        <div class="kpi-icon icon-red"><i class="fa-solid fa-boxes-stacked"></i></div>
-                        <div class="kpi-info">
-                            <h3>Backlog Final</h3>
-                            <span class="kpi-value" id="val-ctrl-backlog">-</span>
-                        </div>
-                    </div>
-
-                    <!-- Erros de Triagem -->
-                    <div class="kpi-card" id="kpi-ctrl-erros-triagem">
-                        <div class="kpi-icon icon-red"><i class="fa-solid fa-triangle-exclamation"></i></div>
-                        <div class="kpi-info">
-                            <h3>Erros de Triagem</h3>
-                            <span class="kpi-value" id="val-ctrl-erros-triagem">-</span>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Grid de Detalhes de RH e Volumes -->
-                <section class="charts-grid">
-                    <!-- Recursos Humanos -->
-                    <div class="chart-card glass">
-                        <div class="chart-header">
-                            <h2>Recursos Humanos</h2>
-                        </div>
-                        <div class="info-list">
-                            <div class="info-item">
-                                <span class="info-label">HC Total Disponível</span>
-                                <span class="info-value" id="val-ctrl-hc-total">-</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Total Presentes</span>
-                                <span class="info-value" id="val-ctrl-presentes-rh">-</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">% Presença</span>
-                                <span class="info-value" id="val-ctrl-presenca-pct">-</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">H.C. Presente</span>
-                                <span class="info-value" id="val-ctrl-hc-presente">-</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Diaristas</span>
-                                <span class="info-value" id="val-ctrl-diaristas">-</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Folgas</span>
-                                <span class="info-value" id="val-ctrl-folgas">-</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Faltas</span>
-                                <span class="info-value" id="val-ctrl-faltas">-</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Atestados</span>
-                                <span class="info-value" id="val-ctrl-atestados">-</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Produtividade (PHH)</span>
-                                <span class="info-value" id="val-ctrl-produtividade-phh">-</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Detalhamento de Volumes -->
-                    <div class="chart-card glass">
-                        <div class="chart-header">
-                            <h2>Fluxo de Volumes</h2>
-                        </div>
-                        <div class="info-list">
-                            <div class="info-item">
-                                <span class="info-label">Backlog Anterior</span>
-                                <span class="info-value" id="val-ctrl-backlog-anterior">-</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Volume Planejado</span>
-                                <span class="info-value" id="val-ctrl-vol-planejado">-</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Coleta Realizada</span>
-                                <span class="info-value" id="val-ctrl-coletas">-</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">% Expedição</span>
-                                <span class="info-value" id="val-ctrl-exp-pct">-</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Expedido BRE (SOC)</span>
-                                <span class="info-value" id="val-ctrl-exp-bre">-</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Expedido RAO (SOC)</span>
-                                <span class="info-value" id="val-ctrl-exp-rao">-</span>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Gráficos Analíticos -->
-                <section class="charts-grid">
-                    <!-- Evolução de Sem Movimentação -->
-                    <div class="chart-card glass" style="grid-column: 1 / -1;">
-                        <div class="chart-header">
-                            <h2>Histórico Sem Movimentação</h2>
-                        </div>
-                        <div class="chart-wrapper">
-                            <canvas id="chart-ctrl-semmov"></canvas>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Tabela de Recebimento de Veículos -->
-                <section class="table-section glass">
-                    <div class="table-header">
-                        <h2>Recebimento de Veículos (Transporte)</h2>
-                    </div>
-                    <div class="table-wrapper">
-                        <table class="data-table" id="data-table-controle-transp">
-                            <thead>
-                                <tr>
-                                    <th>Veículo / SC</th>
-                                    <th>Vol. Planejado</th>
-                                    <th>Vol. Recebido</th>
-                                    <th>Previsão</th>
-                                    <th>Chegada</th>
-                                    <th>Deslacre</th>
-                                    <th>Fin. Bipagem</th>
-                                    <th>Status</th>
-                                    <th>ID Viagem</th>
-                                </tr>
-                            </thead>
-                            <tbody id="table-controle-transp-body">
-                                <tr>
-                                    <td colspan="9" style="text-align: center;">Carregando recebimentos de veículos...</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-
-                <!-- Taxa de Expedição no Prazo (HUB -> PDD) -->
-                <section class="table-section glass" style="margin-top: 24px;">
-                    <div class="table-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                        <h2 style="display: flex; align-items: center; gap: 8px;">
-                            <i class="fa-solid fa-clock-rotate-left"></i> Taxa de Expedição no Prazo (HUB &rarr; PDD)
-                        </h2>
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <span id="badge-taxa-exp-total" class="badge" style="background: rgba(59, 130, 246, 0.2); color: #60A5FA; border: 1px solid rgba(59, 130, 246, 0.3); font-size: 12px; padding: 4px 10px; border-radius: 8px; font-weight: 600;">
-                                Total: -
-                            </span>
-                            <span id="badge-taxa-exp-geral" class="badge badge-concluido" style="font-size: 13px; padding: 5px 12px; font-weight: 700; border-radius: 8px;">
-                                Taxa Geral: -
-                            </span>
-                        </div>
-                    </div>
-                    <div class="table-wrapper">
-                        <table class="data-table" id="data-table-taxa-expedicao-prazo">
-                            <thead>
-                                <tr>
-                                    <th>Destino / Rota</th>
-                                    <th style="text-align: right;">Qtd a Expedir (HUB)</th>
-                                    <th style="text-align: right;">Qtd Expedida no Prazo</th>
-                                    <th style="text-align: right;">Qtd Fora do Prazo</th>
-                                    <th style="text-align: right;">Anormalidade</th>
-                                    <th style="text-align: center;">Taxa de Expedição no Prazo</th>
-                                    <th style="text-align: center;">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="table-taxa-expedicao-prazo-body">
-                                <tr>
-                                    <td colspan="7" style="text-align: center;">Carregando taxa de expedição no prazo...</td>
-                                </tr>
-                            </tbody>
-                            <tfoot id="table-taxa-expedicao-prazo-footer" style="font-weight: 700; background: rgba(255, 255, 255, 0.04); border-top: 1px solid rgba(255, 255, 255, 0.1);">
-                            </tfoot>
-                        </table>
-                    </div>
-                </section>
-
-                <!-- Fechamento de Turno & Detalhamento de Expedição -->
-                <section class="charts-grid" style="margin-top: 24px;">
-                    <!-- Detalhamento de Expedição (Rotas) -->
-                    <div class="chart-card glass" style="grid-column: span 2;">
-                        <div class="chart-header">
-                            <h2 style="display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-truck-ramp-box"></i> Detalhamento de Expedição (Rotas)</h2>
-                        </div>
-                        <div class="expedicao-tables-container">
-                            <!-- Tabela 1 (Esquerda) -->
-                            <div class="table-wrapper">
-                                <table class="data-table" id="data-table-controle-expedicao-1">
-                                    <thead>
-                                        <tr>
-                                            <th>Destino / Rota</th>
-                                            <th style="text-align: right;">Volume Expedido</th>
-                                            <th style="text-align: right;">Hora Real de Saída</th>
-                                            <th style="text-align: right;">Horário de Corte</th>
-                                            <th style="text-align: center;">Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="table-controle-expedicao-body-1">
-                                        <tr>
-                                            <td colspan="5" style="text-align: center;">Carregando expedição...</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                            <!-- Tabela 2 (Direita) -->
-                            <div class="table-wrapper">
-                                <table class="data-table" id="data-table-controle-expedicao-2">
-                                    <thead>
-                                        <tr>
-                                            <th>Destino / Rota</th>
-                                            <th style="text-align: right;">Volume Expedido</th>
-                                            <th style="text-align: right;">Hora Real de Saída</th>
-                                            <th style="text-align: right;">Horário de Corte</th>
-                                            <th style="text-align: center;">Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="table-controle-expedicao-body-2">
-                                        <tr>
-                                            <td colspan="5" style="text-align: center;">Carregando expedição...</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Gestão de Backlog & Sem Movimentação -->
-                    <div class="chart-card glass" style="grid-column: span 1; height: auto; min-height: 520px;">
-                        <div class="chart-header" style="display: flex; justify-content: space-between; align-items: center;">
-                            <h2 style="display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-gauge-high"></i> Gestão de Backlog & Sem Mov</h2>
-                            <span id="gestao-date-badge" class="badge" style="background: rgba(59, 130, 246, 0.2); color: #3B82F6; font-size: 11px; padding: 4px 8px; border-radius: 12px; font-weight: 600;">-</span>
-                        </div>
-                        <div class="card-body" style="padding: 16px; display: flex; flex-direction: column; gap: 20px;">
-                            <!-- Tabela Gestão -->
-                            <div class="table-wrapper" style="overflow-x: auto;">
-                                <table class="data-table" id="data-table-controle-gestao" style="font-size: 11px; width: 100%;">
-                                    <thead>
-                                        <tr>
-                                            <th style="padding: 6px;">Indicador</th>
-                                            <th style="padding: 6px; text-align: center;">1 Dia</th>
-                                            <th style="padding: 6px; text-align: center;">2 a 4 dias</th>
-                                            <th style="padding: 6px; text-align: center;">5 dias</th>
-                                            <th style="padding: 6px; text-align: center;">6 a 9 dias</th>
-                                            <th style="padding: 6px; text-align: center;">10 Dias +</th>
-                                            <th style="padding: 6px; text-align: center;">Total</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="table-controle-gestao-body">
-                                        <tr>
-                                            <td colspan="7" style="text-align: center;">Carregando gestão...</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                            
-                            <!-- Gráfico de Gestão -->
-                            <div style="flex-grow: 1; height: 220px; position: relative;">
-                                <canvas id="chart-controle-gestao"></canvas>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Resumo de Fechamento de Turno -->
-                    <div class="chart-card glass" style="grid-column: span 1; height: auto; min-height: 520px; display: flex; flex-direction: column;">
-                        <div class="chart-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 12px; margin-bottom: 16px;">
-                            <h2 style="display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-file-invoice"></i> Resumo de Fechamento</h2>
-                            <div style="display: flex; gap: 8px; align-items: center;">
-                                <button id="btn-copiar-resumo" class="btn-copy">
-                                    <i class="fa-solid fa-copy"></i> Copiar Resumo
+                    <!-- Card 1: Resumo de Fechamento Operacional -->
+                    <div class="chart-card glass" style="display: flex; flex-direction: column; padding: 20px; border-radius: 14px; min-height: 700px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 14px; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                            <h4 style="margin: 0; font-size: 15px; font-weight: 700; color: #FFFFFF; display: flex; align-items: center; gap: 8px;">
+                                🎯 Resumo de Fechamento Operacional
+                            </h4>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <button id="btn-reset-script-fechamento" class="btn btn-secondary" style="font-size: 11px; padding: 6px 12px; border-radius: 6px; cursor: pointer;" title="Restaurar modelo original">
+                                    <i class="fa-solid fa-rotate-left"></i> Restaurar Padrão
+                                </button>
+                                <button id="btn-copy-script-fechamento" class="btn btn-primary" style="font-size: 12px; padding: 7px 16px; background: linear-gradient(135deg, #059669, #10B981); border: none; color: #FFF; font-weight: 700; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);">
+                                    <i class="fa-solid fa-copy"></i> Copiar Script
                                 </button>
                             </div>
                         </div>
-                        <div class="card-body" style="padding: 0px 16px 16px 16px; display: flex; flex-direction: column; gap: 15px; flex-grow: 1;">
-                            <textarea id="txt-resumo-fechamento" readonly style="width: 100%; flex-grow: 1; min-height: 360px; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; color: #E5E7EB; font-family: 'Outfit', monospace; font-size: 12px; padding: 12px; resize: none; outline: none; line-height: 1.6;"></textarea>
+                        <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 10px;">
+                            <textarea id="script-fechamento-text" style="width: 100%; box-sizing: border-box; flex-grow: 1; min-height: 560px; background: #070B13; color: #E5E7EB; font-family: 'Courier New', Courier, monospace; font-size: 13px; line-height: 1.6; padding: 16px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.12); resize: vertical; outline: none;"></textarea>
+                            <span style="font-size: 11px; color: #64748B;">Edite o texto acima se necessário. Suas alterações são salvas automaticamente no navegador.</span>
                         </div>
                     </div>
-                </section>
+
+                    <!-- Card 2: Report de Início da Operação -->
+                    <div class="chart-card glass" style="display: flex; flex-direction: column; padding: 20px; border-radius: 14px; min-height: 700px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 14px; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                            <h4 style="margin: 0; font-size: 15px; font-weight: 700; color: #FFFFFF; display: flex; align-items: center; gap: 8px;">
+                                📊 Report de Início da Operação
+                            </h4>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <button id="btn-reset-script-inicio" class="btn btn-secondary" style="font-size: 11px; padding: 6px 12px; border-radius: 6px; cursor: pointer;" title="Restaurar modelo original">
+                                    <i class="fa-solid fa-rotate-left"></i> Restaurar Padrão
+                                </button>
+                                <button id="btn-copy-script-inicio" class="btn btn-primary" style="font-size: 12px; padding: 7px 16px; background: linear-gradient(135deg, #059669, #10B981); border: none; color: #FFF; font-weight: 700; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);">
+                                    <i class="fa-solid fa-copy"></i> Copiar Script
+                                </button>
+                            </div>
+                        </div>
+                        <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 10px;">
+                            <textarea id="script-inicio-text" style="width: 100%; box-sizing: border-box; flex-grow: 1; min-height: 560px; background: #070B13; color: #E5E7EB; font-family: 'Courier New', Courier, monospace; font-size: 13px; line-height: 1.6; padding: 16px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.12); resize: vertical; outline: none;"></textarea>
+                            <span style="font-size: 11px; color: #64748B;">Edite o texto acima se necessário. Suas alterações são salvas automaticamente no navegador.</span>
+                        </div>
+                    </div>
+
+                </div>
+
             </div>
 
             <!-- Painel Volume Expedido DC BAU -->
