@@ -643,7 +643,7 @@ Volume Previsto: 227
 Volume Recebido: 254
 Expedido não chegou F IBG-SP: 3
 
-Data 02.11.2026
+Data 03.11.2026
 
 SRTR22606806451
 Volume Previsto: 10546
