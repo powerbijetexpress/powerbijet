@@ -805,3 +805,25 @@ SRTR22606934060
 Volume Previsto: 4663
 Volume Recebido: 9580
 Expedido não chegou SP BRE 1: 1018
+
+Data 08.11.2026
+
+SRTR22606962700
+Volume Previsto: 8099
+Volume Recebido: 7921
+Expedido não chegou SP BRE 1: 2382
+
+SRTR22606962191
+Volume Previsto: 7860
+Volume Recebido: 5956
+Expedido não chegou SN RAO: 1392
+
+SRTR22606969260
+Volume Previsto: 21031
+Volume Recebido: 15257
+Expedido não chegou SP BRE 2: 5333
+
+SRTR22606962100
+Volume Previsto: 9593
+Volume Recebido: 12519
+Expedido não chegou SP BRE 3: 1903
