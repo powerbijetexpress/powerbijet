@@ -230,7 +230,6 @@ const elBtnSemMovReset = document.getElementById("btn-sem-mov-reset");
 const elBtnSemMovPdf = document.getElementById("btn-sem-mov-pdf");
 
 const elValSemMovTotal = document.getElementById("val-sem-mov-total");
-const elValSemMovMulta = document.getElementById("val-sem-mov-multa");
 const elValSemMovAging = document.getElementById("val-sem-mov-aging");
 const elValSemMovMaxDias = document.getElementById("val-sem-mov-max-dias");
 
@@ -1452,7 +1451,7 @@ function switchTab(tab) {
         if (shouldReloadTab(tab)) refreshData();
     } else if (tab === "sem-mov") {
         document.querySelector(".nav-title h1").textContent = "Sem Movimentação";
-        document.querySelector(".nav-title p").textContent = "Análise de contratos parados, multas e aging por base";
+        document.querySelector(".nav-title p").textContent = "Análise de contratos parados e aging por base";
         if (shouldReloadTab(tab)) refreshSemMovData();
     } else if (tab === "avaria") {
         document.querySelector(".nav-title h1").textContent = "Controle de Avarias";
@@ -1662,20 +1661,16 @@ function updateSemMovKPIs() {
     elValSemMovTotal.textContent = total;
     
     if (total === 0) {
-        elValSemMovMulta.textContent = "R$ 0,00";
         elValSemMovAging.textContent = "0 dias";
         elValSemMovMaxDias.textContent = "0 dias";
         return;
     }
     
-    // Soma multas
-    const totalMulta = semMovData.reduce((acc, row) => acc + row.multa, 0);
     // Média de dias
     const avgDias = semMovData.reduce((acc, row) => acc + row.dias_sem_mov, 0) / total;
     // Maior atraso
     const maxDias = Math.max(...semMovData.map(row => row.dias_sem_mov));
     
-    elValSemMovMulta.textContent = `R$ ${totalMulta.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     elValSemMovAging.textContent = `${avgDias.toFixed(1)} dias`;
     elValSemMovMaxDias.textContent = `${maxDias} dias`;
 }
@@ -1801,7 +1796,7 @@ function renderSemMovTable() {
     elTableSemMovBody.innerHTML = "";
     
     if (paginatedData.length === 0) {
-        elTableSemMovBody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--text-muted);">Nenhum contrato encontrado.</td></tr>`;
+        elTableSemMovBody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Nenhum contrato encontrado.</td></tr>`;
         elTableSemMovInfo.textContent = "Mostrando 0 de 0 registros";
         elBtnSemMovPrev.disabled = true;
         elBtnSemMovNext.disabled = true;
@@ -1812,11 +1807,10 @@ function renderSemMovTable() {
     elTableSemMovBody.innerHTML = paginatedData.map(row => `
         <tr>
             <td><b>${row.remessa}</b></td>
-            <td>${row.ultima_operacao.split(" ")[0]}</td>
+            <td>${(row.ultima_operacao || "-").split(" ")[0]}</td>
             <td>${row.tipo_problematico}</td>
             <td><span class="badge badge-critico">${row.aging}</span></td>
             <td>${row.dias_sem_mov} dias</td>
-            <td>R$ ${row.multa.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</td>
             <td>${row.base}</td>
             <td>${row.destino}</td>
         </tr>

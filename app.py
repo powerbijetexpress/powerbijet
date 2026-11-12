@@ -348,7 +348,9 @@ def _load_sem_mov_data_raw():
     # Leitura da aba Export do Excel em memória para evitar travar o arquivo no disco (Windows)
     with open(SEM_MOV_FILE, 'rb') as f:
         file_bytes = io.BytesIO(f.read())
-    df = pd.read_excel(file_bytes, sheet_name="Export")
+    xl = pd.ExcelFile(file_bytes)
+    target_sheet = "Export" if "Export" in xl.sheet_names else xl.sheet_names[0]
+    df = pd.read_excel(xl, sheet_name=target_sheet)
     
     # Padroniza as colunas mapeando os nomes para evitar erros se colunas novas/extras forem adicionadas (como Supervisor)
     col_map = {}
@@ -358,7 +360,7 @@ def _load_sem_mov_data_raw():
         c_clean = c_clean.replace('ã', 'a').replace('õ', 'a').replace('ç', 'c').replace('?', '')
         c_clean = c_clean.replace(' ', '_').replace('ª', '').replace('º', '')
         
-        if c_clean == 'remessa':
+        if c_clean in ['remessa', 'numero_da_remessa', 'numero_remessa', 'nr_remessa'] or 'remessa' in c_clean:
             col_map[col] = 'remessa'
         elif c_clean == 'ultima_operacao':
             col_map[col] = 'ultima_operacao'
@@ -386,11 +388,16 @@ def _load_sem_mov_data_raw():
             df[col] = None
     df = df[expected_cols]
     
-    # Converte ultima_operacao para datetime
-    df['ultima_operacao'] = pd.to_datetime(df['ultima_operacao'], errors='coerce')
+    # Remove apenas linhas sem numero de remessa
+    df = df.dropna(subset=['remessa'])
     
-    # Remove linhas sem data
-    df = df.dropna(subset=['ultima_operacao'])
+    # Converte ultima_operacao para datetime se existir na planilha
+    has_ultima_op = df['ultima_operacao'].notna().any()
+    if has_ultima_op:
+        df['ultima_operacao'] = pd.to_datetime(df['ultima_operacao'], errors='coerce')
+        df = df.dropna(subset=['ultima_operacao'])
+    else:
+        df['ultima_operacao'] = pd.NaT
     
     # Limpa remessa
     def clean_remessa(val):
@@ -399,6 +406,7 @@ def _load_sem_mov_data_raw():
         except:
             return str(val).strip()
     df['remessa'] = df['remessa'].apply(clean_remessa)
+    df = df[df['remessa'] != '']
     
     # Trata strings e NaNs
     df['base_responsavel'] = df['base_responsavel'].fillna('Não informado').astype(str).str.strip()
@@ -408,10 +416,16 @@ def _load_sem_mov_data_raw():
     df['base'] = df['base'].fillna('Não informado').astype(str).str.strip()
     df['destino'] = df['destino'].fillna('Não informado').astype(str).str.strip()
     
-    df['dias_sem_mov'] = pd.to_numeric(df['dias_sem_mov'], errors='coerce').fillna(0).astype(int)
+    # Extrai dias_sem_mov do Aging quando a coluna nao existir na planilha
+    df['dias_sem_mov'] = pd.to_numeric(df['dias_sem_mov'], errors='coerce')
+    aging_days = pd.to_numeric(df['aging'].str.extract(r'(\d+)', expand=False), errors='coerce')
+    df['dias_sem_mov'] = df['dias_sem_mov'].fillna(aging_days).fillna(0).astype(int)
     df['multa'] = pd.to_numeric(df['multa'], errors='coerce').fillna(0.0)
     
-    df = df.sort_values(by='ultima_operacao', ascending=False)
+    if has_ultima_op:
+        df = df.sort_values(by='ultima_operacao', ascending=False)
+    else:
+        df = df.sort_values(by='dias_sem_mov', ascending=False)
     
     return df
 
@@ -1501,11 +1515,12 @@ def get_sem_mov_data():
     if filtered_df.empty:
         return jsonify([])
 
-    cols = ['remessa', 'ultima_operacao', 'base_responsavel', 'ultima_operacao_tipo', 'tipo_problematico', 'aging', 'dias_sem_mov', 'multa', 'base', 'destino']
+    cols = ['remessa', 'ultima_operacao', 'base_responsavel', 'ultima_operacao_tipo', 'tipo_problematico', 'aging', 'dias_sem_mov', 'base', 'destino']
     df_out = filtered_df[cols].copy()
-    df_out['ultima_operacao'] = df_out['ultima_operacao'].dt.strftime('%d/%m/%Y %H:%M:%S')
+    df_out['ultima_operacao'] = df_out['ultima_operacao'].apply(
+        lambda x: x.strftime('%d/%m/%Y %H:%M:%S') if pd.notna(x) else '-'
+    )
     df_out['dias_sem_mov'] = df_out['dias_sem_mov'].astype(int)
-    df_out['multa'] = df_out['multa'].astype(float)
     return jsonify(df_out.to_dict(orient='records'))
 
 @app.route('/api/sem_mov/generate_pdf')
@@ -1517,7 +1532,6 @@ def generate_sem_mov_pdf():
     filtered_df = filter_sem_mov_dataframe(df, request.args)
     total_records = len(filtered_df)
     
-    total_multa = float(filtered_df['multa'].sum())
     avg_dias = float(filtered_df['dias_sem_mov'].mean()) if total_records > 0 else 0.0
     max_dias = int(filtered_df['dias_sem_mov'].max()) if total_records > 0 else 0
     
@@ -1637,7 +1651,7 @@ def generate_sem_mov_pdf():
     # ----------------------------------------------------
     story.append(Spacer(1, 100))
     story.append(Paragraph("Relatório de Remessas Sem Movimentação", title_style))
-    story.append(Paragraph("Visão Executiva de Atrasos e Multas Operacionais", subtitle_style))
+    story.append(Paragraph("Visão Executiva de Atrasos Operacionais", subtitle_style))
     story.append(Spacer(1, 40))
     
     meta_data = [
@@ -1655,25 +1669,23 @@ def generate_sem_mov_pdf():
     story.append(PageBreak())
     
     # ----------------------------------------------------
-    # PAGE 2: RESUMO EXECUTIVO & MULTAS
+    # PAGE 2: RESUMO EXECUTIVO
     # ----------------------------------------------------
-    story.append(Paragraph("Resumo Executivo & Multas Operacionais", section_title))
+    story.append(Paragraph("Resumo Executivo", section_title))
     
     kpi_data = [
         [
             Paragraph("TOTAL SEM MOVIMENTAÇÃO", card_title),
-            Paragraph("MULTA ACUMULADA", card_title),
             Paragraph("MÉDIA DIAS SEM MOVIMENTO", card_title),
             Paragraph("MAIOR ATRASO REGISTRADO", card_title)
         ],
         [
             Paragraph(f"{total_records}", card_value),
-            Paragraph(f"R$ {total_multa:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."), card_value),
-            Paragraph(f"{avg_dias:.1f} dias", card_value),
+            Paragraph(f"{avg_dias:.1f} dias".replace(".", ","), card_value),
             Paragraph(f"{max_dias} dias", card_value)
         ]
     ]
-    kpi_table = Table(kpi_data, colWidths=[190, 190, 190, 190])
+    kpi_table = Table(kpi_data, colWidths=[253, 253, 254])
     kpi_table.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#F9FAFB')),
         ('BOX', (0,0), (-1,-1), 1, colors.HexColor('#E5E7EB')),
@@ -1691,10 +1703,9 @@ def generate_sem_mov_pdf():
     
     insights_html = f"""
     Foram identificadas <b>{total_records}</b> remessas em atraso na operação.<br/><br/>
-    O valor total projetado em multas operacionais acumula <b>R$ {total_multa:,.2f}</b>.<br/><br/>
     O atraso médio das remessas sem movimentação é de <b>{avg_dias:.1f} dias</b>, com um pico crítico de <b>{max_dias} dias</b> no maior atraso encontrado.<br/><br/>
-    Esses atrasos geram custos operacionais e penalidades diretas por descumprimento de prazos.
-    """.replace(",", "X").replace(".", ",").replace("X", ".")
+    Esses atrasos impactam diretamente os indicadores e prazos da operação.
+    """
     
     left_flowables.append(Paragraph(insights_html, ParagraphStyle('InsBodySM', parent=body_text, fontSize=9.5, leading=14)))
     
@@ -1840,7 +1851,6 @@ def generate_sem_mov_pdf():
         Paragraph("Problema", body_text_white),
         Paragraph("Aging", body_text_white),
         Paragraph("Dias", body_text_white),
-        Paragraph("Multa", body_text_white),
         Paragraph("Origem", body_text_white),
         Paragraph("Destino", body_text_white)
     ]
@@ -1849,13 +1859,13 @@ def generate_sem_mov_pdf():
     if not filtered_df.empty:
         sorted_sm = filtered_df.sort_values(by='dias_sem_mov', ascending=False)
         for _, row in sorted_sm.head(30).iterrows():
+            ultima_op_str = row['ultima_operacao'].strftime('%d/%m/%Y') if pd.notna(row['ultima_operacao']) else '-'
             pending_table_rows.append([
                 Paragraph(row['remessa'], body_text),
-                Paragraph(row['ultima_operacao'].strftime('%d/%m/%Y'), body_text),
+                Paragraph(ultima_op_str, body_text),
                 Paragraph(row['tipo_problematico'], body_text),
                 Paragraph(row['aging'], body_text),
                 Paragraph(f"{int(row['dias_sem_mov'])} d", body_text),
-                Paragraph(f"R$ {float(row['multa']):.2f}", body_text),
                 Paragraph(row['base'], body_text),
                 Paragraph(row['destino'], body_text)
             ])
@@ -1867,11 +1877,10 @@ def generate_sem_mov_pdf():
             Paragraph("", body_text),
             Paragraph("", body_text),
             Paragraph("", body_text),
-            Paragraph("", body_text),
             Paragraph("", body_text)
         ])
         
-    pending_table = Table(pending_table_rows, colWidths=[90, 70, 190, 110, 50, 60, 90, 101], repeatRows=1)
+    pending_table = Table(pending_table_rows, colWidths=[100, 75, 200, 125, 55, 100, 106], repeatRows=1)
     pending_table.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#1E3A8A')),
         ('ALIGN', (0,0), (-1,-1), 'LEFT'),

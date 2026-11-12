@@ -670,6 +670,13 @@
 
             <!-- Painel Sem Movimentação -->
             <div id="panel-sem-mov" class="content-panel" style="display: none;">
+                <style>
+                    @media (min-width: 1025px) {
+                        #panel-sem-mov .kpi-container {
+                            grid-template-columns: repeat(3, 1fr) !important;
+                        }
+                    }
+                </style>
                 <!-- Container das cartoes de metricas de desempenho (KPIs) -->
                 <section class="kpi-container">
                     <!-- Total Sem Movimentação -->
@@ -678,15 +685,6 @@
                         <div class="kpi-info">
                             <h3>Total Sem Movimento</h3>
                             <span class="kpi-value" id="val-sem-mov-total">-</span>
-                        </div>
-                    </div>
-                    
-                    <!-- Multa Acumulada -->
-                    <div class="kpi-card" id="kpi-sem-mov-multa">
-                        <div class="kpi-icon icon-red"><i class="fa-solid fa-dollar-sign"></i></div>
-                        <div class="kpi-info">
-                            <h3>Multa Acumulada</h3>
-                            <span class="kpi-value" id="val-sem-mov-multa">-</span>
                         </div>
                     </div>
                     
@@ -771,14 +769,13 @@
                                     <th>Problema</th>
                                     <th>Aging</th>
                                     <th>Dias Sem Mov.</th>
-                                    <th>Multa</th>
                                     <th>Origem</th>
                                     <th>Destino</th>
                                 </tr>
                             </thead>
                             <tbody id="table-sem-mov-body">
                                 <tr>
-                                    <td colspan="8" style="text-align: center;">Carregando contratos sem movimentação...</td>
+                                    <td colspan="7" style="text-align: center;">Carregando contratos sem movimentação...</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -2214,7 +2211,7 @@ Total HC Mão na caixa:
     </div>
     
     <!-- Importa a logica do dashboard no arquivo local app.js -->
-    <script src="/app.js?v=97"></script>
+    <script src="/app.js?v=98"></script>
 <!-- Fecha o corpo do documento html -->
 </body>
 <!-- Fecha a tag html -->
