@@ -8,7 +8,12 @@ consultas SQL indexadas, versionamento de fechamentos e migração automática d
 import os
 import sqlite3
 import json
-from datetime import datetime, timedelta
+import time
+from datetime import datetime, timedelta, date
+try:
+    import openpyxl
+except ImportError:
+    openpyxl = None
 
 DEFAULT_RENDER_PG_URL = "postgresql://dc_bauru_db_user:opbS3AWCwu8U6VYSwQueJ1qHudNZJ1nD@dpg-dap3co6k1f9s739amlk0-a/dc_bauru_db"
 
@@ -160,6 +165,32 @@ def init_db():
             );
         """)
 
+        # 3. Tabela de Carregamento de Veículos (Volumetria Diária)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS tb_volumetria_carregamento (
+                id TEXT PRIMARY KEY,
+                veiculo TEXT NOT NULL,
+                inicio TEXT DEFAULT '',
+                termino TEXT DEFAULT '',
+                tempo_total TEXT DEFAULT '',
+                volume TEXT DEFAULT '',
+                status TEXT DEFAULT 'PENDENTE',
+                obs TEXT DEFAULT '',
+                ordem INTEGER DEFAULT 0,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        """)
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_vol_carr_ordem ON tb_volumetria_carregamento(ordem);")
+
+        # Migração: garante que a coluna 'volume' exista caso a tabela já tenha sido criada anteriormente
+        cursor.execute("PRAGMA table_info(tb_volumetria_carregamento);")
+        carr_cols = [c[1] for c in cursor.fetchall()]
+        if 'volume' not in carr_cols:
+            try:
+                cursor.execute("ALTER TABLE tb_volumetria_carregamento ADD COLUMN volume TEXT DEFAULT '';")
+            except Exception:
+                pass
+
         # Remove tabelas legadas garantindo que apenas Volumetria Diária e Controle de PDAs fiquem no banco
         for tbl in ['tb_fechamento_turno', 'tb_recebimento', 'tb_sem_movimentacao',
                     'tb_expedido_nao_chegou', 'tb_historico_uploads',
@@ -232,6 +263,17 @@ def init_db():
                 obs_atestados TEXT DEFAULT '-',
                 obs_pontos_atencao TEXT DEFAULT 'N/A',
                 raw_text TEXT,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        """)
+
+        # 14. Tabela de Report Grot
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS tb_report_grot (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                data_ref TEXT NOT NULL,
+                json_data TEXT NOT NULL,
+                raw_text TEXT DEFAULT '',
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         """)
@@ -367,6 +409,10 @@ def save_volumetria_data(data_dict, replace_all=False):
             eficiencia, total_viagens, viagens_finalizadas, updated_at
         ))
         
+        # Salva dados de carregamento de veículos se fornecidos
+        if "carregamento" in data_dict and data_dict["carregamento"] is not None:
+            save_volumetria_carregamento(data_dict["carregamento"])
+
         conn.commit()
     return True
 
@@ -484,14 +530,79 @@ def get_volumetria_data(data_ref=None):
             updated_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             
         records = _sort_volumetria_records(records)
+
+        # Busca registros de carregamento de veículos (com veículos padrão SN RAO, SP BRE, DC PPB-SP)
+        try:
+            carregamento_list = get_volumetria_carregamento()
+        except Exception as e:
+            carregamento_list = []
+
         return {
             "data_referencia": _format_date_br(data_ref_val),
             "updated_at": updated_at,
             "kpis": kpis,
             "records": records,
+            "carregamento": carregamento_list,
             "status_viagem_dist": status_viagem_dist,
             "status_operacional_dist": status_operacional_dist
         }
+
+def get_volumetria_carregamento():
+    """Obtém a lista de veículos em monitoramento de carregamento."""
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM tb_volumetria_carregamento ORDER BY ordem ASC, rowid ASC;")
+        rows = cursor.fetchall()
+        if not rows:
+            # Insere os 3 veículos padrão solicitados pelo usuário se ainda não existirem
+            default_vehicles = [
+                {"id": "carr-1", "veiculo": "SN RAO", "ordem": 1},
+                {"id": "carr-2", "veiculo": "SP BRE", "ordem": 2},
+                {"id": "carr-3", "veiculo": "DC PPB-SP", "ordem": 3}
+            ]
+            for v in default_vehicles:
+                cursor.execute("""
+                    INSERT OR IGNORE INTO tb_volumetria_carregamento (id, veiculo, inicio, termino, tempo_total, status, obs, ordem)
+                    VALUES (?, ?, '', '', '', 'PENDENTE', '', ?)
+                """, (v["id"], v["veiculo"], v["ordem"]))
+            conn.commit()
+            cursor.execute("SELECT * FROM tb_volumetria_carregamento ORDER BY ordem ASC, rowid ASC;")
+            rows = cursor.fetchall()
+        return [dict(r) for r in rows]
+
+def save_volumetria_carregamento(records):
+    """Salva a lista completa de veículos do painel de carregamento."""
+    if records is None:
+        return False
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM tb_volumetria_carregamento;")
+        for idx, r in enumerate(records):
+            c_id = str(r.get("id") or f"carr_{idx+1}_{int(time.time()*1000)}").strip()
+            veiculo = str(r.get("veiculo") or "").strip()
+            inicio = str(r.get("inicio") or "").strip()
+            termino = str(r.get("termino") or "").strip()
+            tempo_total = str(r.get("tempo_total") or "").strip()
+            volume = str(r.get("volume") or "").strip()
+            status = str(r.get("status") or "PENDENTE").strip()
+            obs = str(r.get("obs") or "").strip()
+            ordem = int(r.get("ordem") if r.get("ordem") is not None else idx + 1)
+            
+            cursor.execute("""
+                INSERT INTO tb_volumetria_carregamento (
+                    id, veiculo, inicio, termino, tempo_total, volume, status, obs, ordem, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP);
+            """, (c_id, veiculo, inicio, termino, tempo_total, volume, status, obs, ordem))
+        conn.commit()
+        return True
+
+def delete_volumetria_carregamento_item(item_id):
+    """Remove um veículo específico do painel de carregamento."""
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM tb_volumetria_carregamento WHERE id = ?;", (item_id,))
+        conn.commit()
+        return cursor.rowcount > 0
 
 def update_volumetria_obs(id_transporte, obs):
     """Atualiza a observação de uma viagem diretamente no banco de dados."""
@@ -1186,6 +1297,267 @@ def seed_pda_initial_data(force=False):
     data = get_pda_data()
     _backup_pda_json(data)
     return True
+
+# ==========================================================
+# GESTÃO REPORT GROT (DC BAURU)
+# ==========================================================
+
+def format_grot_whatsapp_text(d):
+    data_val = d.get('data_ref', '12/11/2026')
+    jt = d.get('hc_jt', {})
+    jt_tot = jt.get('Total', {})
+    tsi = d.get('diaristas_tsi', {})
+    smn = d.get('smn', {})
+    smn_tot = smn.get('Total', {})
+    mnc = d.get('mao_na_caixa', {})
+    phd = d.get('phd', {})
+    vol = d.get('volumetria', {})
+    pont = d.get('pontualidade', {})
+    sm = d.get('sem_mov', {})
+    carr = d.get('carregamentos', [])
+
+    text = f"""*📊 REPORT GROT - DC BAURU*
+📅 Data: *{data_val}*
+
+*1. PRESENTEÍSMO & EFETIVO*
+👥 J&T Operadores Presentes: *{jt_tot.get('presentes', 0)} / {jt_tot.get('operador', 0)}* (Abs: {str(round(jt_tot.get('pct_abs', 0), 1)).replace('.', ',')}% - {jt_tot.get('faltas', 0)} Faltas | {jt_tot.get('atestados', 0)} Atestados)
+   • T1: {jt.get('T1', {}).get('presentes', 0)}/{jt.get('T1', {}).get('operador', 0)} (Abs: {str(round(jt.get('T1', {}).get('pct_abs', 0), 1)).replace('.', ',')}%)
+   • T2: {jt.get('T2', {}).get('presentes', 0)}/{jt.get('T2', {}).get('operador', 0)} (Abs: {str(round(jt.get('T2', {}).get('pct_abs', 0), 1)).replace('.', ',')}%)
+   • T3: {jt.get('T3', {}).get('presentes', 0)}/{jt.get('T3', {}).get('operador', 0)} (Abs: {str(round(jt.get('T3', {}).get('pct_abs', 0), 1)).replace('.', ',')}%)
+👷 Diaristas TSI: *{tsi.get('Total', 0)}* (T1: {tsi.get('T1', 0)} | T2: {tsi.get('T2', 0)} | T3: {tsi.get('T3', 0)})
+🤝 Terceiros SMN: *{smn_tot.get('operador', 0)} Operadores* | Abs: {smn_tot.get('abs', 0)} ({str(round(smn_tot.get('pct_abs', 0), 1)).replace('.', ',')}%)
+📦 *Total Mão na Caixa (Operação):* *{mnc.get('operacao', 0)}* | Geral (+Assist): *{mnc.get('geral', 0)}*
+
+*2. PRODUTIVIDADE & VOLUME*
+📥 Volume Total Geral: *{vol.get('volume_total_geral', 0):,}* pacotes
+   • Coletas: {vol.get('coletas', 0):,}
+   • Recebido: {vol.get('recebido', 0):,}
+⚡ PHD Operação: *{str(phd.get('operacao', 0)).replace('.', ',')}* peças/HC
+⚡ PHD Geral: *{str(phd.get('geral', 0)).replace('.', ',')}* peças/HC
+
+*3. PONTUALIDADE (HUB -> PDD)*
+⏱️ SP BRE: *{str(round(pont.get('bre', 0), 1)).replace('.', ',')}%*
+⏱️ SN RAO: *{str(round(pont.get('rao', 0), 1)).replace('.', ',')}%*
+
+*4. GESTÃO DE BACKLOG & SEM MOV*
+🔄 Sem Movimentação: *{sm.get('hoje', 0)}* pacotes (Ontem: {sm.get('ontem', 0)} | Var: {sm.get('variacao', 0):+d})
+⚠️ Expedido Não Chegou: *{sm.get('exp_nao_chegou_qtd', 0)}* pacotes ({str(round(sm.get('exp_nao_chegou_pct', 0), 1)).replace('.', ',')}% do Sem Mov)""".replace(',', '.')
+
+    motivos = sm.get('aging_motivos', [])
+    if motivos:
+        text += "\n📋 Principais Motivos de Aging:"
+        for m in motivos:
+            if m.get('motivo') and m.get('qtd') and 'Total Geral' not in m.get('motivo'):
+                text += f"\n   • {m['motivo']}: {m['qtd']}"
+
+    if carr:
+        text += "\n\n*5. CARREGAMENTOS*"
+        for c in carr:
+            ini = c.get('inicio') or '--:--'
+            fim = c.get('fim') or '--:--'
+            v_val = c.get('volume') or ''
+            v_str = f" | Vol: {v_val}" if v_val else ""
+            text += f"\n   • *{c.get('veiculo')}*: Início {ini} ➔ Término {fim}{v_str}"
+
+    return text
+
+def parse_report_grot_excel(filepath='Report Grot.xlsx'):
+    if not os.path.isabs(filepath):
+        filepath = os.path.join(os.path.dirname(os.path.abspath(__file__)), filepath)
+    if not os.path.exists(filepath):
+        return None
+        
+    wb = openpyxl.load_workbook(filepath, data_only=True)
+    ws = wb['Planilha1'] if 'Planilha1' in wb.sheetnames else wb.active
+    
+    def val(r, c):
+        v = ws.cell(r, c).value
+        return v if v is not None else ''
+
+    # Data
+    raw_date = val(3, 2)
+    if isinstance(raw_date, (datetime, date)):
+        date_str = raw_date.strftime('%d/%m/%Y')
+    elif str(raw_date).strip():
+        date_str = str(raw_date)[:10]
+    else:
+        date_str = datetime.now().strftime('%d/%m/%Y')
+
+    # HC J&T
+    jt = {}
+    for r, turno in [(5, 'T1'), (6, 'T2'), (7, 'T3')]:
+        jt[turno] = {
+            'operador': int(val(r, 2) or 0),
+            'assistente': int(val(r, 3) or 0),
+            'lider': int(val(r, 4) or 0),
+            'presentes': int(val(r, 6) or 0),
+            'faltas': int(val(r, 7) or 0),
+            'atestados': int(val(r, 8) or 0),
+            'abs_turno': int(val(r, 9) or 0),
+            'pct_abs': round(float(val(r, 10) or 0) * 100, 1)
+        }
+    jt['Total'] = {
+        'operador': int(val(8, 2) or sum(jt[t]['operador'] for t in ['T1','T2','T3'])),
+        'assistente': int(val(8, 3) or sum(jt[t]['assistente'] for t in ['T1','T2','T3'])),
+        'lider': int(val(8, 4) or sum(jt[t]['lider'] for t in ['T1','T2','T3'])),
+        'presentes': int(val(8, 6) or sum(jt[t]['presentes'] for t in ['T1','T2','T3'])),
+        'faltas': int(val(8, 7) or sum(jt[t]['faltas'] for t in ['T1','T2','T3'])),
+        'atestados': int(val(8, 8) or sum(jt[t]['atestados'] for t in ['T1','T2','T3'])),
+        'abs_turno': int(val(8, 9) or sum(jt[t]['abs_turno'] for t in ['T1','T2','T3'])),
+        'pct_abs': round(float(val(8, 10) or 0) * 100, 1)
+    }
+
+    # Diaristas TSI
+    diaristas = {
+        'T1': int(val(11, 2) or 0),
+        'T2': int(val(12, 2) or 0),
+        'T3': int(val(13, 2) or 0),
+        'Total': int(val(14, 2) or 0)
+    }
+
+    # SMN
+    smn = {}
+    for r, turno in [(11, 'T2'), (12, 'T3')]:
+        smn[turno] = {
+            'operador': int(val(r, 5) or 0),
+            'lideranca': int(val(r, 6) or 0),
+            'abs': int(val(r, 7) or 0),
+            'obs': str(val(r, 8) or '').strip(),
+            'pct_abs': round(float(val(r, 10) or 0) * 100, 1)
+        }
+    smn['Total'] = {
+        'operador': int(val(13, 5) or sum(smn[t]['operador'] for t in ['T2','T3'])),
+        'lideranca': int(val(13, 6) or sum(smn[t]['lideranca'] for t in ['T2','T3'])),
+        'abs': int(val(13, 7) or sum(smn[t]['abs'] for t in ['T2','T3'])),
+        'pct_abs': round(float(val(13, 10) or 0) * 100, 1)
+    }
+
+    # Total - Mão na Caixa & PHD
+    mao_na_caixa = {
+        'operacao': int(val(17, 2) or 0),
+        'geral': int(val(18, 2) or 0)
+    }
+    phd = {
+        'operacao': round(float(val(17, 4) or 0), 1),
+        'geral': round(float(val(18, 4) or 0), 1)
+    }
+
+    # Volumetria
+    volumetria = {
+        'coletas': int(val(5, 13) or 0),
+        'recebido': int(val(6, 13) or 0),
+        'ppb': int(val(7, 13) or 0),
+        'fast_pass': int(val(8, 13) or 0),
+        'ppb_processado': int(val(9, 13) or 0),
+        'volume_dc_bau': int(val(4, 13) or 0),
+        'volume_total_geral': int(val(10, 13) or 0)
+    }
+
+    # Pontualidade
+    pontualidade = {
+        'bre': round(float(val(15, 14) or 0) * 100, 1),
+        'rao': round(float(val(16, 14) or 0) * 100, 1)
+    }
+
+    # Sem Movimentação
+    sem_mov = {
+        'ontem': int(val(18, 8) or 0),
+        'hoje': int(val(19, 8) or 0),
+        'variacao': int(val(20, 8) or 0),
+        'exp_nao_chegou_qtd': int(val(21, 8) or 0),
+        'exp_nao_chegou_pct': round(float(val(21, 9) or 0) * 100, 1),
+        'aging_motivos': []
+    }
+    for r in range(26, 33):
+        motivo = str(val(r, 7) or '').strip()
+        qtd = val(r, 8)
+        if qtd != '' and qtd is not None:
+            if 'Total Geral' in motivo:
+                continue
+            if not motivo and r == 26:
+                motivo = 'Sem Motivo / Outros'
+            clean_motivo = motivo.split(' 外')[0].split(' 有')[0].split(' 错')[0].split(' 客')[0].split(' 无')[0].strip()
+            clean_motivo = clean_motivo.replace('.', ' ')
+            sem_mov['aging_motivos'].append({'motivo': clean_motivo, 'qtd': int(qtd)})
+
+    # Carregamentos
+    carregamentos = []
+    for r in [20, 21, 22]:
+        veic = str(val(r, 12) or '').strip()
+        if veic:
+            carregamentos.append({
+                'veiculo': veic,
+                'inicio': str(val(r, 13) or '').strip(),
+                'fim': str(val(r, 14) or '').strip(),
+                'volume': val(r, 15) or ''
+            })
+
+    result = {
+        'data_ref': date_str,
+        'hc_jt': jt,
+        'diaristas_tsi': diaristas,
+        'smn': smn,
+        'mao_na_caixa': mao_na_caixa,
+        'phd': phd,
+        'volumetria': volumetria,
+        'pontualidade': pontualidade,
+        'sem_mov': sem_mov,
+        'carregamentos': carregamentos
+    }
+    result['raw_text'] = format_grot_whatsapp_text(result)
+    return result
+
+def save_report_grot_data(data_dict, raw_text=""):
+    init_db()
+    if not data_dict:
+        return False
+    data_ref = str(data_dict.get("data_ref") or datetime.now().strftime("%d/%m/%Y")).strip()
+    if not raw_text:
+        raw_text = format_grot_whatsapp_text(data_dict)
+    data_dict["raw_text"] = raw_text
+    
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT id FROM tb_report_grot ORDER BY id DESC LIMIT 1;")
+        row = cursor.fetchone()
+        json_str = json.dumps(data_dict, ensure_ascii=False)
+        if row:
+            cursor.execute("""
+                UPDATE tb_report_grot
+                SET data_ref = ?, json_data = ?, raw_text = ?, updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?;
+            """, (data_ref, json_str, raw_text, row["id"]))
+        else:
+            cursor.execute("""
+                INSERT INTO tb_report_grot (data_ref, json_data, raw_text)
+                VALUES (?, ?, ?);
+            """, (data_ref, json_str, raw_text))
+        conn.commit()
+    return True
+
+def get_report_grot_data():
+    init_db()
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM tb_report_grot ORDER BY id DESC LIMIT 1;")
+        row = cursor.fetchone()
+        if row and row["json_data"]:
+            try:
+                data = json.loads(row["json_data"])
+                if row["raw_text"]:
+                    data["raw_text"] = row["raw_text"]
+                return data
+            except Exception:
+                pass
+                
+    # Se ainda não estiver salvo no banco, tenta parsear o arquivo Report Grot.xlsx na pasta
+    excel_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Report Grot.xlsx")
+    if os.path.exists(excel_path):
+        parsed = parse_report_grot_excel(excel_path)
+        if parsed:
+            save_report_grot_data(parsed)
+            return parsed
+    return None
 
 # ==========================================================
 # OPERAÇÕES DE LOG E AUDITORIA DE UPLOADS

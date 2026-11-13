@@ -20,7 +20,7 @@
     <!-- Importa a biblioteca Chart.js via CDN para a renderizacao dos graficos interativos -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Vincula a folha de estilos local style.css -->
-    <link rel="stylesheet" href="/style.css?v=95">
+    <link rel="stylesheet" href="/style.css?v=96">
 <!-- Fecha o cabecalho da pagina html -->
 </head>
 <!-- Abre o corpo da pagina onde os elementos visuais estao localizados -->
@@ -75,7 +75,7 @@
                     <i class="fa-solid fa-barcode"></i> Controle de PDAs
                 </button>
                 <button id="nav-report-inicio" class="nav-item">
-                    <i class="fa-solid fa-flag-checkered"></i> Início de Operação
+                    <i class="fa-solid fa-flag-checkered"></i> Report Grot
                 </button>
             </div>
             
@@ -440,12 +440,11 @@
                     </div>
                 </div>
                 <!-- Container de exibicao de data/hora atualizada em tempo real -->
-                <div class="system-time">
-                    <!-- Icone de relogio do FontAwesome -->
-                    <i class="fa-regular fa-clock"></i>
-                    <!-- Span textual que recebera o valor dinamico do relogio em JS -->
-                    <span id="live-clock">--:--:--</span>
-                <!-- Fecha o container de exibicao do relogio -->
+                <div class="system-time" style="display: flex; align-items: center; gap: 8px; font-size: 14px; padding: 6px 14px; border-radius: 20px;">
+                    <i class="fa-regular fa-calendar-days" style="color: #38BDF8; font-size: 14px;"></i>
+                    <span id="live-date" style="color: #FFFFFF; font-weight: 700; font-size: 14px; margin-right: 4px;">--/--/----</span>
+                    <i class="fa-regular fa-clock" style="color: var(--color-blue); font-size: 13px;"></i>
+                    <span id="live-clock" style="color: #93C5FD; font-weight: 600; font-size: 13px;">--:--:--</span>
                 </div>
             <!-- Fecha a barra de navegacao superior -->
             </header>
@@ -984,11 +983,11 @@ Obs: </textarea>
                         </div>
                     </div>
 
-                    <!-- Card 2: Report de Início da Operação -->
+                    <!-- Card 2: Report Grot -->
                     <div class="chart-card glass" style="display: flex; flex-direction: column; padding: 20px; border-radius: 14px; min-height: 700px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 14px; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
                             <h4 style="margin: 0; font-size: 15px; font-weight: 700; color: #FFFFFF; display: flex; align-items: center; gap: 8px;">
-                                📊 Report de Início da Operação
+                                📊 Report Grot
                             </h4>
                             <div style="display: flex; align-items: center; gap: 8px;">
                                 <button id="btn-reset-script-inicio" class="btn btn-secondary" style="font-size: 11px; padding: 6px 12px; border-radius: 6px; cursor: pointer;" title="Restaurar modelo original">
@@ -1000,7 +999,7 @@ Obs: </textarea>
                             </div>
                         </div>
                         <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 10px;">
-                            <textarea id="script-inicio-text" style="width: 100%; box-sizing: border-box; flex-grow: 1; min-height: 560px; background: #070B13; color: #E5E7EB; font-family: 'Courier New', Courier, monospace; font-size: 13px; line-height: 1.6; padding: 16px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.12); resize: vertical; outline: none;">📊 REPORT DE INÍCIO DA OPERAÇÃO
+                            <textarea id="script-inicio-text" style="width: 100%; box-sizing: border-box; flex-grow: 1; min-height: 560px; background: #070B13; color: #E5E7EB; font-family: 'Courier New', Courier, monospace; font-size: 13px; line-height: 1.6; padding: 16px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.12); resize: vertical; outline: none;">📊 REPORT GROT - DC BAURU
 
 📅 Data: *00/00/0000*
 
@@ -1382,6 +1381,28 @@ Total HC Mão na caixa:
                     .volumetria-bipado-input[type=number] {
                         -moz-appearance: textfield;
                     }
+                    .volumetria-pedido-input {
+                        width: 78px !important;
+                        text-align: right !important;
+                        font-weight: 700 !important;
+                        color: #E5E7EB !important;
+                        font-size: 12px !important;
+                        font-family: 'Outfit', monospace !important;
+                    }
+                    .volumetria-pedido-input::-webkit-outer-spin-button,
+                    .volumetria-pedido-input::-webkit-inner-spin-button {
+                        -webkit-appearance: none;
+                        margin: 0;
+                    }
+                    .volumetria-pedido-input[type=number] {
+                        -moz-appearance: textfield;
+                    }
+                    .volumetria-pedido-input:focus {
+                        background: rgba(0, 0, 0, 0.6) !important;
+                        border-color: #60A5FA !important;
+                        box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.25) !important;
+                        color: #FFFFFF !important;
+                    }
                     .volumetria-status-select {
                         border-radius: 12px;
                         font-size: 10px;
@@ -1428,6 +1449,164 @@ Total HC Mão na caixa:
                         font-style: italic;
                         font-size: 10.5px;
                     }
+                    .volumetria-pdd-input {
+                        background: rgba(255, 255, 255, 0.05);
+                        border: 1px solid rgba(255, 255, 255, 0.12);
+                        border-radius: 4px;
+                        color: #FFFFFF !important;
+                        font-family: 'Outfit', sans-serif !important;
+                        font-weight: 700 !important;
+                        font-size: 11.5px !important;
+                        padding: 3px 6px !important;
+                        width: 100% !important;
+                        min-width: 95px !important;
+                        max-width: 160px !important;
+                        height: 24px;
+                        text-align: left !important;
+                        letter-spacing: 0.3px;
+                        box-sizing: border-box;
+                        transition: all 0.2s ease;
+                        outline: none;
+                    }
+                    .volumetria-pdd-input:focus {
+                        background: rgba(0, 0, 0, 0.6) !important;
+                        border-color: #38BDF8 !important;
+                        box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.25) !important;
+                        color: #FFFFFF !important;
+                    }
+                    .volumetria-pdd-input::placeholder {
+                        color: rgba(156, 163, 175, 0.4);
+                        font-style: italic;
+                        font-size: 10.5px;
+                    }
+                    #table-carregamento {
+                        width: 100%;
+                        border-collapse: collapse;
+                    }
+                    #table-carregamento th {
+                        padding: 7px 10px !important;
+                        font-size: 11px !important;
+                        font-weight: 700;
+                        text-transform: uppercase;
+                        letter-spacing: 0.3px;
+                        white-space: nowrap;
+                    }
+                    #table-carregamento td {
+                        padding: 6px 10px !important;
+                        font-size: 11.5px !important;
+                        vertical-align: middle;
+                    }
+                    .carregamento-cell-input {
+                        background: rgba(255, 255, 255, 0.05);
+                        border: 1px solid rgba(255, 255, 255, 0.12);
+                        border-radius: 4px;
+                        color: #E5E7EB;
+                        font-family: monospace;
+                        font-size: 11.5px;
+                        padding: 3px 6px;
+                        text-align: center;
+                        height: 26px;
+                        box-sizing: border-box;
+                        transition: all 0.2s ease;
+                        outline: none;
+                    }
+                    .carregamento-cell-input:focus {
+                        background: rgba(0, 0, 0, 0.6);
+                        border-color: #38BDF8;
+                        box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.25);
+                        color: #FFFFFF;
+                    }
+                    .carregamento-veiculo-input {
+                        text-align: left !important;
+                        font-family: 'Outfit', sans-serif !important;
+                        font-weight: 700 !important;
+                        color: #FFFFFF !important;
+                        width: 100% !important;
+                        min-width: 130px !important;
+                        letter-spacing: 0.3px;
+                    }
+                    .carregamento-time-input {
+                        width: 76px !important;
+                        font-weight: 700 !important;
+                        color: #60A5FA !important;
+                    }
+                    .carregamento-obs-input {
+                        text-align: left !important;
+                        font-family: 'Outfit', sans-serif !important;
+                        font-size: 11px !important;
+                        width: 100% !important;
+                        min-width: 110px !important;
+                    }
+                    .carregamento-volume-input {
+                        width: 95px !important;
+                        text-align: right !important;
+                        font-weight: 700 !important;
+                        color: #818CF8 !important;
+                        font-family: monospace !important;
+                        font-size: 12px !important;
+                    }
+                    .carregamento-volume-input:focus {
+                        background: rgba(0, 0, 0, 0.6) !important;
+                        border-color: #818CF8 !important;
+                        box-shadow: 0 0 0 2px rgba(129, 140, 248, 0.25) !important;
+                        color: #FFFFFF !important;
+                    }
+                    .carregamento-volume-input::placeholder {
+                        color: rgba(156, 163, 175, 0.4);
+                        font-style: italic;
+                        font-size: 10px;
+                    }
+                    .carregamento-status-select {
+                        border-radius: 12px;
+                        font-size: 10px;
+                        font-weight: 700;
+                        letter-spacing: 0.3px;
+                        padding: 2px 8px;
+                        height: 24px;
+                        cursor: pointer;
+                        outline: none;
+                        border: 1px solid transparent;
+                        transition: all 0.2s ease;
+                        text-align: center;
+                        text-align-last: center;
+                    }
+                    .carregamento-status-select option {
+                        background: #111827;
+                        color: #FFFFFF;
+                        font-weight: 600;
+                    }
+                    .badge-tempo-carregamento {
+                        background: rgba(16, 185, 129, 0.15);
+                        color: #34D399;
+                        border: 1px solid rgba(16, 185, 129, 0.35);
+                        font-weight: 700;
+                        padding: 3px 9px;
+                        border-radius: 12px;
+                        font-size: 11px;
+                        font-family: monospace;
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 5px;
+                        white-space: nowrap;
+                    }
+                    .badge-tempo-andamento {
+                        background: rgba(56, 189, 248, 0.15);
+                        color: #38BDF8;
+                        border: 1px solid rgba(56, 189, 248, 0.35);
+                        font-weight: 600;
+                        padding: 3px 9px;
+                        border-radius: 12px;
+                        font-size: 10.5px;
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 5px;
+                        white-space: nowrap;
+                    }
+                    .badge-tempo-vazio {
+                        color: #6B7280;
+                        font-size: 11px;
+                        font-family: monospace;
+                    }
                     .volumetria-top-bar {
                         display: flex;
                         justify-content: space-between;
@@ -1443,12 +1622,14 @@ Total HC Mão na caixa:
 
                 <!-- Barra de Ações Rápidas do Painel -->
                 <div class="volumetria-top-bar">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <span class="badge" style="background: rgba(59, 130, 246, 0.2); color: #60A5FA; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600;">
-                            <i class="fa-solid fa-calendar-day" style="margin-right: 5px;"></i> Referência: <span id="volumetria-ref-date">-</span>
+                    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                        <span class="badge" style="background: rgba(59, 130, 246, 0.22); color: #60A5FA; padding: 6px 14px; border-radius: 8px; border: 1px solid rgba(59, 130, 246, 0.4); display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.25);">
+                            <i class="fa-solid fa-calendar-day" style="font-size: 16px; color: #38BDF8;"></i> 
+                            <span style="color: #93C5FD; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Data de Referência:</span> 
+                            <span id="volumetria-ref-date" style="font-size: 18px; font-weight: 800; color: #FFFFFF; letter-spacing: 0.5px;">-</span>
                         </span>
-                        <span style="font-size: 11.5px; color: var(--text-muted);">
-                            Atualização: <strong id="volumetria-last-update" style="color: var(--text-primary);">-</strong>
+                        <span style="font-size: 12px; color: var(--text-muted); background: rgba(255,255,255,0.03); padding: 5px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.06);">
+                            Atualização: <strong id="volumetria-last-update" style="color: var(--text-primary); font-size: 12.5px;">-</strong>
                         </span>
                     </div>
                     <div style="display: flex; align-items: center; gap: 8px;">
@@ -1562,6 +1743,107 @@ Total HC Mão na caixa:
                                     <td colspan="6"></td>
                                     <td style="text-align: right; color: #34D399; padding: 6px 8px; font-size: 12px;" id="foot-vol-bipado">-</td>
                                     <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Painel de CARREGAMENTO DE VEÍCULOS -->
+                <section class="chart-card glass" id="section-volumetria-carregamento" style="width: 100%; padding: 14px 18px;">
+                    <div class="chart-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 8px;">
+                        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                            <h2 style="display: flex; align-items: center; gap: 8px; font-size: 14px; margin: 0; color: #FFFFFF;">
+                                <i class="fa-solid fa-truck-ramp-box" style="color: #38BDF8;"></i> Painel de Carregamento de Veículos
+                            </h2>
+                            <span class="badge" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8; border: 1px solid rgba(56, 189, 248, 0.3); font-size: 11px; padding: 2px 8px; border-radius: 6px; font-weight: 600;">
+                                <i class="fa-solid fa-clock-rotate-left"></i> Tempo de Carregamento
+                            </span>
+                            <span class="badge" style="background: rgba(59, 130, 246, 0.18); color: #93C5FD; border: 1px solid rgba(59, 130, 246, 0.35); font-size: 12px; padding: 3px 10px; border-radius: 6px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                                <i class="fa-solid fa-calendar-day" style="color: #38BDF8;"></i> Data: <strong class="carr-ref-date-display" style="font-size: 14px; color: #FFFFFF; font-weight: 800;">-</strong>
+                            </span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                            <span id="carregamento-save-status" style="display: none; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 6px; transition: all 0.3s; opacity: 0; border: 1px solid transparent;"></span>
+                            <button id="btn-carregamento-add-row" type="button" class="btn btn-primary" style="padding: 5px 12px; font-size: 11.5px; display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #0284C7, #0369A1); border: none; border-radius: 6px; color: #FFFFFF; font-weight: 600; cursor: pointer; box-shadow: 0 2px 6px rgba(2,132,199,0.3);">
+                                <i class="fa-solid fa-plus"></i> + Adicionar Veículo
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Mini Indicadores Operacionais de Carregamento -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 10px 0 14px 0;">
+                        <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 8px 12px; display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 32px; height: 32px; border-radius: 6px; background: rgba(59, 130, 246, 0.15); display: flex; align-items: center; justify-content: center; color: #60A5FA;">
+                                <i class="fa-solid fa-truck" style="font-size: 15px;"></i>
+                            </div>
+                            <div>
+                                <div style="font-size: 10px; color: #9CA3AF; text-transform: uppercase; font-weight: 600;">Total Veículos</div>
+                                <div id="kpi-carr-total" style="font-size: 16px; font-weight: 700; color: #F3F4F6;">3</div>
+                            </div>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 8px 12px; display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 32px; height: 32px; border-radius: 6px; background: rgba(56, 189, 248, 0.15); display: flex; align-items: center; justify-content: center; color: #38BDF8;">
+                                <i class="fa-solid fa-spinner fa-spin" style="font-size: 15px;"></i>
+                            </div>
+                            <div>
+                                <div style="font-size: 10px; color: #9CA3AF; text-transform: uppercase; font-weight: 600;">Carregando</div>
+                                <div id="kpi-carr-andamento" style="font-size: 16px; font-weight: 700; color: #38BDF8;">0</div>
+                            </div>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 8px 12px; display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 32px; height: 32px; border-radius: 6px; background: rgba(16, 185, 129, 0.15); display: flex; align-items: center; justify-content: center; color: #34D399;">
+                                <i class="fa-solid fa-circle-check" style="font-size: 15px;"></i>
+                            </div>
+                            <div>
+                                <div style="font-size: 10px; color: #9CA3AF; text-transform: uppercase; font-weight: 600;">Concluídos</div>
+                                <div id="kpi-carr-concluidos" style="font-size: 16px; font-weight: 700; color: #34D399;">0</div>
+                            </div>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 8px 12px; display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 32px; height: 32px; border-radius: 6px; background: rgba(245, 158, 11, 0.15); display: flex; align-items: center; justify-content: center; color: #FBBF24;">
+                                <i class="fa-solid fa-stopwatch" style="font-size: 15px;"></i>
+                            </div>
+                            <div>
+                                <div style="font-size: 10px; color: #9CA3AF; text-transform: uppercase; font-weight: 600;">Tempo Médio</div>
+                                <div id="kpi-carr-media" style="font-size: 16px; font-weight: 700; color: #FBBF24;">--:--</div>
+                            </div>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 8px 12px; display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 32px; height: 32px; border-radius: 6px; background: rgba(99, 102, 241, 0.15); display: flex; align-items: center; justify-content: center; color: #818CF8;">
+                                <i class="fa-solid fa-boxes-stacked" style="font-size: 15px;"></i>
+                            </div>
+                            <div>
+                                <div style="font-size: 10px; color: #9CA3AF; text-transform: uppercase; font-weight: 600;">Volume Total</div>
+                                <div id="kpi-carr-volume-total" style="font-size: 16px; font-weight: 700; color: #818CF8;">0</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="table-wrapper" style="overflow-x: auto;">
+                        <table class="data-table" id="table-carregamento">
+                            <thead>
+                                <tr>
+                                    <th style="min-width: 170px; text-align: left;">Veículo / Destino (Editável)</th>
+                                    <th style="text-align: center; width: 130px;">Início Carregamento</th>
+                                    <th style="text-align: center; width: 130px;">Término Carregamento</th>
+                                    <th style="text-align: center; width: 130px;">Tempo Total</th>
+                                    <th style="text-align: right; width: 125px;">Volume Carregado</th>
+                                    <th style="text-align: center; width: 145px;">Status</th>
+                                    <th style="text-align: left; min-width: 160px;">Observações / Doca</th>
+                                    <th style="text-align: center; width: 45px;">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-carregamento-body">
+                                <tr>
+                                    <td colspan="8" style="text-align: center; padding: 16px; color: #9CA3AF;">Carregando dados de carregamento...</td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr style="background: rgba(255, 255, 255, 0.03); font-weight: 700; border-top: 1px solid rgba(255,255,255,0.1);">
+                                    <td colspan="4" style="text-align: right; padding: 7px 10px; font-size: 11px; color: #9CA3AF; text-transform: uppercase;">Volume Total Carregado:</td>
+                                    <td style="text-align: right; padding: 7px 10px; font-size: 12px; font-weight: 700; color: #818CF8;" id="foot-carr-volume-total">0</td>
+                                    <td colspan="3"></td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -1960,7 +2242,7 @@ Total HC Mão na caixa:
                 </div>
             </div>
 
-            <!-- Visão Integrada: Painel Report de Início da Operação (DC Bauru) -->
+            <!-- Visão Integrada: Painel Report Grot (DC Bauru) -->
             <div id="panel-report-inicio" class="content-panel" style="display: none; flex-direction: column; gap: 16px; width: 100%;">
                 
                 <!-- Barra de Ações Rápidas do Painel -->
@@ -1971,165 +2253,293 @@ Total HC Mão na caixa:
                         </div>
                         <div>
                             <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: #FFFFFF; display: flex; align-items: center; gap: 8px;">
-                                📊 Report de Início da Operação
+                                📊 Report Grot - DC Bauru
                                 <span class="badge" style="background: rgba(16, 185, 129, 0.2); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 11px; padding: 2px 8px; border-radius: 12px;">
-                                    <i class="fa-solid fa-database"></i> 100% Salvo no Banco
+                                    <i class="fa-solid fa-database"></i> Integrado ao B.I
                                 </span>
                             </h3>
-                            <p style="margin: 2px 0 0 0; font-size: 12px; color: #94A3B8;">Indicadores de abertura de turno do DC Bauru e envio formatado para WhatsApp</p>
+                            <p style="margin: 2px 0 0 0; font-size: 12px; color: #94A3B8;">Resumo executivo do Report Grot: Efetivo, Produtividade, Volumetria, Sem Movimentação e WhatsApp</p>
                         </div>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                         <button id="btn-rep-panel-refresh" class="btn btn-secondary" style="font-size: 12px; padding: 8px 14px; border-radius: 8px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
                             <i class="fa-solid fa-arrows-rotate"></i> Recarregar
                         </button>
-                        <button id="btn-rep-panel-copy-top" class="btn btn-secondary" style="font-size: 12px; padding: 8px 14px; border-radius: 8px; background: rgba(37, 211, 102, 0.15); border: 1px solid rgba(37, 211, 102, 0.3); color: #25D366; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                        <button id="btn-rep-upload-excel" class="btn btn-primary" style="font-size: 12px; padding: 8px 14px; border-radius: 8px; background: linear-gradient(135deg, #10B981, #059669); border: none; color: #FFF; display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 10px rgba(16,185,129,0.3);">
+                            <i class="fa-solid fa-file-excel"></i> Importar Planilha Grot
+                        </button>
+                        <input type="file" id="input-grot-excel" accept=".xlsx,.xls" style="display: none;">
+                        <button id="btn-rep-panel-copy-top" class="btn btn-secondary" style="font-size: 12px; padding: 8px 14px; border-radius: 8px; background: rgba(37, 211, 102, 0.15); border: 1px solid rgba(37, 211, 102, 0.3); color: #25D366; display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 600;">
                             <i class="fa-brands fa-whatsapp"></i> Copiar WhatsApp
                         </button>
                     </div>
                 </div>
 
-                <!-- Cards de Indicadores de Destaque -->
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px;">
-                    <div class="glass" style="padding: 16px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; border-left: 3px solid #60A5FA;">
+                <!-- 6 Cards de Indicadores de Destaque -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
+                    <!-- Data Ref -->
+                    <div class="glass" style="padding: 14px; border-radius: 12px; border-left: 3px solid #60A5FA; display: flex; justify-content: space-between; align-items: center;">
                         <div>
-                            <span style="font-size: 11px; font-weight: 600; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px;">Data / Início</span>
-                            <div id="rep-kpi-data" style="font-size: 18px; font-weight: 700; color: #FFFFFF; margin-top: 4px;">06/10/2026 (15:11)</div>
+                            <span style="font-size: 10.5px; font-weight: 600; color: #94A3B8; text-transform: uppercase;">Data de Referência</span>
+                            <div id="grot-kpi-data" style="font-size: 17px; font-weight: 700; color: #FFFFFF; margin-top: 3px;">--/--/----</div>
+                            <span style="font-size: 10px; color: #60A5FA;">Turno Operacional</span>
                         </div>
-                        <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(96, 165, 250, 0.12); display: flex; align-items: center; justify-content: center; color: #60A5FA; font-size: 17px;">
+                        <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(96, 165, 250, 0.15); display: flex; align-items: center; justify-content: center; color: #60A5FA; font-size: 16px;">
                             <i class="fa-regular fa-calendar-check"></i>
                         </div>
                     </div>
 
-                    <div class="glass" style="padding: 16px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; border-left: 3px solid #F59E0B;">
+                    <!-- Mão na Caixa -->
+                    <div class="glass" style="padding: 14px; border-radius: 12px; border-left: 3px solid #34D399; display: flex; justify-content: space-between; align-items: center;">
                         <div>
-                            <span style="font-size: 11px; font-weight: 600; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px;">Backlog / Previsto</span>
-                            <div id="rep-kpi-volume" style="font-size: 18px; font-weight: 700; color: #FFFFFF; margin-top: 4px;">692 / 53.903</div>
+                            <span style="font-size: 10.5px; font-weight: 600; color: #94A3B8; text-transform: uppercase;">Mão na Caixa (Op)</span>
+                            <div id="grot-kpi-mao-op" style="font-size: 17px; font-weight: 700; color: #34D399; margin-top: 3px;">0</div>
+                            <span style="font-size: 10px; color: #94A3B8;">Geral (+Assist): <strong id="grot-kpi-mao-geral" style="color: #FFF;">0</strong></span>
                         </div>
-                        <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(245, 158, 11, 0.12); display: flex; align-items: center; justify-content: center; color: #F59E0B; font-size: 17px;">
-                            <i class="fa-solid fa-boxes-stacked"></i>
-                        </div>
-                    </div>
-
-                    <div class="glass" style="padding: 16px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; border-left: 3px solid #34D399;">
-                        <div>
-                            <span style="font-size: 11px; font-weight: 600; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px;">CLTs Presentes</span>
-                            <div id="rep-kpi-clt" style="font-size: 18px; font-weight: 700; color: #FFFFFF; margin-top: 4px;">32 (18h) | — (22h)</div>
-                        </div>
-                        <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(52, 211, 153, 0.12); display: flex; align-items: center; justify-content: center; color: #34D399; font-size: 17px;">
+                        <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(52, 211, 153, 0.15); display: flex; align-items: center; justify-content: center; color: #34D399; font-size: 16px;">
                             <i class="fa-solid fa-users"></i>
                         </div>
                     </div>
 
-                    <div class="glass" style="padding: 16px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; border-left: 3px solid #A78BFA;">
+                    <!-- PHD Produtividade -->
+                    <div class="glass" style="padding: 14px; border-radius: 12px; border-left: 3px solid #F59E0B; display: flex; justify-content: space-between; align-items: center;">
                         <div>
-                            <span style="font-size: 11px; font-weight: 600; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px;">Diaristas (15h / 20h)</span>
-                            <div id="rep-kpi-diaristas" style="font-size: 18px; font-weight: 700; color: #A78BFA; margin-top: 4px;">18/20 (15h) | —/10 (20h)</div>
+                            <span style="font-size: 10.5px; font-weight: 600; color: #94A3B8; text-transform: uppercase;">PHD Produtividade</span>
+                            <div id="grot-kpi-phd-op" style="font-size: 17px; font-weight: 700; color: #F59E0B; margin-top: 3px;">0.0</div>
+                            <span style="font-size: 10px; color: #94A3B8;">Geral: <strong id="grot-kpi-phd-geral" style="color: #FFF;">0.0</strong> pçs/HC</span>
                         </div>
-                        <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(167, 139, 250, 0.12); display: flex; align-items: center; justify-content: center; color: #A78BFA; font-size: 17px;">
-                            <i class="fa-solid fa-user-gear"></i>
+                        <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(245, 158, 11, 0.15); display: flex; align-items: center; justify-content: center; color: #F59E0B; font-size: 16px;">
+                            <i class="fa-solid fa-bolt"></i>
+                        </div>
+                    </div>
+
+                    <!-- Volumetria Total -->
+                    <div class="glass" style="padding: 14px; border-radius: 12px; border-left: 3px solid #818CF8; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <span style="font-size: 10.5px; font-weight: 600; color: #94A3B8; text-transform: uppercase;">Volume Total</span>
+                            <div id="grot-kpi-volume" style="font-size: 17px; font-weight: 700; color: #818CF8; margin-top: 3px;">0</div>
+                            <span style="font-size: 10px; color: #94A3B8;">Coletas: <strong id="grot-kpi-coletas" style="color: #FFF;">0</strong></span>
+                        </div>
+                        <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(129, 140, 248, 0.15); display: flex; align-items: center; justify-content: center; color: #818CF8; font-size: 16px;">
+                            <i class="fa-solid fa-boxes-stacked"></i>
+                        </div>
+                    </div>
+
+                    <!-- Sem Movimentação -->
+                    <div class="glass" style="padding: 14px; border-radius: 12px; border-left: 3px solid #EC4899; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <span style="font-size: 10.5px; font-weight: 600; color: #94A3B8; text-transform: uppercase;">Sem Movimentação</span>
+                            <div id="grot-kpi-semmov" style="font-size: 17px; font-weight: 700; color: #EC4899; margin-top: 3px;">0</div>
+                            <span style="font-size: 10px; color: #94A3B8;">Var: <strong id="grot-kpi-semmov-var" style="color: #FFF;">0</strong> | S/ Chegar: <strong id="grot-kpi-semmov-exp" style="color: #FFF;">0</strong></span>
+                        </div>
+                        <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(236, 72, 153, 0.15); display: flex; align-items: center; justify-content: center; color: #EC4899; font-size: 16px;">
+                            <i class="fa-solid fa-arrows-rotate"></i>
+                        </div>
+                    </div>
+
+                    <!-- Absenteísmo Geral -->
+                    <div class="glass" style="padding: 14px; border-radius: 12px; border-left: 3px solid #EF4444; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <span style="font-size: 10.5px; font-weight: 600; color: #94A3B8; text-transform: uppercase;">Absenteísmo HC J&T</span>
+                            <div id="grot-kpi-abs" style="font-size: 17px; font-weight: 700; color: #EF4444; margin-top: 3px;">0.0%</div>
+                            <span style="font-size: 10px; color: #94A3B8;"><span id="grot-kpi-faltas">0</span> Faltas | <span id="grot-kpi-atestados">0</span> Atest.</span>
+                        </div>
+                        <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(239, 68, 68, 0.15); display: flex; align-items: center; justify-content: center; color: #EF4444; font-size: 16px;">
+                            <i class="fa-solid fa-user-xmark"></i>
                         </div>
                     </div>
                 </div>
 
-                <!-- Painel Principal em 2 Colunas (Formulário + Preview WhatsApp) -->
-                <div style="display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 16px; align-items: start;">
+                <!-- Painel Principal em 2 Colunas (Tabelas Operacionais + Preview WhatsApp) -->
+                <div style="display: grid; grid-template-columns: 1.25fr 0.75fr; gap: 16px; align-items: start;">
                     
-                    <!-- Coluna 1: Formulário de Atualização Operacional -->
-                    <div class="glass" style="padding: 20px; border-radius: 14px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px; margin-bottom: 16px;">
-                            <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: #FFFFFF; display: flex; align-items: center; gap: 8px;">
-                                <i class="fa-solid fa-pen-to-square" style="color: #818CF8;"></i> Atualizar Dados da Operação
-                            </h4>
-                            <span style="font-size: 11px; color: #94A3B8;"><i class="fa-solid fa-database text-emerald-400"></i> Gravação em SQLite</span>
+                    <!-- Coluna 1: Relatórios e Tabelas Operacionais do Report Grot -->
+                    <div style="display: flex; flex-direction: column; gap: 16px;">
+                        
+                        <!-- 1. Presenteísmo HC J&T -->
+                        <div class="glass" style="padding: 16px; border-radius: 14px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px;">
+                                <h4 style="margin: 0; font-size: 13.5px; font-weight: 700; color: #FFFFFF; display: flex; align-items: center; gap: 8px;">
+                                    <i class="fa-solid fa-id-card-clip" style="color: #60A5FA;"></i> Presenteísmo HC J&T
+                                </h4>
+                                <span style="font-size: 11px; color: #94A3B8;">Turnos T1, T2, T3 & Total Geral</span>
+                            </div>
+                            <div class="table-wrapper" style="overflow-x: auto;">
+                                <table class="data-table" style="width: 100%; font-size: 12px;">
+                                    <thead>
+                                        <tr>
+                                            <th style="text-align: left; padding: 6px 10px;">Turno</th>
+                                            <th style="text-align: center; padding: 6px 8px;">Operador</th>
+                                            <th style="text-align: center; padding: 6px 8px;">Assistente</th>
+                                            <th style="text-align: center; padding: 6px 8px;">Líder</th>
+                                            <th style="text-align: center; padding: 6px 8px;">Presentes</th>
+                                            <th style="text-align: center; padding: 6px 8px;">Faltas</th>
+                                            <th style="text-align: center; padding: 6px 8px;">Atestados</th>
+                                            <th style="text-align: center; padding: 6px 8px;">Abs.</th>
+                                            <th style="text-align: center; padding: 6px 8px;">% Abs</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="grot-table-jt-body">
+                                        <tr><td colspan="9" style="text-align: center; padding: 12px; color: #94A3B8;">Aguardando dados...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
 
-                        <form id="form-report-inicio-panel" style="display: flex; flex-direction: column; gap: 12px;">
+                        <!-- 2. Diaristas TSI & Terceiros SMN -->
+                        <div style="display: grid; grid-template-columns: 1fr 1.3fr; gap: 14px;">
+                            <!-- Diaristas TSI -->
+                            <div class="glass" style="padding: 16px; border-radius: 14px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 6px;">
+                                    <h4 style="margin: 0; font-size: 13px; font-weight: 700; color: #FFFFFF; display: flex; align-items: center; gap: 6px;">
+                                        <i class="fa-solid fa-person-digging" style="color: #A78BFA;"></i> Diaristas TSI
+                                    </h4>
+                                    <span class="badge" style="background: rgba(167, 139, 250, 0.2); color: #C4B5FD; font-size: 11px;" id="grot-badge-tsi-total">Total: 0</span>
+                                </div>
+                                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px;">
+                                    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 10px; text-align: center;">
+                                        <div style="font-size: 10px; color: #94A3B8; font-weight: 600;">TURNO 1</div>
+                                        <div id="grot-tsi-t1" style="font-size: 16px; font-weight: 700; color: #A78BFA; margin-top: 2px;">0</div>
+                                    </div>
+                                    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 10px; text-align: center;">
+                                        <div style="font-size: 10px; color: #94A3B8; font-weight: 600;">TURNO 2</div>
+                                        <div id="grot-tsi-t2" style="font-size: 16px; font-weight: 700; color: #A78BFA; margin-top: 2px;">0</div>
+                                    </div>
+                                    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 10px; text-align: center;">
+                                        <div style="font-size: 10px; color: #94A3B8; font-weight: 600;">TURNO 3</div>
+                                        <div id="grot-tsi-t3" style="font-size: 16px; font-weight: 700; color: #A78BFA; margin-top: 2px;">0</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Terceiros SMN -->
+                            <div class="glass" style="padding: 16px; border-radius: 14px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 6px;">
+                                    <h4 style="margin: 0; font-size: 13px; font-weight: 700; color: #FFFFFF; display: flex; align-items: center; gap: 6px;">
+                                        <i class="fa-solid fa-handshake" style="color: #38BDF8;"></i> Terceiros SMN
+                                    </h4>
+                                    <span class="badge" style="background: rgba(56, 189, 248, 0.2); color: #7DD3FC; font-size: 11px;" id="grot-badge-smn-total">Total: 0 Op</span>
+                                </div>
+                                <div class="table-wrapper" style="overflow-x: auto;">
+                                    <table class="data-table" style="width: 100%; font-size: 11.5px;">
+                                        <thead>
+                                            <tr>
+                                                <th style="padding: 5px 8px;">Turno</th>
+                                                <th style="text-align: center; padding: 5px 6px;">Op</th>
+                                                <th style="text-align: center; padding: 5px 6px;">Líder</th>
+                                                <th style="text-align: center; padding: 5px 6px;">Abs</th>
+                                                <th style="text-align: center; padding: 5px 6px;">% Abs</th>
+                                                <th style="text-align: left; padding: 5px 8px;">Observações</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="grot-table-smn-body">
+                                            <tr><td colspan="6" style="text-align: center; padding: 8px; color: #94A3B8;">Aguardando dados...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 3. Volumetria, Pontualidade & Carregamentos -->
+                        <div class="glass" style="padding: 16px; border-radius: 14px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px;">
+                                <h4 style="margin: 0; font-size: 13.5px; font-weight: 700; color: #FFFFFF; display: flex; align-items: center; gap: 8px;">
+                                    <i class="fa-solid fa-truck-ramp-box" style="color: #10B981;"></i> Volumetria DC Bauru & Pontualidade das Rotas
+                                </h4>
+                                <span style="font-size: 11px; color: #94A3B8;">HUB ➔ PDD & Entregas</span>
+                            </div>
                             
-                            <!-- Grade de Campos Operacionais -->
-                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
-                                <div>
-                                    <label style="display: block; font-size: 11px; font-weight: 600; color: #94A3B8; text-transform: uppercase; margin-bottom: 4px;">Data de Referência</label>
-                                    <input type="text" id="panel-rep-data" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #FFF; padding: 8px 10px; font-size: 12px;">
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 14px;">
+                                <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 8px 10px;">
+                                    <div style="font-size: 10px; color: #94A3B8; font-weight: 600;">COLETAS</div>
+                                    <div id="grot-vol-coletas" style="font-size: 15px; font-weight: 700; color: #60A5FA;">0</div>
                                 </div>
-                                <div>
-                                    <label style="display: block; font-size: 11px; font-weight: 600; color: #94A3B8; text-transform: uppercase; margin-bottom: 4px;">Início da Operação</label>
-                                    <input type="text" id="panel-rep-inicio" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #FFF; padding: 8px 10px; font-size: 12px;">
+                                <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 8px 10px;">
+                                    <div style="font-size: 10px; color: #94A3B8; font-weight: 600;">RECEBIDO</div>
+                                    <div id="grot-vol-recebido" style="font-size: 15px; font-weight: 700; color: #34D399;">0</div>
                                 </div>
-                                <div>
-                                    <label style="display: block; font-size: 11px; font-weight: 600; color: #94A3B8; text-transform: uppercase; margin-bottom: 4px;">Backlog Inicial</label>
-                                    <input type="text" id="panel-rep-backlog" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #FFF; padding: 8px 10px; font-size: 12px;">
+                                <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 8px 10px;">
+                                    <div style="font-size: 10px; color: #94A3B8; font-weight: 600;">PPB</div>
+                                    <div id="grot-vol-ppb" style="font-size: 15px; font-weight: 700; color: #F59E0B;">0</div>
                                 </div>
-                                <div>
-                                    <label style="display: block; font-size: 11px; font-weight: 600; color: #94A3B8; text-transform: uppercase; margin-bottom: 4px;">Volume Previsto</label>
-                                    <input type="text" id="panel-rep-volume" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #FFF; padding: 8px 10px; font-size: 12px;">
+                                <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 8px 10px;">
+                                    <div style="font-size: 10px; color: #94A3B8; font-weight: 600;">FAST PASS</div>
+                                    <div id="grot-vol-fastpass" style="font-size: 15px; font-weight: 700; color: #A78BFA;">0</div>
                                 </div>
-                                <div>
-                                    <label style="display: block; font-size: 11px; font-weight: 600; color: #94A3B8; text-transform: uppercase; margin-bottom: 4px;">CLTs Presentes 18h</label>
-                                    <input type="text" id="panel-rep-clt18" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #FFF; padding: 8px 10px; font-size: 12px;">
+                                <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 8px 10px;">
+                                    <div style="font-size: 10px; color: #94A3B8; font-weight: 600;">VOLUME DC BAU</div>
+                                    <div id="grot-vol-dcbau" style="font-size: 15px; font-weight: 700; color: #38BDF8;">0</div>
                                 </div>
-                                <div>
-                                    <label style="display: block; font-size: 11px; font-weight: 600; color: #94A3B8; text-transform: uppercase; margin-bottom: 4px;">Absenteísmo 18h</label>
-                                    <input type="text" id="panel-rep-abs18" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #FFF; padding: 8px 10px; font-size: 12px;">
-                                </div>
-                                <div>
-                                    <label style="display: block; font-size: 11px; font-weight: 600; color: #94A3B8; text-transform: uppercase; margin-bottom: 4px;">CLTs Presentes 22h</label>
-                                    <input type="text" id="panel-rep-clt22" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #FFF; padding: 8px 10px; font-size: 12px;">
-                                </div>
-                                <div>
-                                    <label style="display: block; font-size: 11px; font-weight: 600; color: #94A3B8; text-transform: uppercase; margin-bottom: 4px;">Absenteísmo 22h</label>
-                                    <input type="text" id="panel-rep-abs22" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #FFF; padding: 8px 10px; font-size: 12px;">
-                                </div>
-                                <div>
-                                    <label style="display: block; font-size: 11px; font-weight: 600; color: #94A3B8; text-transform: uppercase; margin-bottom: 4px;">Diaristas Solicitados (15:00)</label>
-                                    <input type="text" id="panel-rep-diasol15" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #FFF; padding: 8px 10px; font-size: 12px;">
-                                </div>
-                                <div>
-                                    <label style="display: block; font-size: 11px; font-weight: 600; color: #94A3B8; text-transform: uppercase; margin-bottom: 4px;">Diaristas Presentes (15:00)</label>
-                                    <input type="text" id="panel-rep-diapres15" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #FFF; padding: 8px 10px; font-size: 12px;">
-                                </div>
-                                <div>
-                                    <label style="display: block; font-size: 11px; font-weight: 600; color: #94A3B8; text-transform: uppercase; margin-bottom: 4px;">Diaristas Solicitados (20:00)</label>
-                                    <input type="text" id="panel-rep-diasol20" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #FFF; padding: 8px 10px; font-size: 12px;">
-                                </div>
-                                <div>
-                                    <label style="display: block; font-size: 11px; font-weight: 600; color: #94A3B8; text-transform: uppercase; margin-bottom: 4px;">Diaristas Presentes (20:00)</label>
-                                    <input type="text" id="panel-rep-diapres20" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #FFF; padding: 8px 10px; font-size: 12px;">
-                                </div>
-                                <div style="grid-column: span 2;">
-                                    <label style="display: block; font-size: 11px; font-weight: 600; color: #94A3B8; text-transform: uppercase; margin-bottom: 4px;">PHD Previsto</label>
-                                    <input type="text" id="panel-rep-phd" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #FFF; padding: 8px 10px; font-size: 12px;">
+                                <div style="background: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; padding: 8px 10px;">
+                                    <div style="font-size: 10px; color: #C7D2FE; font-weight: 700;">TOTAL GERAL</div>
+                                    <div id="grot-vol-totalgeral" style="font-size: 15px; font-weight: 800; color: #FFFFFF;">0</div>
                                 </div>
                             </div>
 
-                            <!-- Observações Operacionais -->
-                            <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 4px;">
-                                <div>
-                                    <label style="display: block; font-size: 11px; font-weight: 600; color: #94A3B8; text-transform: uppercase; margin-bottom: 4px;">Falta Injustificada (Qtd & Nomes)</label>
-                                    <textarea id="panel-rep-falta" rows="2" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #FFF; padding: 8px 10px; font-size: 12px; resize: vertical;"></textarea>
+                            <!-- Pontualidade Rotas -->
+                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 12px;">
+                                <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 10px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                        <span style="font-size: 11.5px; font-weight: 600; color: #94A3B8;"><i class="fa-solid fa-route" style="color: #38BDF8;"></i> Pontualidade SP BRE</span>
+                                        <span id="grot-pont-bre" style="font-size: 13px; font-weight: 700; color: #34D399;">--%</span>
+                                    </div>
+                                    <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
+                                        <div id="grot-bar-bre" style="width: 0%; height: 100%; background: #34D399; transition: width 0.5s ease;"></div>
+                                    </div>
                                 </div>
-                                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
-                                    <div>
-                                        <label style="display: block; font-size: 11px; font-weight: 600; color: #94A3B8; text-transform: uppercase; margin-bottom: 4px;">Atestados</label>
-                                        <input type="text" id="panel-rep-atestados" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #FFF; padding: 8px 10px; font-size: 12px;">
+                                <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 10px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                        <span style="font-size: 11.5px; font-weight: 600; color: #94A3B8;"><i class="fa-solid fa-route" style="color: #F59E0B;"></i> Pontualidade SN RAO</span>
+                                        <span id="grot-pont-rao" style="font-size: 13px; font-weight: 700; color: #34D399;">--%</span>
                                     </div>
-                                    <div>
-                                        <label style="display: block; font-size: 11px; font-weight: 600; color: #94A3B8; text-transform: uppercase; margin-bottom: 4px;">Pontos de Atenção</label>
-                                        <input type="text" id="panel-rep-atencao" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #FFF; padding: 8px 10px; font-size: 12px;">
+                                    <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
+                                        <div id="grot-bar-rao" style="width: 0%; height: 100%; background: #34D399; transition: width 0.5s ease;"></div>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 4. Sem Movimentação & Motivos de Aging -->
+                        <div class="glass" style="padding: 16px; border-radius: 14px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px;">
+                                <h4 style="margin: 0; font-size: 13.5px; font-weight: 700; color: #FFFFFF; display: flex; align-items: center; gap: 8px;">
+                                    <i class="fa-solid fa-clock-rotate-left" style="color: #EC4899;"></i> Gestão de Sem Movimentação & Aging de Cargas
+                                </h4>
+                                <span class="badge" style="background: rgba(236, 72, 153, 0.2); color: #F472B6; font-size: 11px;" id="grot-semmov-tag">Hoje: 0</span>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 14px;">
+                                <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 8px 10px;">
+                                    <div style="font-size: 10px; color: #94A3B8; font-weight: 600;">ONTEM</div>
+                                    <div id="grot-semmov-ontem" style="font-size: 15px; font-weight: 700; color: #CBD5E1;">0</div>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 8px 10px;">
+                                    <div style="font-size: 10px; color: #94A3B8; font-weight: 600;">HOJE</div>
+                                    <div id="grot-semmov-hoje" style="font-size: 15px; font-weight: 700; color: #EC4899;">0</div>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 8px 10px;">
+                                    <div style="font-size: 10px; color: #94A3B8; font-weight: 600;">VARIAÇÃO</div>
+                                    <div id="grot-semmov-variacao" style="font-size: 15px; font-weight: 700; color: #F59E0B;">0</div>
+                                </div>
+                                <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 8px; padding: 8px 10px;">
+                                    <div style="font-size: 10px; color: #FCA5A5; font-weight: 600;">EXPEDIDO NÃO CHEGOU</div>
+                                    <div id="grot-semmov-expchegou" style="font-size: 15px; font-weight: 700; color: #EF4444;">0 (0%)</div>
                                 </div>
                             </div>
 
-                            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px;">
-                                <button type="submit" class="btn btn-primary" style="font-size: 13px; padding: 10px 22px; background: linear-gradient(135deg, #4F46E5, #6366F1); border: none; color: #FFF; font-weight: 700; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);">
-                                    <i class="fa-solid fa-floppy-disk"></i> Salvar no Banco de Dados
-                                </button>
+                            <!-- Lista de Motivos de Aging -->
+                            <div>
+                                <span style="font-size: 11px; font-weight: 600; color: #94A3B8; text-transform: uppercase; margin-bottom: 6px; display: block;">Detalhamento de Aging por Motivo</span>
+                                <div id="grot-aging-list" style="display: flex; flex-direction: column; gap: 6px;">
+                                    <div style="color: #94A3B8; font-size: 11.5px; padding: 8px;">Nenhum motivo registrado.</div>
+                                </div>
                             </div>
-                        </form>
+                        </div>
+
                     </div>
 
-                    <!-- Coluna 2: Preview Formatado para WhatsApp -->
-                    <div class="glass" style="padding: 20px; border-radius: 14px; display: flex; flex-direction: column; gap: 12px; background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(37, 211, 102, 0.25);">
+                    <!-- Coluna 2: Preview WhatsApp Formatado -->
+                    <div class="glass" style="padding: 20px; border-radius: 14px; display: flex; flex-direction: column; gap: 12px; background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(37, 211, 102, 0.25); position: sticky; top: 16px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px;">
                             <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: #FFFFFF; display: flex; align-items: center; gap: 8px;">
                                 <i class="fa-brands fa-whatsapp" style="color: #25D366; font-size: 18px;"></i> Preview WhatsApp Formatado
@@ -2138,7 +2548,7 @@ Total HC Mão na caixa:
                                 <i class="fa-solid fa-copy"></i> Copiar Texto
                             </button>
                         </div>
-                        <textarea id="panel-rep-preview-text" readonly style="width: 100%; box-sizing: border-box; min-height: 440px; height: 100%; background: #070B13; color: #34D399; font-family: 'Courier New', Courier, monospace; font-size: 12.5px; line-height: 1.55; padding: 14px; border-radius: 10px; border: 1px solid rgba(37, 211, 102, 0.2); resize: none; outline: none;"></textarea>
+                        <textarea id="panel-rep-preview-text" readonly style="width: 100%; box-sizing: border-box; min-height: 520px; height: 100%; background: #070B13; color: #34D399; font-family: 'Courier New', Courier, monospace; font-size: 12px; line-height: 1.5; padding: 14px; border-radius: 10px; border: 1px solid rgba(37, 211, 102, 0.2); resize: vertical; outline: none;"></textarea>
                         <div id="panel-rep-feedback" style="display: none; padding: 8px 12px; border-radius: 8px; font-size: 12px; text-align: center; font-weight: 600;"></div>
                     </div>
 
@@ -2211,7 +2621,7 @@ Total HC Mão na caixa:
     </div>
     
     <!-- Importa a logica do dashboard no arquivo local app.js -->
-    <script src="/app.js?v=98"></script>
+    <script src="/app.js?v=105"></script>
 <!-- Fecha o corpo do documento html -->
 </body>
 <!-- Fecha a tag html -->

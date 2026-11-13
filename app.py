@@ -5097,8 +5097,44 @@ def _process_volumetria_kpis(data):
         },
         "status_viagem_dist": status_viagem_counts,
         "status_operacional_dist": status_operacional_counts,
-        "records": records
+        "records": records,
+        "carregamento": data.get("carregamento") or db.get_volumetria_carregamento()
     }
+
+@app.route('/api/volumetria/carregamento/save', methods=['POST'])
+def save_carregamento_endpoint():
+    try:
+        payload = request.get_json(force=True)
+        items = payload.get("carregamento") if isinstance(payload, dict) else payload
+        if items is None:
+            items = []
+        db.save_volumetria_carregamento(items)
+        try:
+            if os.path.exists(VOLUMETRIA_JSON_FILE):
+                with open(VOLUMETRIA_JSON_FILE, "r", encoding="utf-8") as f:
+                    v_data = json.load(f)
+                v_data["carregamento"] = items
+                with open(VOLUMETRIA_JSON_FILE, "w", encoding="utf-8") as f:
+                    json.dump(v_data, f, ensure_ascii=False, indent=2)
+        except Exception:
+            pass
+        updated = db.get_volumetria_carregamento()
+        return jsonify({"success": True, "carregamento": updated})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/volumetria/carregamento/delete', methods=['POST'])
+def delete_carregamento_endpoint():
+    try:
+        payload = request.get_json(force=True)
+        item_id = payload.get("id")
+        if not item_id:
+            return jsonify({"success": False, "error": "ID não informado."}), 400
+        db.delete_volumetria_carregamento_item(item_id)
+        updated = db.get_volumetria_carregamento()
+        return jsonify({"success": True, "carregamento": updated})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route('/api/volumetria/data')
 def get_volumetria_data():
@@ -6054,6 +6090,47 @@ def api_pda_reset():
             conn.commit()
         db.seed_pda_initial_data()
         return jsonify({"success": True, "data": db.get_pda_data()})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+# ==========================================================
+# ROTAS DO REPORT GROT (DC BAURU)
+# ==========================================================
+
+@app.route('/api/grot/data', methods=['GET'])
+def api_grot_data():
+    try:
+        data = db.get_report_grot_data()
+        return jsonify({"success": True, "data": data})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/grot/save', methods=['POST'])
+def api_grot_save():
+    try:
+        payload = request.get_json(force=True)
+        raw_text = payload.get("raw_text", "")
+        success = db.save_report_grot_data(payload, raw_text=raw_text)
+        updated = db.get_report_grot_data()
+        return jsonify({"success": success, "data": updated})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/grot/upload', methods=['POST'])
+def api_grot_upload():
+    try:
+        if 'file' not in request.files:
+            return jsonify({"success": False, "error": "Nenhum arquivo enviado."}), 400
+        f = request.files['file']
+        if not f.filename.endswith(('.xlsx', '.xlsm', '.xls')):
+            return jsonify({"success": False, "error": "Formato inválido. Envie um arquivo Excel (.xlsx)."}), 400
+        save_path = os.path.join(app.root_path, "Report Grot.xlsx")
+        f.save(save_path)
+        parsed = db.parse_report_grot_excel(save_path)
+        if not parsed:
+            return jsonify({"success": False, "error": "Falha ao processar planilha Report Grot."}), 400
+        db.save_report_grot_data(parsed)
+        return jsonify({"success": True, "data": parsed})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 

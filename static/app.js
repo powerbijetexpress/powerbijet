@@ -266,13 +266,15 @@ const elPageAvariaNum = document.getElementById("page-avaria-num");
 function startClock() {
     // Captura o elemento do relogio localizado na barra superior do dashboard
     const elClock = document.getElementById("live-clock");
-    // Configura a execucao repetitiva a cada 1000 milissegundos (1 segundo)
-    setInterval(() => {
-        // Instancia a data e hora do momento atual
+    const elDate = document.getElementById("live-date");
+    const updateTime = () => {
         const now = new Date();
-        // Atualiza o conteudo de texto com a representacao formatada de hora local (hh:mm:ss)
-        elClock.textContent = now.toLocaleTimeString("pt-BR");
-    }, 1000); // Fim do intervalo
+        if (elClock) elClock.textContent = now.toLocaleTimeString("pt-BR");
+        if (elDate) elDate.textContent = now.toLocaleDateString("pt-BR");
+    };
+    updateTime();
+    // Configura a execucao repetitiva a cada 1000 milissegundos (1 segundo)
+    setInterval(updateTime, 1000);
 }
 
 // Custom Chart.js Plugin para renderizacao de rotulos de dados (valores) diretamente no grafico
@@ -1499,9 +1501,11 @@ function switchTab(tab) {
             if (elBtnPdaOpenTab) elBtnPdaOpenTab.href = targetUrl;
         }
     } else if (tab === "report-inicio") {
-        document.querySelector(".nav-title h1").textContent = "Report de Início da Operação";
-        document.querySelector(".nav-title p").textContent = "Acompanhamento operacional inicial, presença de CLTs, diaristas e metas do turno";
-        if (typeof loadReportInicioData === "function") {
+        document.querySelector(".nav-title h1").textContent = "Report Grot";
+        document.querySelector(".nav-title p").textContent = "Acompanhamento operacional, presença e metas do turno (GROT)";
+        if (typeof loadReportGrotData === "function") {
+            loadReportGrotData();
+        } else if (typeof loadReportInicioData === "function") {
             loadReportInicioData();
         }
     }
@@ -4124,6 +4128,9 @@ function filterAndRenderVolumetria() {
     // Atualiza cabeçalhos
     const elRefDate = document.getElementById("volumetria-ref-date");
     if (elRefDate) elRefDate.textContent = volumetriaData.data_referencia || "-";
+    document.querySelectorAll(".carr-ref-date-display").forEach(el => {
+        el.textContent = volumetriaData.data_referencia || "-";
+    });
     
     const elLastUpdate = document.getElementById("volumetria-last-update");
     if (elLastUpdate) elLastUpdate.textContent = volumetriaData.updated_at || "-";
@@ -4219,6 +4226,7 @@ function filterAndRenderVolumetria() {
 
     // Renderiza tabela e gráficos
     renderVolumetriaTable(records, sumPrevisto, sumBipados);
+    renderCarregamentoTable();
     renderVolumetriaCharts(records, valBipados, coletas);
 }
 
@@ -4273,8 +4281,12 @@ function renderVolumetriaTable(records, sumPrevisto, sumBipados) {
         tr.innerHTML = `
             <td><strong style="color: #60A5FA; letter-spacing: 0.3px; font-size: 11px;">${row.id_transporte || "-"}</strong></td>
             <td><span class="${badgeViagemClass}"><i class="fa-solid ${iconViagem}"></i> ${row.status_viagem || "-"}</span></td>
-            <td><strong style="color: #FFFFFF; font-size: 11.5px;">${row.pdd_saida || "-"}</strong></td>
-            <td style="text-align: right; font-weight: 600; color: #E5E7EB; font-size: 11.5px;">${(Number(row.pedido_sistema) || 0).toLocaleString("pt-BR")}</td>
+            <td>
+                <input type="text" class="volumetria-cell-input volumetria-pdd-input" data-id="${row.id_transporte || ''}" data-field="pdd_saida" value="${row.pdd_saida ? String(row.pdd_saida).replace(/"/g, '&quot;') : ''}" placeholder="PDD Saída..." title="Clique para editar o PDD ou complementar o nome">
+            </td>
+            <td style="text-align: right;">
+                <input type="number" class="volumetria-cell-input volumetria-pedido-input" data-id="${row.id_transporte || ''}" data-field="pedido_sistema" value="${Number(row.pedido_sistema) || 0}" min="0" step="1" placeholder="0" title="Editar Pedido Sistema (Previsto)">
+            </td>
             <td style="text-align: center;">
                 <input type="text" class="volumetria-cell-input" data-id="${row.id_transporte || ''}" data-field="previsao_chegada" value="${row.previsao_chegada || ''}" placeholder="--:--" title="Editar Previsão de Chegada">
             </td>
@@ -4341,7 +4353,7 @@ function renderVolumetriaTable(records, sumPrevisto, sumBipados) {
             const trId = e.target.getAttribute("data-id");
             const field = e.target.getAttribute("data-field");
             let val = e.target.value;
-            if (field === "bipado") {
+            if (field === "bipado" || field === "pedido_sistema") {
                 val = Number(val) || 0;
             }
             if (volumetriaData && volumetriaData.records) {
@@ -4349,8 +4361,8 @@ function renderVolumetriaTable(records, sumPrevisto, sumBipados) {
                 if (targetRow && field) {
                     targetRow[field] = val;
                     
-                    // Se alterou bipado, recalcula KPIs, rodapé e gráficos instantaneamente
-                    if (field === "bipado") {
+                    // Se alterou bipado ou pedido_sistema, recalcula KPIs, rodapé e gráficos instantaneamente
+                    if (field === "bipado" || field === "pedido_sistema") {
                         const recs = volumetriaFilteredRecords || volumetriaData.records;
                         const newSumBipados = recs.reduce((acc, r) => acc + (Number(r.bipado) || 0), 0);
                         const newSumPrevisto = recs.reduce((acc, r) => acc + (Number(r.pedido_sistema) || 0), 0);
@@ -4359,12 +4371,16 @@ function renderVolumetriaTable(records, sumPrevisto, sumBipados) {
                         const newDiff = newSumBipados - newSumPrevisto;
                         const newEfic = newSumPrevisto > 0 ? ((newSumBipados / newSumPrevisto) * 100) : 100;
                         
+                        const elPrev = document.getElementById("val-vol-previsto");
                         const elBip = document.getElementById("val-vol-bipados");
                         const elTotPiso = document.getElementById("val-vol-total-piso");
                         const elDiff = document.getElementById("val-vol-diferenca");
                         const elEfic = document.getElementById("pct-vol-eficiencia");
                         const footBip = document.getElementById("foot-vol-bipado");
+                        const footPrev = document.getElementById("foot-vol-previsto");
                         
+                        if (elPrev) elPrev.textContent = newSumPrevisto.toLocaleString("pt-BR");
+                        if (footPrev) footPrev.textContent = newSumPrevisto.toLocaleString("pt-BR");
                         if (elBip) elBip.textContent = newSumBipados.toLocaleString("pt-BR");
                         if (elTotPiso) elTotPiso.textContent = newTotalPiso.toLocaleString("pt-BR");
                         if (footBip) footBip.textContent = newSumBipados.toLocaleString("pt-BR");
@@ -4376,10 +4392,26 @@ function renderVolumetriaTable(records, sumPrevisto, sumBipados) {
                             elEfic.textContent = newEfic.toFixed(1) + "%";
                             elEfic.className = newEfic >= 100 ? "kpi-pct pct-green" : "kpi-pct pct-yellow";
                         }
+
+                        if (volumetriaData.kpis) {
+                            volumetriaData.kpis.previsto = newSumPrevisto;
+                            volumetriaData.kpis.bipados = newSumBipados;
+                            volumetriaData.kpis.total_no_piso = newTotalPiso;
+                            volumetriaData.kpis.diferenca = newDiff;
+                            volumetriaData.kpis.eficiencia = newEfic;
+                        }
+
                         renderVolumetriaCharts(recs, newSumBipados, coletas);
                     }
                     
                     if (immediateSave) {
+                        if (field === "pdd_saida") {
+                            populateVolumetriaFilters();
+                            const recs = volumetriaFilteredRecords || volumetriaData.records;
+                            const curBip = recs.reduce((acc, r) => acc + (Number(r.bipado) || 0), 0);
+                            const curColetas = (volumetriaData.coletas !== undefined && volumetriaData.coletas !== null) ? Number(volumetriaData.coletas) : (volumetriaData.kpis?.coletas || 0);
+                            renderVolumetriaCharts(recs, curBip, curColetas);
+                        }
                         if (volumetriaSaveTimeout) clearTimeout(volumetriaSaveTimeout);
                         saveVolumetriaChanges();
                     } else {
@@ -4436,6 +4468,416 @@ function renderVolumetriaTable(records, sumPrevisto, sumBipados) {
     const footBip = document.getElementById("foot-vol-bipado");
     if (footPrev) footPrev.textContent = sumPrevisto.toLocaleString("pt-BR");
     if (footBip) footBip.textContent = sumBipados.toLocaleString("pt-BR");
+}
+
+// ====================================================
+// MÓDULO DO PAINEL DE CARREGAMENTO DE VEÍCULOS
+// ====================================================
+
+let carregamentoSaveTimeout = null;
+
+function showCarregamentoSaveStatus(state) {
+    const el = document.getElementById("carregamento-save-status");
+    if (!el) return;
+    el.style.display = "inline-flex";
+    el.style.opacity = "1";
+    if (state === "saving") {
+        el.style.background = "rgba(59, 130, 246, 0.2)";
+        el.style.borderColor = "rgba(59, 130, 246, 0.4)";
+        el.style.color = "#60A5FA";
+        el.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Salvando...';
+    } else if (state === "saved") {
+        el.style.background = "rgba(16, 185, 129, 0.2)";
+        el.style.borderColor = "rgba(16, 185, 129, 0.4)";
+        el.style.color = "#34D399";
+        el.innerHTML = '<i class="fa-solid fa-circle-check"></i> Salvo!';
+        setTimeout(() => {
+            el.style.opacity = "0";
+            setTimeout(() => { el.style.display = "none"; }, 300);
+        }, 1800);
+    } else if (state === "error") {
+        el.style.background = "rgba(239, 68, 68, 0.2)";
+        el.style.borderColor = "rgba(239, 68, 68, 0.4)";
+        el.style.color = "#F87171";
+        el.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Erro ao salvar';
+    }
+}
+
+// Calcula duração entre início e término de carregamento (em formato HH:MM)
+function calculateLoadingDuration(inicio, termino) {
+    if (!inicio || !termino) return null;
+    const sIni = inicio.trim();
+    const sEnd = termino.trim();
+    const mIni = sIni.match(/^(\d{1,2}):(\d{2})$/);
+    const mEnd = sEnd.match(/^(\d{1,2}):(\d{2})$/);
+    if (!mIni || !mEnd) return null;
+    
+    const h1 = parseInt(mIni[1], 10);
+    const min1 = parseInt(mIni[2], 10);
+    const h2 = parseInt(mEnd[1], 10);
+    const min2 = parseInt(mEnd[2], 10);
+    
+    if (h1 < 0 || h1 > 23 || min1 < 0 || min1 > 59) return null;
+    if (h2 < 0 || h2 > 23 || min2 < 0 || min2 > 59) return null;
+    
+    let t1 = h1 * 60 + min1;
+    let t2 = h2 * 60 + min2;
+    
+    // Suporte à virada de turno na meia-noite (ex: início 23:00 e término 01:30)
+    if (t2 < t1) {
+        t2 += 24 * 60;
+    }
+    
+    const diff = t2 - t1;
+    const hours = Math.floor(diff / 60);
+    const mins = diff % 60;
+    
+    return {
+        totalMinutes: diff,
+        formatted: `${String(hours).padStart(2, '0')}h ${String(mins).padStart(2, '0')}m`,
+        hours,
+        mins
+    };
+}
+
+// Formata entrada de hora para HH:MM ao digitar ou sair do campo
+function formatTimeString(val) {
+    if (!val) return '';
+    const clean = val.trim();
+    if (clean.includes(':')) {
+        const parts = clean.split(':');
+        const h = parts[0].padStart(2, '0').slice(-2);
+        const m = (parts[1] || '00').padEnd(2, '0').slice(0, 2);
+        return `${h}:${m}`;
+    }
+    const digits = clean.replace(/\D/g, '');
+    if (digits.length === 4) {
+        return `${digits.slice(0, 2)}:${digits.slice(2, 4)}`;
+    } else if (digits.length === 3) {
+        return `0${digits.slice(0, 1)}:${digits.slice(1, 3)}`;
+    } else if (digits.length === 1 || digits.length === 2) {
+        return `${digits.padStart(2, '0')}:00`;
+    }
+    return clean;
+}
+
+// Salva alterações do painel de carregamento no backend
+async function saveCarregamentoChanges() {
+    if (!volumetriaData || !volumetriaData.carregamento) return;
+    showCarregamentoSaveStatus("saving");
+    try {
+        const resp = await fetch(`${API_BASE}/api/volumetria/carregamento/save`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ carregamento: volumetriaData.carregamento })
+        });
+        if (resp.ok) {
+            showCarregamentoSaveStatus("saved");
+        } else {
+            showCarregamentoSaveStatus("error");
+        }
+    } catch (err) {
+        console.error("Erro ao salvar carregamento:", err);
+        showCarregamentoSaveStatus("error");
+    }
+}
+
+function debouncedSaveCarregamento(delay = 400) {
+    if (carregamentoSaveTimeout) clearTimeout(carregamentoSaveTimeout);
+    showCarregamentoSaveStatus("saving");
+    carregamentoSaveTimeout = setTimeout(() => {
+        saveCarregamentoChanges();
+    }, delay);
+}
+
+// Atualiza os mini-indicadores de Carregamento
+function updateCarregamentoKPIs() {
+    const list = volumetriaData?.carregamento || [];
+    const elTotal = document.getElementById("kpi-carr-total");
+    const elAndamento = document.getElementById("kpi-carr-andamento");
+    const elConcluidos = document.getElementById("kpi-carr-concluidos");
+    const elMedia = document.getElementById("kpi-carr-media");
+    const elVolTotal = document.getElementById("kpi-carr-volume-total");
+    const footVolTotal = document.getElementById("foot-carr-volume-total");
+    
+    let andamentoCount = 0;
+    let concluidosCount = 0;
+    let totalMinutesSum = 0;
+    let totalDurCount = 0;
+    let totalVolumeSum = 0;
+    
+    list.forEach(item => {
+        const dur = calculateLoadingDuration(item.inicio, item.termino);
+        const st = (item.status || "").toUpperCase();
+        if (dur) {
+            concluidosCount++;
+            totalMinutesSum += dur.totalMinutes;
+            totalDurCount++;
+        } else if (item.inicio && item.inicio.trim() !== "") {
+            andamentoCount++;
+        } else if (st.includes("ANDAMENTO") || st.includes("CARREGANDO")) {
+            andamentoCount++;
+        }
+
+        if (item.volume !== undefined && item.volume !== null && String(item.volume).trim() !== "") {
+            const rawVol = String(item.volume).replace(/\./g, "").replace(/,/g, ".").replace(/[^0-9.]/g, "");
+            const numVol = parseFloat(rawVol) || 0;
+            totalVolumeSum += numVol;
+        }
+    });
+    
+    if (elTotal) elTotal.textContent = list.length;
+    if (elAndamento) elAndamento.textContent = andamentoCount;
+    if (elConcluidos) elConcluidos.textContent = concluidosCount;
+    if (elVolTotal) elVolTotal.textContent = totalVolumeSum > 0 ? totalVolumeSum.toLocaleString("pt-BR") : "0";
+    if (footVolTotal) footVolTotal.textContent = totalVolumeSum > 0 ? totalVolumeSum.toLocaleString("pt-BR") : "0";
+    
+    if (elMedia) {
+        if (totalDurCount > 0) {
+            const avgMin = Math.round(totalMinutesSum / totalDurCount);
+            const h = Math.floor(avgMin / 60);
+            const m = avgMin % 60;
+            elMedia.textContent = `${String(h).padStart(2, '0')}h ${String(m).padStart(2, '0')}m`;
+        } else {
+            elMedia.textContent = "--:--";
+        }
+    }
+}
+
+// Renderiza a tabela do Painel de Carregamento
+function renderCarregamentoTable() {
+    const tbody = document.getElementById("table-carregamento-body");
+    if (!tbody) return;
+    
+    if (!volumetriaData) return;
+    
+    // Garante que a lista de carregamento existe e tem os 3 veículos padrão solicitados (SN RAO, SP BRE, DC PPB-SP)
+    if (!volumetriaData.carregamento || volumetriaData.carregamento.length === 0) {
+        volumetriaData.carregamento = [
+            { id: "carr-1", veiculo: "SN RAO", inicio: "", termino: "", tempo_total: "", volume: "", status: "PENDENTE", obs: "", ordem: 1 },
+            { id: "carr-2", veiculo: "SP BRE", inicio: "", termino: "", tempo_total: "", volume: "", status: "PENDENTE", obs: "", ordem: 2 },
+            { id: "carr-3", veiculo: "DC PPB-SP", inicio: "", termino: "", tempo_total: "", volume: "", status: "PENDENTE", obs: "", ordem: 3 }
+        ];
+    }
+    
+    const list = volumetriaData.carregamento;
+    tbody.innerHTML = "";
+    
+    function getStatusStyle(st) {
+        const s = (st || "").toUpperCase().trim();
+        if (s.includes("CONCLU") || s.includes("FINALIZ")) {
+            return 'background: rgba(16, 185, 129, 0.25); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.5); font-weight: 700; padding: 2px 8px; border-radius: 12px; font-size: 10px; outline: none; cursor: pointer;';
+        } else if (s.includes("CARREGANDO") || s.includes("ANDAMENTO")) {
+            return 'background: rgba(56, 189, 248, 0.25); color: #38BDF8; border: 1px solid rgba(56, 189, 248, 0.5); font-weight: 700; padding: 2px 8px; border-radius: 12px; font-size: 10px; outline: none; cursor: pointer;';
+        } else if (s.includes("CANCEL")) {
+            return 'background: rgba(239, 68, 68, 0.25); color: #F87171; border: 1px solid rgba(239, 68, 68, 0.5); font-weight: 700; padding: 2px 8px; border-radius: 12px; font-size: 10px; outline: none; cursor: pointer;';
+        } else if (s.includes("DOCA") || s.includes("PÁTIO") || s.includes("PATIO")) {
+            return 'background: rgba(168, 85, 247, 0.25); color: #C084FC; border: 1px solid rgba(168, 85, 247, 0.5); font-weight: 700; padding: 2px 8px; border-radius: 12px; font-size: 10px; outline: none; cursor: pointer;';
+        }
+        // PENDENTE (padrão)
+        return 'background: rgba(245, 158, 11, 0.2); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.4); font-weight: 700; padding: 2px 8px; border-radius: 12px; font-size: 10px; outline: none; cursor: pointer;';
+    }
+    
+    list.forEach((row, idx) => {
+        const dur = calculateLoadingDuration(row.inicio, row.termino);
+        if (dur) {
+            row.tempo_total = dur.formatted;
+        }
+        
+        let tempoHtml = '<span class="badge-tempo-vazio">--:--</span>';
+        if (dur) {
+            tempoHtml = `<span class="badge-tempo-carregamento" title="Tempo calculado: ${dur.formatted}"><i class="fa-solid fa-clock"></i> ${dur.formatted}</span>`;
+        } else if (row.inicio && row.inicio.trim() !== "") {
+            tempoHtml = `<span class="badge-tempo-andamento"><i class="fa-solid fa-spinner fa-spin"></i> Em carregamento</span>`;
+        }
+        
+        const stUpper = (row.status || "PENDENTE").toUpperCase().trim();
+        const stStyle = getStatusStyle(stUpper);
+        
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>
+                <input type="text" class="carregamento-cell-input carregamento-veiculo-input" data-id="${row.id}" data-field="veiculo" value="${row.veiculo ? String(row.veiculo).replace(/"/g, '&quot;') : ''}" placeholder="Ex: SN RAO..." title="Clique para editar o veículo ou destino">
+            </td>
+            <td style="text-align: center;">
+                <input type="text" class="carregamento-cell-input carregamento-time-input" data-id="${row.id}" data-field="inicio" value="${row.inicio || ''}" placeholder="--:--" maxlength="5" title="Horário de início (HH:MM)">
+            </td>
+            <td style="text-align: center;">
+                <input type="text" class="carregamento-cell-input carregamento-time-input" data-id="${row.id}" data-field="termino" value="${row.termino || ''}" placeholder="--:--" maxlength="5" title="Horário de término (HH:MM)">
+            </td>
+            <td style="text-align: center;" id="carr-dur-${row.id}">
+                ${tempoHtml}
+            </td>
+            <td style="text-align: right;">
+                <input type="text" class="carregamento-cell-input carregamento-volume-input" data-id="${row.id}" data-field="volume" value="${row.volume !== undefined && row.volume !== null ? String(row.volume).replace(/"/g, '&quot;') : ''}" placeholder="0" title="Volume carregado no veículo (peças/caixas)">
+            </td>
+            <td style="text-align: center;">
+                <select class="carregamento-status-select" data-id="${row.id}" data-field="status" style="${stStyle}">
+                    <option value="PENDENTE" ${stUpper.includes("PENDENTE") ? "selected" : ""}>PENDENTE</option>
+                    <option value="EM CARREGAMENTO" ${(stUpper.includes("CARREGANDO") || stUpper.includes("ANDAMENTO")) ? "selected" : ""}>CARREGANDO</option>
+                    <option value="CONCLUÍDO" ${(stUpper.includes("CONCLU") || stUpper.includes("FINALIZ")) ? "selected" : ""}>CONCLUÍDO</option>
+                    <option value="AGUARDANDO DOCA" ${stUpper.includes("DOCA") ? "selected" : ""}>AGUARDANDO DOCA</option>
+                    <option value="CANCELADO" ${stUpper.includes("CANCEL") ? "selected" : ""}>CANCELADO</option>
+                </select>
+            </td>
+            <td>
+                <input type="text" class="carregamento-cell-input carregamento-obs-input" data-id="${row.id}" data-field="obs" value="${row.obs ? String(row.obs).replace(/"/g, '&quot;') : ''}" placeholder="Doca, motorista, obs..." title="Clique para editar observações">
+            </td>
+            <td style="text-align: center;">
+                <button type="button" class="btn-delete-carr-row" data-id="${row.id}" title="Excluir veículo do carregamento" style="background: none; border: none; color: #EF4444; opacity: 0.6; cursor: pointer; padding: 3px 6px; font-size: 11.5px; border-radius: 4px; transition: all 0.2s;" onmouseover="this.style.opacity='1'; this.style.background='rgba(239,68,68,0.15)'" onmouseout="this.style.opacity='0.6'; this.style.background='none'">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+    
+    // Atualiza KPIs
+    updateCarregamentoKPIs();
+    
+    // Event listeners para inputs de texto e horários
+    tbody.querySelectorAll(".carregamento-cell-input").forEach(input => {
+        const handleUpdate = (e, isBlur = false) => {
+            const trId = e.target.getAttribute("data-id");
+            const field = e.target.getAttribute("data-field");
+            let val = e.target.value;
+            
+            if (isBlur && (field === "inicio" || field === "termino")) {
+                val = formatTimeString(val);
+                e.target.value = val;
+            }
+            
+            const targetRow = list.find(r => r.id === trId);
+            if (!targetRow) return;
+            
+            targetRow[field] = val;
+            
+            // Recalcula duração e ajusta status se alterou horários
+            if (field === "inicio" || field === "termino") {
+                const dur = calculateLoadingDuration(targetRow.inicio, targetRow.termino);
+                const tdDur = document.getElementById(`carr-dur-${trId}`);
+                const selectSt = tbody.querySelector(`select[data-id="${trId}"]`);
+                
+                if (dur) {
+                    targetRow.tempo_total = dur.formatted;
+                    if (tdDur) tdDur.innerHTML = `<span class="badge-tempo-carregamento" title="Tempo calculado: ${dur.formatted}"><i class="fa-solid fa-clock"></i> ${dur.formatted}</span>`;
+                    
+                    // Sugere automaticamente CONCLUÍDO se estava PENDENTE ou CARREGANDO
+                    const curSt = (targetRow.status || "").toUpperCase();
+                    if (curSt.includes("PENDENTE") || curSt.includes("CARREGANDO") || curSt.includes("ANDAMENTO")) {
+                        targetRow.status = "CONCLUÍDO";
+                        if (selectSt) {
+                            selectSt.value = "CONCLUÍDO";
+                            selectSt.style.cssText = getStatusStyle("CONCLUÍDO");
+                        }
+                    }
+                } else if (targetRow.inicio && targetRow.inicio.trim() !== "" && (!targetRow.termino || targetRow.termino.trim() === "")) {
+                    targetRow.tempo_total = "";
+                    if (tdDur) tdDur.innerHTML = `<span class="badge-tempo-andamento"><i class="fa-solid fa-spinner fa-spin"></i> Em carregamento</span>`;
+                    
+                    // Sugere CARREGANDO se estava PENDENTE
+                    const curSt = (targetRow.status || "").toUpperCase();
+                    if (curSt.includes("PENDENTE")) {
+                        targetRow.status = "EM CARREGAMENTO";
+                        if (selectSt) {
+                            selectSt.value = "EM CARREGAMENTO";
+                            selectSt.style.cssText = getStatusStyle("EM CARREGAMENTO");
+                        }
+                    }
+                } else {
+                    targetRow.tempo_total = "";
+                    if (tdDur) tdDur.innerHTML = `<span class="badge-tempo-vazio">--:--</span>`;
+                }
+                
+                updateCarregamentoKPIs();
+            }
+
+            if (field === "volume") {
+                updateCarregamentoKPIs();
+            }
+            
+            if (isBlur) {
+                saveCarregamentoChanges();
+            } else {
+                debouncedSaveCarregamento(400);
+            }
+        };
+        
+        input.addEventListener("input", (e) => handleUpdate(e, false));
+        input.addEventListener("change", (e) => handleUpdate(e, true));
+        input.addEventListener("blur", (e) => handleUpdate(e, true));
+    });
+    
+    // Event listeners para status select
+    tbody.querySelectorAll(".carregamento-status-select").forEach(select => {
+        select.addEventListener("change", (e) => {
+            const trId = e.target.getAttribute("data-id");
+            const newStatus = e.target.value;
+            const targetRow = list.find(r => r.id === trId);
+            if (targetRow) {
+                targetRow.status = newStatus;
+                e.target.style.cssText = getStatusStyle(newStatus);
+                updateCarregamentoKPIs();
+                saveCarregamentoChanges();
+            }
+        });
+    });
+    
+    // Event listener para botão de excluir veículo
+    tbody.querySelectorAll(".btn-delete-carr-row").forEach(btn => {
+        btn.addEventListener("click", async (e) => {
+            e.stopPropagation();
+            const trId = btn.getAttribute("data-id");
+            const targetRow = list.find(r => r.id === trId);
+            const nome = targetRow?.veiculo || "este veículo";
+            
+            if (confirm(`Deseja remover ${nome} do painel de carregamento?`)) {
+                volumetriaData.carregamento = list.filter(r => r.id !== trId);
+                renderCarregamentoTable();
+                await saveCarregamentoChanges();
+                try {
+                    await fetch(`${API_BASE}/api/volumetria/carregamento/delete`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ id: trId })
+                    });
+                } catch(err){}
+            }
+        });
+    });
+    
+    // Configura botão de adicionar novo veículo
+    const btnAdd = document.getElementById("btn-carregamento-add-row");
+    if (btnAdd && !btnAdd.dataset.bound) {
+        btnAdd.dataset.bound = "true";
+        btnAdd.addEventListener("click", async () => {
+            if (!volumetriaData.carregamento) volumetriaData.carregamento = [];
+            const newId = "carr_" + Date.now();
+            const newRow = {
+                id: newId,
+                veiculo: "NOVO VEÍCULO",
+                inicio: "",
+                termino: "",
+                tempo_total: "",
+                volume: "",
+                status: "PENDENTE",
+                obs: "",
+                ordem: volumetriaData.carregamento.length + 1
+            };
+            volumetriaData.carregamento.push(newRow);
+            renderCarregamentoTable();
+            await saveCarregamentoChanges();
+            
+            // Foca e seleciona o texto do novo veículo para edição imediata
+            setTimeout(() => {
+                const inputNew = tbody.querySelector(`input[data-id="${newId}"][data-field="veiculo"]`);
+                if (inputNew) {
+                    inputNew.focus();
+                    inputNew.select();
+                }
+            }, 50);
+        });
+    }
 }
 
 // Renderiza os gráficos do painel de Volumetria
@@ -4610,6 +5052,21 @@ function copyVolumetriaSummary() {
     records.forEach(r => {
         text += `▫️ *${r.id_transporte}* (${r.pdd_saida}): ${(r.bipado || 0).toLocaleString("pt-BR")} bipados | Pedido: ${(r.pedido_sistema || 0).toLocaleString("pt-BR")} | [${r.status || 'FINALIZADO'}]\n`;
     });
+    
+    // 3. CARREGAMENTO DE VEÍCULOS
+    const carregamento = volumetriaData.carregamento || [];
+    if (carregamento.length > 0) {
+        text += `\n*3. CARREGAMENTO DE VEÍCULOS*\n`;
+        carregamento.forEach(c => {
+            const ini = c.inicio || '--:--';
+            const fim = c.termino || '--:--';
+            const tempo = c.tempo_total ? `(${c.tempo_total})` : '';
+            const vol = c.volume ? ` | Vol: ${c.volume}` : '';
+            const st = c.status || 'PENDENTE';
+            const obs = c.obs ? ` - ${c.obs}` : '';
+            text += `▫️ *${c.veiculo}*: Início ${ini} ➔ Término ${fim} ${tempo}${vol} [${st}]${obs}\n`;
+        });
+    }
     
     navigator.clipboard.writeText(text).then(() => {
         const btn = document.getElementById("btn-volumetria-copy-summary");
@@ -5216,278 +5673,330 @@ async function handleRankingUpload(filesOrFile, sector = null) {
 
 
 // ==============================================================================
-// GESTÃO DO REPORT DE INÍCIO DA OPERAÇÃO (100% NO BANCO DE DADOS)
+// GESTÃO DO REPORT GROT (DC BAURU - GROT & WHATSAPP)
 // ==============================================================================
-function formatReportInicioText(r) {
-    if (r.raw_text && r.raw_text.trim().length > 30) {
-        return r.raw_text;
-    }
-    let dataVal = r.data_ref || "*06/10/2026*";
-    if (!dataVal.startsWith("*") && !dataVal.endsWith("*")) {
-        dataVal = `*${dataVal}*`;
-    }
+let reportGrotCurrentData = null;
 
-    const clt22 = r.clts_presentes_22h || r.clts_presentes_23h || '—';
-    const abs22 = r.absenteismo_22h || r.absenteismo_23h || '—';
-
-    return `📊 REPORT DE INÍCIO DA OPERAÇÃO
-
-📅 Data: ${dataVal}
-
-📦 Backlog Inicial: ${r.backlog_inicial || '692'}
-📦 Volume previsto: ${r.volume_previsto || '53.903'}
-🕒 Início da operação: ${r.inicio_operacao || '15:11'}
-👥 CLTs presentes 18hrs: ${r.clts_presentes_18h || '32'}
-❌ Absenteísmo 18hrs: ${r.absenteismo_18h || '4'}
-👥 CLTs presentes 22hrs: ${clt22}
-❌ Absenteísmo 22hrs: ${abs22}
-👷 Diaristas solicitados (15:00): ${r.diaristas_solicitados_15h || '20'}
-✅ Diaristas presentes (15:00): ${r.diaristas_presentes_15h || '18'}
-👷 Diaristas solicitados (20:00): ${r.diaristas_solicitados_20h || '10'}
-✅ Diaristas presentes (20:00): ${r.diaristas_presentes_20h || '—'}
-📈 PHD previsto: ${r.phd_previsto || '—'}
-
-
-📝 Observações:
-
-- Falta injustificada: ${r.obs_falta_injustificada || '4 — GIOVANA TEIXEIRA GRILLO DAMADA DAVI CARLOS DE PINHO BATISTA LISLAINE CHAVES DE CAMILO LUIS CARLOS PERES DA SILVA'}
-
-- Atestados: ${r.obs_atestados || 'N/A'}
-
-- Pontos de atenção: ${r.obs_pontos_atencao || 'N/A'}`;
-}
-
-let reportInicioCurrentData = {
-    data_ref: "*06/10/2026*",
-    inicio_operacao: "15:11",
-    backlog_inicial: "692",
-    volume_previsto: "53.903",
-    clts_presentes_18h: "32",
-    absenteismo_18h: "4",
-    clts_presentes_22h: "—",
-    absenteismo_22h: "—",
-    clts_presentes_23h: "—",
-    absenteismo_23h: "—",
-    diaristas_solicitados_15h: "20",
-    diaristas_presentes_15h: "18",
-    diaristas_solicitados_20h: "10",
-    diaristas_presentes_20h: "—",
-    phd_previsto: "—",
-    obs_falta_injustificada: "4 — GIOVANA TEIXEIRA GRILLO DAMADA DAVI CARLOS DE PINHO BATISTA LISLAINE CHAVES DE CAMILO LUIS CARLOS PERES DA SILVA",
-    obs_atestados: "N/A",
-    obs_pontos_atencao: "N/A",
-    raw_text: ""
-};
-
-function updateReportInicioUI(data) {
-    if (data) {
-        reportInicioCurrentData = { ...reportInicioCurrentData, ...data };
-    }
-    const r = reportInicioCurrentData;
-    const cleanData = (r.data_ref || '06/10/2026').replace(/\*/g, '');
-
-    // 1. Cards de Destaque / KPIs
-    const cData = document.getElementById("rep-kpi-data");
-    if (cData) cData.innerText = `${cleanData} (${r.inicio_operacao || '15:11'})`;
-
-    const cVol = document.getElementById("rep-kpi-volume");
-    if (cVol) cVol.innerText = `${r.backlog_inicial || '692'} / ${r.volume_previsto || '53.903'}`;
-
-    const cClt = document.getElementById("rep-kpi-clt");
-    const clt22Val = r.clts_presentes_22h || r.clts_presentes_23h || '—';
-    if (cClt) cClt.innerText = `${r.clts_presentes_18h || '32'} (18h) | ${clt22Val} (22h)`;
-
-    const cDia = document.getElementById("rep-kpi-diaristas");
-    const dia20Sol = r.diaristas_solicitados_20h || '10';
-    const dia20Pres = r.diaristas_presentes_20h || '—';
-    if (cDia) cDia.innerText = `${r.diaristas_presentes_15h || '18'}/${r.diaristas_solicitados_15h || '20'} (15h) | ${dia20Pres}/${dia20Sol} (20h)`;
-
-    // 2. Formulário Principal do Painel
-    const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
-    setVal("panel-rep-data", r.data_ref || '*06/10/2026*');
-    setVal("panel-rep-inicio", r.inicio_operacao || '15:11');
-    setVal("panel-rep-backlog", r.backlog_inicial || '692');
-    setVal("panel-rep-volume", r.volume_previsto || '53.903');
-    setVal("panel-rep-clt18", r.clts_presentes_18h || '32');
-    setVal("panel-rep-abs18", r.absenteismo_18h || '4');
-    setVal("panel-rep-clt22", clt22Val);
-    setVal("panel-rep-abs22", r.absenteismo_22h || r.absenteismo_23h || '—');
-    setVal("panel-rep-diasol15", r.diaristas_solicitados_15h || '20');
-    setVal("panel-rep-diapres15", r.diaristas_presentes_15h || '18');
-    setVal("panel-rep-diasol20", dia20Sol);
-    setVal("panel-rep-diapres20", dia20Pres);
-    setVal("panel-rep-phd", r.phd_previsto || '—');
-    setVal("panel-rep-falta", r.obs_falta_injustificada || '4 — GIOVANA TEIXEIRA GRILLO DAMADA DAVI CARLOS DE PINHO BATISTA LISLAINE CHAVES DE CAMILO LUIS CARLOS PERES DA SILVA');
-    setVal("panel-rep-atestados", r.obs_atestados || 'N/A');
-    setVal("panel-rep-atencao", r.obs_pontos_atencao || 'N/A');
-
-    // 3. Textarea WhatsApp Preview
+async function loadReportGrotData() {
     const txtPreview = document.getElementById("panel-rep-preview-text");
-    if (txtPreview) {
-        txtPreview.value = formatReportInicioText(r);
+    if (txtPreview && (!reportGrotCurrentData || !reportGrotCurrentData.raw_text)) {
+        txtPreview.value = "Carregando dados do Report Grot...";
     }
-}
 
-async function loadReportInicioData() {
     try {
-        const res = await fetch(`${API_BASE}/api/pda/report_inicio?_=${Date.now()}`);
-        if (res.ok) {
-            const data = await res.json();
-            const reportObj = data.report || data;
-            if (reportObj && Object.keys(reportObj).length > 0) {
-                updateReportInicioUI(reportObj);
-            }
+        const res = await fetch(`${API_BASE}/api/grot/data?_=${Date.now()}`);
+        if (!res.ok) throw new Error("Falha ao buscar dados do Report Grot");
+        const json = await res.json();
+        if (json.success && json.data) {
+            reportGrotCurrentData = json.data;
+            renderReportGrot(json.data);
         }
     } catch (e) {
-        console.error("Erro ao carregar report_inicio:", e);
+        console.error("Erro ao carregar Report Grot:", e);
+        if (txtPreview) {
+            txtPreview.value = "Erro ao carregar dados do Report Grot. Verifique o servidor.";
+        }
     }
 }
 
-async function saveReportInicioData() {
-    const getVal = (id) => (document.getElementById(id)?.value || '').trim();
-    const feedback = document.getElementById("panel-rep-feedback");
+function renderReportGrot(d) {
+    if (!d) return;
 
-    const updated = {
-        data_ref: getVal("panel-rep-data") || '*06/10/2026*',
-        inicio_operacao: getVal("panel-rep-inicio") || '15:11',
-        backlog_inicial: getVal("panel-rep-backlog") || '692',
-        volume_previsto: getVal("panel-rep-volume") || '53.903',
-        clts_presentes_18h: getVal("panel-rep-clt18") || '32',
-        absenteismo_18h: getVal("panel-rep-abs18") || '4',
-        clts_presentes_22h: getVal("panel-rep-clt22") || '—',
-        absenteismo_22h: getVal("panel-rep-abs22") || '—',
-        diaristas_solicitados_15h: getVal("panel-rep-diasol15") || '20',
-        diaristas_presentes_15h: getVal("panel-rep-diapres15") || '18',
-        diaristas_solicitados_20h: getVal("panel-rep-diasol20") || '10',
-        diaristas_presentes_20h: getVal("panel-rep-diapres20") || '—',
-        phd_previsto: getVal("panel-rep-phd") || '—',
-        obs_falta_injustificada: getVal("panel-rep-falta") || '4 — GIOVANA TEIXEIRA GRILLO DAMADA DAVI CARLOS DE PINHO BATISTA LISLAINE CHAVES DE CAMILO LUIS CARLOS PERES DA SILVA',
-        obs_atestados: getVal("panel-rep-atestados") || 'N/A',
-        obs_pontos_atencao: getVal("panel-rep-atencao") || 'N/A',
-        raw_text: ''
-    };
+    // 1. Mini Cards KPIs de Topo
+    const elData = document.getElementById("grot-kpi-data");
+    if (elData) elData.textContent = d.data_ref || "--/--/----";
 
-    try {
-        const res = await fetch(`${API_BASE}/api/pda/report_inicio`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(updated)
-        });
-        if (res.ok) {
-            updateReportInicioUI(updated);
-            if (feedback) {
-                feedback.style.display = "block";
-                feedback.style.background = "rgba(16, 185, 129, 0.2)";
-                feedback.style.color = "#34D399";
-                feedback.style.border = "1px solid rgba(16, 185, 129, 0.4)";
-                feedback.innerHTML = '<i class="fa-solid fa-circle-check"></i> Salvo com sucesso no Banco de Dados!';
-                setTimeout(() => { feedback.style.display = "none"; }, 3500);
+    const elMaoOp = document.getElementById("grot-kpi-mao-op");
+    if (elMaoOp) elMaoOp.textContent = d.mao_na_caixa?.operacao ?? 0;
+
+    const elMaoGeral = document.getElementById("grot-kpi-mao-geral");
+    if (elMaoGeral) elMaoGeral.textContent = d.mao_na_caixa?.geral ?? 0;
+
+    const elPhdOp = document.getElementById("grot-kpi-phd-op");
+    if (elPhdOp) elPhdOp.textContent = typeof d.phd?.operacao === 'number' ? d.phd.operacao.toFixed(1) : (d.phd?.operacao ?? "0.0");
+
+    const elPhdGeral = document.getElementById("grot-kpi-phd-geral");
+    if (elPhdGeral) elPhdGeral.textContent = typeof d.phd?.geral === 'number' ? d.phd.geral.toFixed(1) : (d.phd?.geral ?? "0.0");
+
+    const elVolTotal = document.getElementById("grot-kpi-volume");
+    if (elVolTotal) elVolTotal.textContent = (d.volumetria?.volume_total_geral ?? 0).toLocaleString('pt-BR');
+
+    const elColetas = document.getElementById("grot-kpi-coletas");
+    if (elColetas) elColetas.textContent = (d.volumetria?.coletas ?? 0).toLocaleString('pt-BR');
+
+    const elSemmov = document.getElementById("grot-kpi-semmov");
+    if (elSemmov) elSemmov.textContent = (d.sem_mov?.hoje ?? 0).toLocaleString('pt-BR');
+
+    const elSemmovVar = document.getElementById("grot-kpi-semmov-var");
+    if (elSemmovVar) {
+        const v = d.sem_mov?.variacao ?? 0;
+        elSemmovVar.textContent = (v > 0 ? `+${v}` : `${v}`);
+        elSemmovVar.style.color = v > 0 ? '#F87171' : '#34D399';
+    }
+
+    const elSemmovExp = document.getElementById("grot-kpi-semmov-exp");
+    if (elSemmovExp) elSemmovExp.textContent = `${d.sem_mov?.exp_nao_chegou_qtd ?? 0} (${d.sem_mov?.exp_nao_chegou_pct ?? 0}%)`;
+
+    const elAbsTotal = document.getElementById("grot-kpi-abs");
+    const totJt = d.hc_jt?.Total || {};
+    if (elAbsTotal) elAbsTotal.textContent = `${totJt.pct_abs ?? 0}%`;
+
+    const elFaltas = document.getElementById("grot-kpi-faltas");
+    if (elFaltas) elFaltas.textContent = totJt.faltas ?? 0;
+
+    const elAtest = document.getElementById("grot-kpi-atestados");
+    if (elAtest) elAtest.textContent = totJt.atestados ?? 0;
+
+    // 2. Tabela Presenteísmo HC J&T
+    const tbodyJt = document.getElementById("grot-table-jt-body");
+    if (tbodyJt && d.hc_jt) {
+        const turnos = [
+            { id: "T1", label: "Turno 1 (T1)" },
+            { id: "T2", label: "Turno 2 (T2)" },
+            { id: "T3", label: "Turno 3 (T3)" },
+            { id: "Total", label: "Total Geral", isTotal: true }
+        ];
+        tbodyJt.innerHTML = turnos.map(t => {
+            const row = d.hc_jt[t.id] || {};
+            const isTot = t.isTotal;
+            const bgStyle = isTot ? 'background: rgba(99, 102, 241, 0.15); font-weight: 700;' : '';
+            const pct = row.pct_abs ?? 0;
+            let badgeBg = 'rgba(16, 185, 129, 0.2)';
+            let badgeColor = '#34D399';
+            if (pct > 15) {
+                badgeBg = 'rgba(239, 68, 68, 0.2)';
+                badgeColor = '#F87171';
+            } else if (pct > 8) {
+                badgeBg = 'rgba(245, 158, 11, 0.2)';
+                badgeColor = '#FBBF24';
             }
-        }
-    } catch (err) {
-        console.error("Erro ao salvar report de início:", err);
-        if (feedback) {
-            feedback.style.display = "block";
-            feedback.style.background = "rgba(239, 68, 68, 0.2)";
-            feedback.style.color = "#F87171";
-            feedback.style.border = "1px solid rgba(239, 68, 68, 0.4)";
-            feedback.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Erro ao salvar dados no servidor.';
-            setTimeout(() => { feedback.style.display = "none"; }, 3500);
-        }
+
+            return `
+                <tr style="${bgStyle}">
+                    <td style="padding: 7px 10px; color: ${isTot ? '#FFFFFF' : '#93C5FD'}; font-weight: ${isTot ? '800' : '600'};">${t.label}</td>
+                    <td style="text-align: center; padding: 7px 8px;">${row.operador ?? 0}</td>
+                    <td style="text-align: center; padding: 7px 8px;">${row.assistente ?? 0}</td>
+                    <td style="text-align: center; padding: 7px 8px;">${row.lider ?? 0}</td>
+                    <td style="text-align: center; padding: 7px 8px; color: #34D399; font-weight: 700;">${row.presentes ?? 0}</td>
+                    <td style="text-align: center; padding: 7px 8px; color: #F87171;">${row.faltas ?? 0}</td>
+                    <td style="text-align: center; padding: 7px 8px; color: #FBBF24;">${row.atestados ?? 0}</td>
+                    <td style="text-align: center; padding: 7px 8px; font-weight: 600;">${row.abs_turno ?? 0}</td>
+                    <td style="text-align: center; padding: 7px 8px;">
+                        <span style="background: ${badgeBg}; color: ${badgeColor}; padding: 2px 7px; border-radius: 6px; font-weight: 700; font-size: 11px;">
+                            ${pct}%
+                        </span>
+                    </td>
+                </tr>
+            `;
+        }).join("");
+    }
+
+    // 3. Diaristas TSI
+    const tsi = d.diaristas_tsi || {};
+    const badgeTsiTotal = document.getElementById("grot-badge-tsi-total");
+    if (badgeTsiTotal) badgeTsiTotal.textContent = `Total: ${tsi.Total ?? 0}`;
+    const tsiT1 = document.getElementById("grot-tsi-t1");
+    if (tsiT1) tsiT1.textContent = tsi.T1 ?? 0;
+    const tsiT2 = document.getElementById("grot-tsi-t2");
+    if (tsiT2) tsiT2.textContent = tsi.T2 ?? 0;
+    const tsiT3 = document.getElementById("grot-tsi-t3");
+    if (tsiT3) tsiT3.textContent = tsi.T3 ?? 0;
+
+    // 4. Terceiros SMN
+    const smn = d.smn || {};
+    const badgeSmnTotal = document.getElementById("grot-badge-smn-total");
+    if (badgeSmnTotal) badgeSmnTotal.textContent = `Total: ${smn.Total?.operador ?? 0} Op`;
+    const tbodySmn = document.getElementById("grot-table-smn-body");
+    if (tbodySmn && smn) {
+        const smnRows = [
+            { id: "T2", label: "Turno 2" },
+            { id: "T3", label: "Turno 3" },
+            { id: "Total", label: "Total Geral", isTotal: true }
+        ];
+        tbodySmn.innerHTML = smnRows.map(s => {
+            const r = smn[s.id] || {};
+            const isTot = s.isTotal;
+            const bgStyle = isTot ? 'background: rgba(56, 189, 248, 0.1); font-weight: 700;' : '';
+            return `
+                <tr style="${bgStyle}">
+                    <td style="padding: 6px 8px; color: ${isTot ? '#FFFFFF' : '#7DD3FC'};">${s.label}</td>
+                    <td style="text-align: center; padding: 6px 6px;">${r.operador ?? 0}</td>
+                    <td style="text-align: center; padding: 6px 6px;">${r.lideranca ?? 0}</td>
+                    <td style="text-align: center; padding: 6px 6px; color: #F87171;">${r.abs ?? 0}</td>
+                    <td style="text-align: center; padding: 6px 6px; font-weight: 700; color: ${(r.pct_abs ?? 0) > 15 ? '#F87171' : '#34D399'};">${r.pct_abs ?? 0}%</td>
+                    <td style="padding: 6px 8px; color: #94A3B8; font-size: 11px;">${r.obs || '—'}</td>
+                </tr>
+            `;
+        }).join("");
+    }
+
+    // 5. Volumetria DC Bauru
+    const vol = d.volumetria || {};
+    const setTxt = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = (val ?? 0).toLocaleString('pt-BR'); };
+    setTxt("grot-vol-coletas", vol.coletas);
+    setTxt("grot-vol-recebido", vol.recebido);
+    setTxt("grot-vol-ppb", vol.ppb);
+    setTxt("grot-vol-fastpass", vol.fast_pass);
+    setTxt("grot-vol-dcbau", vol.volume_dc_bau);
+    setTxt("grot-vol-totalgeral", vol.volume_total_geral);
+
+    // 6. Pontualidade
+    const pont = d.pontualidade || {};
+    const breVal = pont.bre ?? 0;
+    const raoVal = pont.rao ?? 0;
+    const elPontBre = document.getElementById("grot-pont-bre");
+    if (elPontBre) elPontBre.textContent = `${breVal}%`;
+    const elBarBre = document.getElementById("grot-bar-bre");
+    if (elBarBre) elBarBre.style.width = `${Math.min(breVal, 100)}%`;
+
+    const elPontRao = document.getElementById("grot-pont-rao");
+    if (elPontRao) elPontRao.textContent = `${raoVal}%`;
+    const elBarRao = document.getElementById("grot-bar-rao");
+    if (elBarRao) elBarRao.style.width = `${Math.min(raoVal, 100)}%`;
+
+    // 7. Sem Movimentação & Aging
+    const sm = d.sem_mov || {};
+    const tagSm = document.getElementById("grot-semmov-tag");
+    if (tagSm) tagSm.textContent = `Hoje: ${(sm.hoje ?? 0).toLocaleString('pt-BR')}`;
+    setTxt("grot-semmov-ontem", sm.ontem);
+    setTxt("grot-semmov-hoje", sm.hoje);
+    const elSmVar = document.getElementById("grot-semmov-variacao");
+    if (elSmVar) {
+        const v = sm.variacao ?? 0;
+        elSmVar.textContent = (v > 0 ? `+${v}` : `${v}`);
+        elSmVar.style.color = v > 0 ? '#F87171' : '#34D399';
+    }
+    const elSmExp = document.getElementById("grot-semmov-expchegou");
+    if (elSmExp) elSmExp.textContent = `${sm.exp_nao_chegou_qtd ?? 0} (${sm.exp_nao_chegou_pct ?? 0}%)`;
+
+    // Lista de Motivos de Aging
+    const agingList = document.getElementById("grot-aging-list");
+    if (agingList && sm.aging_motivos && sm.aging_motivos.length > 0) {
+        const totalAging = sm.aging_motivos.reduce((acc, m) => acc + (m.qtd || 0), 0) || 1;
+        agingList.innerHTML = sm.aging_motivos.map(m => {
+            const pct = ((m.qtd / totalAging) * 100).toFixed(1);
+            return `
+                <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 7px; padding: 6px 10px; display: flex; flex-direction: column; gap: 4px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11.5px;">
+                        <span style="color: #CBD5E1; font-weight: 500;">${m.motivo}</span>
+                        <span style="font-weight: 700; color: #EC4899;">${m.qtd} <span style="font-size: 10px; color: #94A3B8;">(${pct}%)</span></span>
+                    </div>
+                    <div style="width: 100%; height: 4px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden;">
+                        <div style="width: ${Math.min(pct, 100)}%; height: 100%; background: linear-gradient(90deg, #F472B6, #EC4899); border-radius: 2px;"></div>
+                    </div>
+                </div>
+            `;
+        }).join("");
+    } else if (agingList) {
+        agingList.innerHTML = `<div style="color: #94A3B8; font-size: 11.5px; padding: 8px;">Nenhum motivo de aging registrado.</div>`;
+    }
+
+    // 8. Textarea WhatsApp Preview
+    const txtPreview = document.getElementById("panel-rep-preview-text");
+    if (txtPreview && d.raw_text) {
+        txtPreview.value = d.raw_text;
     }
 }
 
-async function copyReportInicioToClipboard(buttonEl) {
-    const text = formatReportInicioText(reportInicioCurrentData);
+async function copyReportGrotToClipboard(buttonEl) {
     const txtPreview = document.getElementById("panel-rep-preview-text");
+    const textToCopy = (txtPreview?.value || reportGrotCurrentData?.raw_text || '').trim();
+    if (!textToCopy) return;
+
     try {
         if (navigator.clipboard && navigator.clipboard.writeText) {
-            await navigator.clipboard.writeText(text);
+            await navigator.clipboard.writeText(textToCopy);
         } else if (txtPreview) {
             txtPreview.select();
             document.execCommand("copy");
         }
+
+        const feedback = document.getElementById("panel-rep-feedback");
+        if (feedback) {
+            feedback.style.display = "block";
+            feedback.style.background = "rgba(16, 185, 129, 0.2)";
+            feedback.style.color = "#34D399";
+            feedback.style.border = "1px solid rgba(16, 185, 129, 0.4)";
+            feedback.innerHTML = '<i class="fa-solid fa-circle-check"></i> Report Grot copiado para a área de transferência!';
+            setTimeout(() => { feedback.style.display = "none"; }, 3500);
+        }
+
         if (buttonEl) {
             const originalHtml = buttonEl.innerHTML;
             buttonEl.innerHTML = '<i class="fa-solid fa-check text-emerald-400"></i> Copiado!';
             setTimeout(() => { buttonEl.innerHTML = originalHtml; }, 2000);
         }
     } catch (err) {
-        console.error("Erro ao copiar:", err);
+        console.error("Erro ao copiar Report Grot:", err);
     }
 }
 
-function initReportInicioManager() {
-    const form = document.getElementById("form-report-inicio-panel");
+function initReportGrotManager() {
     const btnCopy = document.getElementById("btn-rep-panel-copy");
     const btnCopyTop = document.getElementById("btn-rep-panel-copy-top");
-    const btnSidebarCopy = document.getElementById("btn-report-inicio-sidebar-copy");
-    const btnSidebarSave = document.getElementById("btn-report-inicio-sidebar-save");
     const btnRefresh = document.getElementById("btn-rep-panel-refresh");
-    const btnSidebarRefresh = document.getElementById("btn-report-inicio-sidebar-refresh");
+    const btnUpload = document.getElementById("btn-rep-upload-excel");
+    const inputFile = document.getElementById("input-grot-excel");
 
-    // Live update of preview while typing
-    const formInputs = [
-        "panel-rep-data", "panel-rep-inicio", "panel-rep-backlog", "panel-rep-volume",
-        "panel-rep-clt18", "panel-rep-abs18", "panel-rep-clt22", "panel-rep-abs22",
-        "panel-rep-diasol15", "panel-rep-diapres15", "panel-rep-diasol20", "panel-rep-diapres20", "panel-rep-phd",
-        "panel-rep-falta", "panel-rep-atestados", "panel-rep-atencao"
-    ];
+    if (btnCopy) btnCopy.addEventListener("click", () => copyReportGrotToClipboard(btnCopy));
+    if (btnCopyTop) btnCopyTop.addEventListener("click", () => copyReportGrotToClipboard(btnCopyTop));
+    if (btnRefresh) btnRefresh.addEventListener("click", loadReportGrotData);
 
-    formInputs.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) {
-            el.addEventListener("input", () => {
-                const getVal = (i) => (document.getElementById(i)?.value || '').trim();
-                const temp = {
-                    data_ref: getVal("panel-rep-data"),
-                    inicio_operacao: getVal("panel-rep-inicio"),
-                    backlog_inicial: getVal("panel-rep-backlog"),
-                    volume_previsto: getVal("panel-rep-volume"),
-                    clts_presentes_18h: getVal("panel-rep-clt18"),
-                    absenteismo_18h: getVal("panel-rep-abs18"),
-                    clts_presentes_22h: getVal("panel-rep-clt22"),
-                    absenteismo_22h: getVal("panel-rep-abs22"),
-                    diaristas_solicitados_15h: getVal("panel-rep-diasol15"),
-                    diaristas_presentes_15h: getVal("panel-rep-diapres15"),
-                    diaristas_solicitados_20h: getVal("panel-rep-diasol20"),
-                    diaristas_presentes_20h: getVal("panel-rep-diapres20"),
-                    phd_previsto: getVal("panel-rep-phd"),
-                    obs_falta_injustificada: getVal("panel-rep-falta"),
-                    obs_atestados: getVal("panel-rep-atestados"),
-                    obs_pontos_atencao: getVal("panel-rep-atencao"),
-                    raw_text: ''
-                };
-                reportInicioCurrentData = { ...reportInicioCurrentData, ...temp };
-                const txtPreview = document.getElementById("panel-rep-preview-text");
-                if (txtPreview) txtPreview.value = formatReportInicioText(reportInicioCurrentData);
-            });
-        }
-    });
+    // Upload da planilha Report Grot.xlsx
+    if (btnUpload && inputFile) {
+        btnUpload.addEventListener("click", () => inputFile.click());
+        inputFile.addEventListener("change", async (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
 
-    if (form) {
-        form.addEventListener("submit", (e) => {
-            e.preventDefault();
-            saveReportInicioData();
+            const originalBtnHtml = btnUpload.innerHTML;
+            btnUpload.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processando...';
+            btnUpload.disabled = true;
+
+            const formData = new FormData();
+            formData.append("file", file);
+
+            try {
+                const res = await fetch(`${API_BASE}/api/grot/upload`, {
+                    method: "POST",
+                    body: formData
+                });
+                const resJson = await res.json();
+                if (resJson.success) {
+                    await loadReportGrotData();
+                    const feedback = document.getElementById("panel-rep-feedback");
+                    if (feedback) {
+                        feedback.style.display = "block";
+                        feedback.style.background = "rgba(16, 185, 129, 0.2)";
+                        feedback.style.color = "#34D399";
+                        feedback.style.border = "1px solid rgba(16, 185, 129, 0.4)";
+                        feedback.innerHTML = '<i class="fa-solid fa-circle-check"></i> Planilha Report Grot importada com sucesso!';
+                        setTimeout(() => { feedback.style.display = "none"; }, 3500);
+                    }
+                } else {
+                    alert("Erro ao importar planilha: " + (resJson.error || "Formato inválido"));
+                }
+            } catch (err) {
+                console.error("Erro no upload da planilha Grot:", err);
+                alert("Erro ao enviar a planilha para o servidor.");
+            } finally {
+                btnUpload.innerHTML = originalBtnHtml;
+                btnUpload.disabled = false;
+                inputFile.value = "";
+            }
         });
     }
 
-    if (btnSidebarSave) {
-        btnSidebarSave.addEventListener("click", () => {
-            saveReportInicioData();
-        });
-    }
-
-    if (btnCopy) btnCopy.addEventListener("click", () => copyReportInicioToClipboard(btnCopy));
-    if (btnCopyTop) btnCopyTop.addEventListener("click", () => copyReportInicioToClipboard(btnCopyTop));
-    if (btnSidebarCopy) btnSidebarCopy.addEventListener("click", () => copyReportInicioToClipboard(btnSidebarCopy));
-
-    if (btnRefresh) btnRefresh.addEventListener("click", loadReportInicioData);
-    if (btnSidebarRefresh) btnSidebarRefresh.addEventListener("click", loadReportInicioData);
-
-    // Carregamento inicial em segundo plano
-    loadReportInicioData();
+    // Carregamento inicial
+    loadReportGrotData();
 }
+
+// Aliases para retrocompatibilidade
+window.loadReportInicioData = loadReportGrotData;
+window.initReportInicioManager = initReportGrotManager;
+window.loadReportGrotData = loadReportGrotData;
+window.initReportGrotManager = initReportGrotManager;
+window.copyReportGrotToClipboard = copyReportGrotToClipboard;
 
 
 
@@ -5520,7 +6029,7 @@ TAXA DE EXPEDIÇÃO NO PRAZO
 
 Obs: `;
 
-const SCRIPT_INICIO_TEMPLATE = `📊 REPORT DE INÍCIO DA OPERAÇÃO
+const SCRIPT_INICIO_TEMPLATE = `📊 REPORT GROT - DC BAURU
 
 📅 Data: *00/00/0000*
 
