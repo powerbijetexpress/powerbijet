@@ -4848,7 +4848,7 @@ def _load_volumetria_data_internal():
 ALLOWED_VOLUMETRIA_PDD = ['SP BRE', 'SN RAO', 'F IBG-SP', 'EXT -MG']
 
 def _sort_volumetria_records(records):
-    """Ordena os registros da Volumetria Diária agrupando por base (SP BRE, SN RAO, IBG, EXT) e horário."""
+    """Ordena os registros da Volumetria Diária agrupando por base prioritária (SP BRE, SN RAO, IBG, EXT) e horário."""
     if not records:
         return []
         
@@ -4871,12 +4871,10 @@ def _sort_volumetria_records(records):
 
     return sorted(records, key=sort_key)
 
-def _is_allowed_volumetria_car(pdd, route_name='', status=''):
+def _is_priority_volumetria_car(pdd, route_name='', status=''):
     pdd_clean = str(pdd or '').strip().upper()
-    status_clean = str(status or '').upper()
     route_clean = str(route_name or '').strip().upper()
     
-    # Exclui explicitamente 'DC EXT'
     if 'DC EXT' in pdd_clean or 'DC EXT' in route_clean:
         return False
         
@@ -4888,20 +4886,25 @@ def _is_allowed_volumetria_car(pdd, route_name='', status=''):
             return True
     return False
 
+def _is_allowed_volumetria_car(pdd, route_name='', status=''):
+    return _is_priority_volumetria_car(pdd, route_name, status)
+
 def _parse_volumetria_excel(file_path):
     try:
-        # 1. Carrega o arquivo via pandas (suporta .xlsx, .xls e .csv)
         df = None
         ext = file_path.rsplit('.', 1)[-1].lower() if '.' in file_path else ''
         if ext == 'csv':
-            try:
-                df = pd.read_csv(file_path, encoding='utf-8')
-            except Exception:
-                df = pd.read_csv(file_path, encoding='latin1', sep=None, engine='python')
+            for enc in ['utf-8', 'utf-8-sig', 'latin1', 'cp1252']:
+                try:
+                    df = pd.read_csv(file_path, encoding=enc, sep=None, engine='python')
+                    if df is not None and len(df) > 0:
+                        break
+                except Exception:
+                    continue
         else:
             try:
                 df = pd.read_excel(file_path)
-            except Exception as e_pd:
+            except Exception:
                 try:
                     import openpyxl
                     wb = openpyxl.load_workbook(file_path, data_only=True)
@@ -4910,14 +4913,26 @@ def _parse_volumetria_excel(file_path):
                     if data and len(data) > 1:
                         df = pd.DataFrame(data[1:], columns=data[0])
                 except Exception:
-                    raise e_pd
+                    df = None
 
         if df is None or len(df) == 0:
             return None
 
         # Limpa nomes de colunas
         df.columns = [str(c).strip() for c in df.columns]
-        
+
+        # Header sniffing inteligente: se a primeira linha tiver colunas genéricas, detecta cabeçalho
+        cols_text = " ".join([str(c).lower() for c in df.columns])
+        keywords = ['transporte', 'viagem', 'pdd', 'rota', 'status', 'pedido', 'volume', 'chegada', 'saída', 'saida']
+        if not any(k in cols_text for k in keywords):
+            for i in range(min(10, len(df))):
+                row_vals = [str(v).strip() for v in df.iloc[i].values if pd.notna(v)]
+                row_text = " ".join(row_vals).lower()
+                if any(k in row_text for k in keywords):
+                    df.columns = [str(v).strip() if pd.notna(v) else f'Col_{idx}' for idx, v in enumerate(df.iloc[i].values)]
+                    df = df.iloc[i+1:].copy()
+                    break
+
         def find_col(possible_names, exclude_names=None):
             if exclude_names is None:
                 exclude_names = []
@@ -4928,17 +4943,19 @@ def _parse_volumetria_excel(file_path):
                         return col
             return None
 
-        col_id = find_col(['tarefa de transporte', 'id_transporte', 'id transporte', 'transporte'])
-        col_status_v = find_col(['status de viagem', 'status da viagem', 'status viagem', 'status'])
-        col_pdd = find_col(['pdd de saida', 'pdd de saída', 'pdd saida', 'pdd saída', 'pdd', 'origem'], exclude_names=['chegada'])
-        col_rota = find_col(['nome da rota', 'nome da viagem', 'rota', 'viagem'])
-        col_pedido = find_col(['pedido mãe', 'pedido mae', 'pedido sistema', 'pedido sist', 'volume previsto', 'previsto'])
-        col_prev_chegada = find_col(['previsão de chegada', 'previsao de chegada', 'previsão chegada', 'previsao chegada', 'hora de saída planejada', 'hora de saida planejada', 'hora estimada de chegada', 'chegada planejada', 'previsão'], exclude_names=['pdd', 'estação', 'descarregamento'])
-        col_chegada_real = find_col(['tempo real de chegada', 'chegada real', 'horário de chegada', 'horario de chegada', 'hora real de chegada', 'chegada'], exclude_names=['pdd', 'estação', 'descarregamento', 'planejada', 'previsão', 'previsao'])
-        col_inicio = find_col(['horário do bipe de carregamento para expedição', 'horario do bipe', 'início coleta', 'inicio coleta', 'horário de check-in do motorista', 'check-in'])
-        col_fim = find_col(['horário de lacração do veículo', 'horario de lacracao', 'fim coleta', 'hora de saída real', 'hora de saida real', 'horário de check-out do codutor'])
-        col_bipado = find_col(['volume bipado', 'bipados', 'bipado'])
-        col_obs = find_col(['obs', 'observações', 'observacao', 'observacoes'])
+        col_id = find_col(['tarefa de transporte', 'id_transporte', 'id transporte', 'tarefa', 'transporte', 'viagem', 'número da viagem', 'numero da viagem', 'código da viagem', 'codigo da viagem', 'no. da tarefa', 'no da tarefa', 'código de transporte', 'codigo de transporte', 'srtr', 'remessa', 'número da remessa', 'numero da remessa'])
+        col_status_v = find_col(['status de viagem', 'status da viagem', 'status viagem', 'status da rota', 'status'])
+        col_pdd_saida = find_col(['pdd de saida', 'pdd de saída', 'pdd saida', 'pdd saída', 'estação de partida', 'codigo de estação de partida', 'estação de origem', 'origem', 'filial/regional de origem'], exclude_names=['chegada'])
+        col_pdd_chegada = find_col(['pdd de chegada', 'pdd chegada', 'estação de chegada', 'codigo de estação de chegada', 'estação de destino', 'filial/regional de destino', 'destino'])
+        col_pdd_geral = find_col(['pdd', 'estação', 'estacao', 'base'], exclude_names=['chegada', 'saída', 'saida'])
+        col_rota = find_col(['nome da rota', 'nome da viagem', 'rota', 'viagem', 'linha'])
+        col_pedido = find_col(['pedido mãe', 'pedido mae', 'número de " pedido mãe"', 'pedido sistema', 'pedido sist', 'volume previsto', 'previsto', 'volume planejado', 'planejado', 'volume', 'qtd', 'quantidade', 'pacotes', 'total peças', 'total pecas', 'volume total'])
+        col_bipado = find_col(['volume bipado', 'bipados', 'bipado', 'expedido', 'qtd expedida', 'volume expedido', 'peças bipadas'])
+        col_prev_chegada = find_col(['previsão de chegada', 'previsao de chegada', 'previsão chegada', 'previsao chegada', 'hora de saída planejada', 'hora de saida planejada', 'hora estimada de chegada', 'chegada planejada', 'previsão', 'previsao', 'corte', 'horário de corte', 'horario de corte'], exclude_names=['pdd', 'estação', 'descarregamento'])
+        col_chegada_real = find_col(['tempo real de chegada', 'chegada real', 'horário de chegada', 'horario de chegada', 'hora real de chegada', 'hora de saída real', 'hora de saida real', 'saída real', 'saida real'], exclude_names=['pdd', 'estação', 'descarregamento', 'planejada', 'previsão', 'previsao'])
+        col_inicio = find_col(['horário do bipe de carregamento para expedição', 'horario do bipe', 'início coleta', 'inicio coleta', 'horário de check-in do motorista', 'check-in', 'início carregamento', 'inicio carregamento'])
+        col_fim = find_col(['horário de lacração do veículo', 'horario de lacracao', 'fim coleta', 'hora de saída real', 'hora de saida real', 'horário de check-out do codutor', 'fim carregamento', 'termino'])
+        col_obs = find_col(['obs', 'observações', 'observacao', 'observacoes', 'motivo', 'anormalidade', 'anotações'])
 
         def format_time_val(val):
             if pd.isna(val) or val is None or str(val).strip() in ['', 'nan', 'NaT', 'None']:
@@ -4970,7 +4987,7 @@ def _parse_volumetria_excel(file_path):
             except:
                 return 0
 
-        # Extrai data de referência se possível (da coluna de saída planejada ou criação)
+        # Data de referência
         ref_date = datetime.now().strftime("%d/%m/%Y")
         col_data = find_col(['hora de saída planejada', 'hora de saida planejada', 'previsão de chegada', 'data e hora de criação', 'data criacao', 'data'])
         if col_data and len(df[col_data].dropna()) > 0:
@@ -4988,50 +5005,60 @@ def _parse_volumetria_excel(file_path):
                 except:
                     pass
 
-        records = []
+        raw_candidates = []
+        priority_candidates = []
         coletas_val = 10790
         backlog_val = 0
 
         for _, row in df.iterrows():
-            pdd_val = str(row[col_pdd] if col_pdd and pd.notna(row[col_pdd]) else '').strip()
-            rota_val = str(row[col_rota] if col_rota and pd.notna(row[col_rota]) else '').strip()
-            status_v = str(row[col_status_v] if col_status_v and pd.notna(row[col_status_v]) else 'Em Trânsito: 在途').strip()
-            
-            # FILTRO OBRIGATÓRIO: Mantém APENAS os carros permitidos (SP BRE, SN RAO, F IBG-SP, EXT -MG)
-            if not _is_allowed_volumetria_car(pdd_val, rota_val, status_v):
+            # ID de Transporte
+            id_tr = str(row[col_id] if col_id and pd.notna(row[col_id]) else '').strip()
+            if not id_tr or id_tr.upper().startswith('PREVISTO') or id_tr.upper().startswith('TOTAL') or id_tr.upper() == 'NAN':
                 continue
 
-            id_tr = str(row[col_id] if col_id and pd.notna(row[col_id]) else '').strip()
-            if not id_tr or id_tr.upper().startswith('PREVISTO') or id_tr.upper().startswith('TOTAL'):
-                continue
-            
-            # Pedido Sistema
+            # Resolução flexível da base/PDD
+            pdd_s = str(row[col_pdd_saida] if col_pdd_saida and pd.notna(row[col_pdd_saida]) else '').strip()
+            pdd_c = str(row[col_pdd_chegada] if col_pdd_chegada and pd.notna(row[col_pdd_chegada]) else '').strip()
+            pdd_g = str(row[col_pdd_geral] if col_pdd_geral and pd.notna(row[col_pdd_geral]) else '').strip()
+            rota_val = str(row[col_rota] if col_rota and pd.notna(row[col_rota]) else '').strip()
+
+            pdd_val = ''
+            if pdd_s and not any(b in pdd_s.upper() for b in ['DC BAU', 'BAU-SP', 'BAURU']):
+                pdd_val = pdd_s
+            elif pdd_c and not any(b in pdd_c.upper() for b in ['DC BAU', 'BAU-SP', 'BAURU']):
+                pdd_val = pdd_c
+            elif pdd_s:
+                pdd_val = pdd_s
+            elif pdd_c:
+                pdd_val = pdd_c
+            elif rota_val:
+                pdd_val = rota_val
+            elif pdd_g:
+                pdd_val = pdd_g
+            else:
+                pdd_val = "DC BAU"
+
+            status_v = str(row[col_status_v] if col_status_v and pd.notna(row[col_status_v]) else 'Em Trânsito: 在途').strip()
             ped_sis = format_int_val(row[col_pedido]) if col_pedido and pd.notna(row[col_pedido]) else 0
-            
-            # Bipado (inicia zerado para preenchimento operacional)
             bip = format_int_val(row[col_bipado]) if col_bipado and pd.notna(row[col_bipado]) else 0
 
-            # Previsão de Chegada (preenchida automaticamente da planilha)
             prev_chegada = format_time_val(row[col_prev_chegada]) if col_prev_chegada and pd.notna(row[col_prev_chegada]) else ''
             if not prev_chegada:
-                for alt_col in ['Previsão de chegada', 'previsao de chegada', 'Hora de saída planejada', 'hora de saida planejada']:
+                for alt_col in ['Previsão de chegada', 'previsao de chegada', 'Hora de saída planejada', 'hora de saida planejada', 'Horário de corte', 'horario de corte']:
                     if alt_col in row and pd.notna(row[alt_col]):
                         prev_chegada = format_time_val(row[alt_col])
                         if prev_chegada:
                             break
 
-            # Chegada Real, Início Coleta, Fim Coleta e Status (iniciam sem preencher para preenchimento manual do operador)
             chegada = ''
             ini_col = ''
             fim_col = ''
             st = ''
-            bip = 0
-
             obs = str(row[col_obs] if col_obs and pd.notna(row[col_obs]) else '').strip()
             if obs.lower() == 'nan':
                 obs = ''
 
-            records.append({
+            record_item = {
                 "id_transporte": id_tr,
                 "status_viagem": status_v,
                 "pdd_saida": pdd_val,
@@ -5043,7 +5070,17 @@ def _parse_volumetria_excel(file_path):
                 "status": st,
                 "obs": obs,
                 "bipado": bip
-            })
+            }
+
+            if _is_priority_volumetria_car(pdd_val, rota_val, status_v):
+                priority_candidates.append(record_item)
+            else:
+                raw_candidates.append(record_item)
+
+        if priority_candidates:
+            records = priority_candidates + raw_candidates
+        else:
+            records = raw_candidates
 
         records = _sort_volumetria_records(records)
 
@@ -5161,41 +5198,60 @@ def upload_volumetria_file():
     if file.filename == '':
         return jsonify({"success": False, "error": "Nome de arquivo vazio."}), 400
         
-    ext = file.filename.rsplit('.', 1)[-1].lower()
-    if ext not in ['xlsx', 'xls', 'csv']:
+    ext = file.filename.rsplit('.', 1)[-1].lower() if '.' in file.filename else ''
+    if ext not in ['xlsx', 'xls', 'csv', 'xlsm']:
         return jsonify({"success": False, "error": "Formato de arquivo não suportado. Envie .xlsx, .xls ou .csv"}), 400
         
     try:
-        temp_path = os.path.join(os.getcwd(), f"temp_volumetria.{ext}")
+        temp_dir = os.path.join(os.getcwd(), "temp_uploads")
+        os.makedirs(temp_dir, exist_ok=True)
+        safe_filename = f"upload_volumetria_{int(time.time())}.{ext}"
+        temp_path = os.path.join(temp_dir, safe_filename)
         file.save(temp_path)
         
         parsed = _parse_volumetria_excel(temp_path)
-        if not parsed or len(parsed.get("records", [])) == 0:
-            try:
-                os.replace(temp_path, VOLUMETRIA_EXCEL_FILE)
-                parsed = _parse_volumetria_excel(VOLUMETRIA_EXCEL_FILE)
-            except Exception:
-                pass
-        else:
-            try:
-                os.replace(temp_path, VOLUMETRIA_EXCEL_FILE)
-            except Exception:
-                pass
+        
+        # Cópia segura para volumetria.xlsx como backup
+        try:
+            import shutil
+            shutil.copyfile(temp_path, VOLUMETRIA_EXCEL_FILE)
+        except Exception as e_copy:
+            print("Aviso ao copiar backup de volumetria.xlsx:", e_copy)
+            
+        # Limpa arquivo temporário
+        try:
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+        except Exception:
+            pass
             
         if parsed and len(parsed.get("records", [])) > 0:
-            # Persistência no banco SQLite (substituindo registros anteriores para manter apenas os carros filtrados)
+            # Persistência no banco SQLite
             db.save_volumetria_data(parsed, replace_all=True)
             db.log_upload("Volumetria Diária", file.filename, len(parsed.get("records", [])))
             
             # Backup no arquivo JSON
-            with open(VOLUMETRIA_JSON_FILE, "w", encoding="utf-8") as f:
-                json.dump(parsed, f, ensure_ascii=False, indent=2)
+            try:
+                with open(VOLUMETRIA_JSON_FILE, "w", encoding="utf-8") as f:
+                    json.dump(parsed, f, ensure_ascii=False, indent=2)
+            except Exception as e_json:
+                print("Aviso ao salvar backup JSON da volumetria:", e_json)
                 
             processed = db.get_volumetria_data()
+            if not processed:
+                processed = parsed
 
-            return jsonify({"success": True, "data": processed, "message": f"Planilha importada com sucesso! {len(parsed.get('records', []))} carros filtrados (SP BRE, SN RAO, IBG, EXT)."})
+            total_rec = len(parsed.get('records', []))
+            return jsonify({
+                "success": True, 
+                "data": processed, 
+                "message": f"Planilha importada com sucesso! {total_rec} viagens carregadas."
+            })
         else:
-            return jsonify({"success": False, "error": "Nenhum dos carros permitidos (SP BRE, SN RAO, IBG, EXT) foi encontrado na planilha."}), 400
+            return jsonify({
+                "success": False, 
+                "error": "Nenhuma viagem válida foi encontrada na planilha. Verifique se o arquivo possui as colunas de Transporte, Rota/PDD e Volume."
+            }), 400
     except Exception as e:
         return jsonify({"success": False, "error": f"Erro ao processar o arquivo: {str(e)}"}), 500
 
@@ -6137,9 +6193,24 @@ def api_grot_upload():
 
 # Bloco principal para execucao direta do script python
 if __name__ == '__main__':
-    # Garante a criacao da pasta de templates html se ela nao existir no diretorio
+    # Garante a criacao das pastas necessarias
     os.makedirs('templates', exist_ok=True)
+    os.makedirs('temp_uploads', exist_ok=True)
     
-    # Inicia o servidor local do Flask na porta 5000 aceitando conexoes externas (0.0.0.0)
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    port = int(os.environ.get('PORT', 5000))
+    host = '0.0.0.0'
+    
+    print("=" * 60)
+    print(" SERVIDOR DC BAURU - BI & CONTROLE OPERACIONAL")
+    print(f" Acesso no computador:  http://localhost:{port}/")
+    print(f" Acesso no tablet/rede: http://192.168.0.150:{port}/")
+    print("=" * 60)
+    
+    try:
+        from waitress import serve
+        print(">> Servidor de Alta Disponibilidade WAITRESS ativo (Threads: 8).")
+        serve(app, host=host, port=port, threads=8, channel_timeout=120)
+    except Exception as e_wait:
+        print(f">> Iniciando Flask nativo resiliente ({e_wait})...")
+        app.run(host=host, port=port, debug=False, use_reloader=False, threaded=True)
 

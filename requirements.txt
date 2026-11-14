@@ -6,8 +6,10 @@ pandas>=2.0.0
 openpyxl>=3.1.5
 # reportlab e a biblioteca utilizada no backend para gerar os relatorios executivos em PDF
 reportlab>=4.4.6
-# gunicorn e o servidor de producao HTTP para rodar o Flask na nuvem
+# gunicorn e o servidor de producao HTTP para rodar o Flask na nuvem (Linux)
 gunicorn>=21.2.0
+# waitress e o servidor de producao WSGI de alta estabilidade para rodar no Windows local
+waitress>=3.0.0
 # psycopg2-binary para conexao com banco de dados PostgreSQL na nuvem (Render, Supabase, Neon)
 psycopg2-binary>=2.9.9
 # requests para comunicacao interna HTTP com o microservico do WhatsApp Bot
