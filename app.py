@@ -4848,7 +4848,7 @@ def _load_volumetria_data_internal():
 ALLOWED_VOLUMETRIA_PDD = ['SP BRE', 'SN RAO', 'F IBG-SP', 'EXT -MG']
 
 def _sort_volumetria_records(records):
-    """Ordena os registros da Volumetria Diária agrupando por base prioritária (SP BRE, SN RAO, IBG, EXT) e horário."""
+    """Ordena os registros da Volumetria Diária agrupando por base (SP BRE, SN RAO, IBG, EXT) e horário."""
     if not records:
         return []
         
@@ -4867,27 +4867,42 @@ def _sort_volumetria_records(records):
         
         prev = str(r.get("previsao_chegada") or "").strip()
         id_tr = str(r.get("id_transporte") or "")
-        return (pdd_prio, pdd, prev, id_tr)
+        return (pdd_prio, prev, id_tr)
 
     return sorted(records, key=sort_key)
 
-def _is_priority_volumetria_car(pdd, route_name='', status=''):
-    pdd_clean = str(pdd or '').strip().upper()
-    route_clean = str(route_name or '').strip().upper()
+def resolve_volumetria_base_name(orig='', dest='', rota='', cod_p='', cod_c=''):
+    """Identifica com precisão se a viagem é de uma das 4 bases de transferência de DC Bauru:
+    SP BRE, SN RAO, F IBG-SP ou EXT -MG, retornando SEMPRE o nome formatado da base e nunca códigos numéricos."""
+    text = f"{orig} {dest} {rota} {cod_p} {cod_c}".strip().upper()
     
-    if 'DC EXT' in pdd_clean or 'DC EXT' in route_clean:
-        return False
+    # Exclusão explícita de DC EXT / 535001 (regra operacional do DC Bauru)
+    if 'DC EXT' in text or '535001' in text:
+        return None
+
+    # 1. SP BRE (código 31101 ou nome/rota contendo BRE)
+    if 'SP BRE' in text or '31101' in text or 'BRE-' in text or 'BRE ' in text or text == 'BRE':
+        return 'SP BRE'
         
-    for allowed in ALLOWED_VOLUMETRIA_PDD:
-        a_norm = allowed.replace(' ', '').replace('-', '').upper()
-        p_norm = pdd_clean.replace(' ', '').replace('-', '').upper()
-        r_norm = route_clean.replace(' ', '').replace('-', '').upper()
-        if a_norm in p_norm or p_norm in a_norm or a_norm in r_norm or pdd_clean == allowed.upper():
-            return True
-    return False
+    # 2. SN RAO (código 31601 ou nome/rota contendo RAO)
+    if 'SN RAO' in text or '31601' in text or 'RAO-' in text or 'RAO ' in text or text == 'RAO':
+        return 'SN RAO'
+        
+    # 3. F IBG-SP (código 316375 ou nome/rota contendo IBG / Ibitinga)
+    if 'IBG' in text or '316375' in text or 'IBITINGA' in text:
+        return 'F IBG-SP'
+        
+    # 4. EXT -MG (código 535104 ou rota M209 / M109 / EXT -MG)
+    if 'EXT -MG' in text or 'EXT-MG' in text or '535104' in text or 'M209' in text or 'M109' in text:
+        return 'EXT -MG'
+        
+    return None
 
 def _is_allowed_volumetria_car(pdd, route_name='', status=''):
-    return _is_priority_volumetria_car(pdd, route_name, status)
+    return resolve_volumetria_base_name(orig=pdd, rota=route_name) is not None
+
+def _is_priority_volumetria_car(pdd, route_name='', status=''):
+    return _is_allowed_volumetria_car(pdd, route_name, status)
 
 def _parse_volumetria_excel(file_path):
     try:
@@ -4943,11 +4958,13 @@ def _parse_volumetria_excel(file_path):
                         return col
             return None
 
-        col_id = find_col(['tarefa de transporte', 'id_transporte', 'id transporte', 'tarefa', 'transporte', 'viagem', 'número da viagem', 'numero da viagem', 'código da viagem', 'codigo da viagem', 'no. da tarefa', 'no da tarefa', 'código de transporte', 'codigo de transporte', 'srtr', 'remessa', 'número da remessa', 'numero da remessa'])
-        col_status_v = find_col(['status de viagem', 'status da viagem', 'status viagem', 'status da rota', 'status'])
-        col_pdd_saida = find_col(['pdd de saida', 'pdd de saída', 'pdd saida', 'pdd saída', 'estação de partida', 'codigo de estação de partida', 'estação de origem', 'origem', 'filial/regional de origem'], exclude_names=['chegada'])
-        col_pdd_chegada = find_col(['pdd de chegada', 'pdd chegada', 'estação de chegada', 'codigo de estação de chegada', 'estação de destino', 'filial/regional de destino', 'destino'])
-        col_pdd_geral = find_col(['pdd', 'estação', 'estacao', 'base'], exclude_names=['chegada', 'saída', 'saida'])
+        col_id = find_col(['tarefa de transporte', 'id_transporte', 'id transporte', 'tarefa', 'transporte', 'viagem', 'número da viagem', 'numero da viagem', 'código da viagem', 'codigo da viagem', 'no. da tarefa', 'no da tarefa', 'código de transporte', 'codigo de transporte', 'srtr', 'setr', 'remessa', 'número da remessa', 'numero da remessa'])
+        col_status_v = find_col(['status da tarefa', 'status de viagem', 'status da viagem', 'status viagem', 'status da rota', 'status'])
+        col_orig = find_col(['unidade de origem da partida', 'unidade de origem', 'pdd de saida', 'pdd de saída', 'pdd saida', 'pdd saída', 'estação de origem', 'origem', 'filial/regional de origem'], exclude_names=['código', 'codigo', 'cod', 'chegada', 'destino'])
+        col_dest = find_col(['unidade de destino', 'pdd de chegada', 'pdd de chegada', 'pdd chegada', 'estação de destino', 'filial/regional de destino', 'destino'], exclude_names=['código', 'codigo', 'cod', 'partida', 'origem'])
+        col_cod_p = find_col(['código de estação de partida', 'codigo de estação de partida', 'código estação partida', 'codigo estacao partida'])
+        col_cod_c = find_col(['código de estação de chegada', 'codigo de estação de chegada', 'código estação chegada', 'codigo estacao chegada'])
+        col_pdd_geral = find_col(['pdd', 'estação', 'estacao', 'base'], exclude_names=['código', 'codigo', 'cod', 'chegada', 'saída', 'saida'])
         col_rota = find_col(['nome da rota', 'nome da viagem', 'rota', 'viagem', 'linha'])
         col_pedido = find_col(['pedido mãe', 'pedido mae', 'número de " pedido mãe"', 'pedido sistema', 'pedido sist', 'volume previsto', 'previsto', 'volume planejado', 'planejado', 'volume', 'qtd', 'quantidade', 'pacotes', 'total peças', 'total pecas', 'volume total'])
         col_bipado = find_col(['volume bipado', 'bipados', 'bipado', 'expedido', 'qtd expedida', 'volume expedido', 'peças bipadas'])
@@ -5006,7 +5023,6 @@ def _parse_volumetria_excel(file_path):
                     pass
 
         raw_candidates = []
-        priority_candidates = []
         coletas_val = 10790
         backlog_val = 0
 
@@ -5016,27 +5032,16 @@ def _parse_volumetria_excel(file_path):
             if not id_tr or id_tr.upper().startswith('PREVISTO') or id_tr.upper().startswith('TOTAL') or id_tr.upper() == 'NAN':
                 continue
 
-            # Resolução flexível da base/PDD
-            pdd_s = str(row[col_pdd_saida] if col_pdd_saida and pd.notna(row[col_pdd_saida]) else '').strip()
-            pdd_c = str(row[col_pdd_chegada] if col_pdd_chegada and pd.notna(row[col_pdd_chegada]) else '').strip()
-            pdd_g = str(row[col_pdd_geral] if col_pdd_geral and pd.notna(row[col_pdd_geral]) else '').strip()
+            orig_val = str(row[col_orig] if col_orig and pd.notna(row[col_orig]) else '').strip()
+            dest_val = str(row[col_dest] if col_dest and pd.notna(row[col_dest]) else '').strip()
             rota_val = str(row[col_rota] if col_rota and pd.notna(row[col_rota]) else '').strip()
+            cod_p_val = str(row[col_cod_p] if col_cod_p and pd.notna(row[col_cod_p]) else '').strip()
+            cod_c_val = str(row[col_cod_c] if col_cod_c and pd.notna(row[col_cod_c]) else '').strip()
 
-            pdd_val = ''
-            if pdd_s and not any(b in pdd_s.upper() for b in ['DC BAU', 'BAU-SP', 'BAURU']):
-                pdd_val = pdd_s
-            elif pdd_c and not any(b in pdd_c.upper() for b in ['DC BAU', 'BAU-SP', 'BAURU']):
-                pdd_val = pdd_c
-            elif pdd_s:
-                pdd_val = pdd_s
-            elif pdd_c:
-                pdd_val = pdd_c
-            elif rota_val:
-                pdd_val = rota_val
-            elif pdd_g:
-                pdd_val = pdd_g
-            else:
-                pdd_val = "DC BAU"
+            # Identificação estrita e NOME PADRONIZADO (SP BRE, SN RAO, F IBG-SP, EXT -MG - NUNCA números como 31101)
+            target_base = resolve_volumetria_base_name(orig_val, dest_val, rota_val, cod_p_val, cod_c_val)
+            if not target_base:
+                continue
 
             status_v = str(row[col_status_v] if col_status_v and pd.notna(row[col_status_v]) else 'Em Trânsito: 在途').strip()
             ped_sis = format_int_val(row[col_pedido]) if col_pedido and pd.notna(row[col_pedido]) else 0
@@ -5050,18 +5055,18 @@ def _parse_volumetria_excel(file_path):
                         if prev_chegada:
                             break
 
-            chegada = ''
-            ini_col = ''
-            fim_col = ''
+            chegada = format_time_val(row[col_chegada_real]) if col_chegada_real and pd.notna(row[col_chegada_real]) else ''
+            ini_col = format_time_val(row[col_inicio]) if col_inicio and pd.notna(row[col_inicio]) else ''
+            fim_col = format_time_val(row[col_fim]) if col_fim and pd.notna(row[col_fim]) else ''
             st = ''
             obs = str(row[col_obs] if col_obs and pd.notna(row[col_obs]) else '').strip()
             if obs.lower() == 'nan':
                 obs = ''
 
-            record_item = {
+            raw_candidates.append({
                 "id_transporte": id_tr,
                 "status_viagem": status_v,
-                "pdd_saida": pdd_val,
+                "pdd_saida": target_base,
                 "pedido_sistema": ped_sis,
                 "previsao_chegada": prev_chegada,
                 "chegada_real": chegada,
@@ -5069,18 +5074,19 @@ def _parse_volumetria_excel(file_path):
                 "fim_coleta": fim_col,
                 "status": st,
                 "obs": obs,
-                "bipado": bip
-            }
+                "bipado": bip,
+                "rota": rota_val
+            })
 
-            if _is_priority_volumetria_car(pdd_val, rota_val, status_v):
-                priority_candidates.append(record_item)
-            else:
-                raw_candidates.append(record_item)
-
-        if priority_candidates:
-            records = priority_candidates + raw_candidates
-        else:
-            records = raw_candidates
+        # Desduplicação inteligente: se um carro cancelado sem pedidos tiver sido substituído por uma viagem ativa para a mesma rota
+        active_routes = {c['rota'] for c in raw_candidates if 'cancelado' not in c['status_viagem'].lower() and c['pedido_sistema'] > 0 and c['rota']}
+        records = []
+        for c in raw_candidates:
+            if 'cancelado' in c['status_viagem'].lower() and c['pedido_sistema'] == 0 and c['rota'] in active_routes:
+                continue
+            item = dict(c)
+            item.pop('rota', None)
+            records.append(item)
 
         records = _sort_volumetria_records(records)
 
@@ -5226,6 +5232,28 @@ def upload_volumetria_file():
             pass
             
         if parsed and len(parsed.get("records", [])) > 0:
+            # Preserva dados operacionais já digitados manualmente caso as viagens já existam no banco
+            try:
+                existing_data = db.get_volumetria_data()
+                existing_map = {}
+                if existing_data and existing_data.get('records'):
+                    for ex_r in existing_data['records']:
+                        ex_id = str(ex_r.get('id_transporte') or '').strip()
+                        if ex_id:
+                            existing_map[ex_id] = ex_r
+
+                for rec in parsed.get('records', []):
+                    r_id = str(rec.get('id_transporte') or '').strip()
+                    if r_id in existing_map:
+                        prev_rec = existing_map[r_id]
+                        for field in ['chegada_real', 'inicio_coleta', 'fim_coleta', 'status', 'obs']:
+                            if not rec.get(field) and prev_rec.get(field):
+                                rec[field] = prev_rec[field]
+                        if rec.get('bipado') == 0 and prev_rec.get('bipado', 0) > 0:
+                            rec['bipado'] = prev_rec['bipado']
+            except Exception as e_merge:
+                print("Aviso ao mesclar dados operacionais prévios:", e_merge)
+
             # Persistência no banco SQLite
             db.save_volumetria_data(parsed, replace_all=True)
             db.log_upload("Volumetria Diária", file.filename, len(parsed.get("records", [])))
@@ -5245,12 +5273,12 @@ def upload_volumetria_file():
             return jsonify({
                 "success": True, 
                 "data": processed, 
-                "message": f"Planilha importada com sucesso! {total_rec} viagens carregadas."
+                "message": f"Planilha importada com sucesso! {total_rec} carros de transferência filtrados (SP BRE, SN RAO, IBG, EXT)."
             })
         else:
             return jsonify({
                 "success": False, 
-                "error": "Nenhuma viagem válida foi encontrada na planilha. Verifique se o arquivo possui as colunas de Transporte, Rota/PDD e Volume."
+                "error": "Nenhum carro das bases de transferência permitidas (SP BRE, SN RAO, IBG, EXT) foi encontrado na planilha."
             }), 400
     except Exception as e:
         return jsonify({"success": False, "error": f"Erro ao processar o arquivo: {str(e)}"}), 500
