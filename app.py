@@ -5055,10 +5055,12 @@ def _parse_volumetria_excel(file_path):
                         if prev_chegada:
                             break
 
-            chegada = format_time_val(row[col_chegada_real]) if col_chegada_real and pd.notna(row[col_chegada_real]) else ''
-            ini_col = format_time_val(row[col_inicio]) if col_inicio and pd.notna(row[col_inicio]) else ''
-            fim_col = format_time_val(row[col_fim]) if col_fim and pd.notna(row[col_fim]) else ''
+            # Horários operacionais e bipes iniciam SEMPRE zerados para preenchimento manual do turno
+            chegada = ''
+            ini_col = ''
+            fim_col = ''
             st = ''
+            bip = 0
             obs = str(row[col_obs] if col_obs and pd.notna(row[col_obs]) else '').strip()
             if obs.lower() == 'nan':
                 obs = ''
@@ -5069,12 +5071,12 @@ def _parse_volumetria_excel(file_path):
                 "pdd_saida": target_base,
                 "pedido_sistema": ped_sis,
                 "previsao_chegada": prev_chegada,
-                "chegada_real": chegada,
-                "inicio_coleta": ini_col,
-                "fim_coleta": fim_col,
-                "status": st,
+                "chegada_real": "",
+                "inicio_coleta": "",
+                "fim_coleta": "",
+                "status": "",
                 "obs": obs,
-                "bipado": bip,
+                "bipado": 0,
                 "rota": rota_val
             })
 
@@ -5232,29 +5234,16 @@ def upload_volumetria_file():
             pass
             
         if parsed and len(parsed.get("records", [])) > 0:
-            # Preserva dados operacionais já digitados manualmente caso as viagens já existam no banco
-            try:
-                existing_data = db.get_volumetria_data()
-                existing_map = {}
-                if existing_data and existing_data.get('records'):
-                    for ex_r in existing_data['records']:
-                        ex_id = str(ex_r.get('id_transporte') or '').strip()
-                        if ex_id:
-                            existing_map[ex_id] = ex_r
+            # Garante que os campos operacionais manuais (chegada_real, inicio_coleta, fim_coleta, status, bipado)
+            # fiquem rigorosamente zerados toda vez que a planilha for importada
+            for rec in parsed.get("records", []):
+                rec["chegada_real"] = ""
+                rec["inicio_coleta"] = ""
+                rec["fim_coleta"] = ""
+                rec["status"] = ""
+                rec["bipado"] = 0
 
-                for rec in parsed.get('records', []):
-                    r_id = str(rec.get('id_transporte') or '').strip()
-                    if r_id in existing_map:
-                        prev_rec = existing_map[r_id]
-                        for field in ['chegada_real', 'inicio_coleta', 'fim_coleta', 'status', 'obs']:
-                            if not rec.get(field) and prev_rec.get(field):
-                                rec[field] = prev_rec[field]
-                        if rec.get('bipado') == 0 and prev_rec.get('bipado', 0) > 0:
-                            rec['bipado'] = prev_rec['bipado']
-            except Exception as e_merge:
-                print("Aviso ao mesclar dados operacionais prévios:", e_merge)
-
-            # Persistência no banco SQLite
+            # Persistência no banco SQLite (substituindo registros para iniciar novo turno com campos zerados)
             db.save_volumetria_data(parsed, replace_all=True)
             db.log_upload("Volumetria Diária", file.filename, len(parsed.get("records", [])))
             
