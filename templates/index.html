@@ -2575,8 +2575,8 @@ Total HC Mão na caixa:
                     <div id="ranking-dropzone" style="border: 2px dashed rgba(59, 130, 246, 0.45); border-radius: 12px; padding: 26px 20px; text-align: center; background: rgba(59, 130, 246, 0.06); cursor: pointer; transition: all 0.2s; margin-bottom: 16px;">
                         <i class="fa-solid fa-file-excel" style="font-size: 34px; color: #60A5FA; margin-bottom: 10px;"></i>
                         <p style="font-size: 14px; font-weight: 600; color: #FFFFFF; margin: 0 0 4px 0;">Clique ou arraste a planilha do B.I aqui</p>
-                        <span style="font-size: 11.5px; color: #9CA3AF;">Suporta arquivo único do B.I (.xlsx, .xls, .csv) com todos os setores ou múltiplos arquivos</span>
-                        <input type="file" id="ranking-file-input" accept=".xlsx,.xls,.csv" multiple style="display: none;">
+                        <span style="font-size: 11.5px; color: #9CA3AF;">Suporta arquivos do B.I (.xlsx, .xls, .csv, .txt) com todos os setores ou múltiplos arquivos</span>
+                        <input type="file" id="ranking-file-input" accept=".xlsx,.xls,.csv,.txt" multiple style="display: none;">
                     </div>
 
                     <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
@@ -2591,21 +2591,21 @@ Total HC Mão na caixa:
                         <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; padding: 10px 8px; text-align: center;">
                             <div style="font-size: 11px; font-weight: 700; color: #93C5FD; margin-bottom: 6px;"><i class="fa-solid fa-truck-ramp-box"></i> 1. Coleta</div>
                             <button class="btn btn-outline" id="btn-upload-coleta" style="font-size: 10.5px; padding: 4px 8px; width: 100%; border-color: rgba(59, 130, 246, 0.4); color: #93C5FD; cursor: pointer;">Subir Coleta</button>
-                            <input type="file" id="ranking-file-coleta" accept=".xlsx,.xls,.csv" style="display: none;">
+                            <input type="file" id="ranking-file-coleta" accept=".xlsx,.xls,.csv,.txt" style="display: none;">
                         </div>
 
                         <!-- 2. Lote -->
                         <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; padding: 10px 8px; text-align: center;">
                             <div style="font-size: 11px; font-weight: 700; color: #FDE68A; margin-bottom: 6px;"><i class="fa-solid fa-boxes-stacked"></i> 2. Lote</div>
                             <button class="btn btn-outline" id="btn-upload-lote" style="font-size: 10.5px; padding: 4px 8px; width: 100%; border-color: rgba(245, 158, 11, 0.4); color: #FDE68A; cursor: pointer;">Subir Lote</button>
-                            <input type="file" id="ranking-file-lote" accept=".xlsx,.xls,.csv" style="display: none;">
+                            <input type="file" id="ranking-file-lote" accept=".xlsx,.xls,.csv,.txt" style="display: none;">
                         </div>
 
                         <!-- 3. Expedição -->
                         <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 8px; padding: 10px 8px; text-align: center;">
                             <div style="font-size: 11px; font-weight: 700; color: #C4B5FD; margin-bottom: 6px;"><i class="fa-solid fa-dolly"></i> 3. Expedição</div>
                             <button class="btn btn-outline" id="btn-upload-exp" style="font-size: 10.5px; padding: 4px 8px; width: 100%; border-color: rgba(139, 92, 246, 0.4); color: #C4B5FD; cursor: pointer;">Subir Expedição</button>
-                            <input type="file" id="ranking-file-exp" accept=".xlsx,.xls,.csv" style="display: none;">
+                            <input type="file" id="ranking-file-exp" accept=".xlsx,.xls,.csv,.txt" style="display: none;">
                         </div>
                     </div>
 
@@ -2621,7 +2621,7 @@ Total HC Mão na caixa:
     </div>
     
     <!-- Importa a logica do dashboard no arquivo local app.js -->
-    <script src="/app.js?v=105"></script>
+    <script src="/app.js?v=106"></script>
 <!-- Fecha o corpo do documento html -->
 </body>
 <!-- Fecha a tag html -->

@@ -306,6 +306,38 @@ def _format_date_br(d_str):
         return s
     return datetime.now().strftime("%d/%m/%Y")
 
+def _safe_int(val, default=0):
+    if val is None:
+        return default
+    if isinstance(val, int):
+        return val
+    if isinstance(val, float):
+        return int(val)
+    s = str(val).strip()
+    if not s or s in ['nan', 'none', 'null', '-', '--']:
+        return default
+    s_clean = s.replace('R$', '').replace(' ', '')
+    if '.' in s_clean and ',' in s_clean:
+        s_clean = s_clean.split(',')[0].replace('.', '')
+    elif '.' in s_clean:
+        parts = s_clean.split('.')
+        if len(parts) == 2 and len(parts[1]) == 3:
+            s_clean = parts[0] + parts[1]
+        else:
+            s_clean = s_clean.replace('.', '')
+    elif ',' in s_clean:
+        parts = s_clean.split(',')
+        if len(parts) == 2 and len(parts[1]) == 3:
+            s_clean = parts[0] + parts[1]
+        else:
+            s_clean = s_clean.split(',')[0]
+    try:
+        return int(float(s_clean))
+    except Exception:
+        import re
+        digits = re.sub(r'\D', '', s)
+        return int(digits) if digits else default
+
 def save_volumetria_data(data_dict, replace_all=False):
     """Salva viagens e KPIs de Volumetria Diária no banco de dados."""
     if not data_dict:
@@ -361,27 +393,27 @@ def save_volumetria_data(data_dict, replace_all=False):
                 data_ref,
                 r.get("pdd_saida") or "",
                 r.get("status_viagem") or "",
-                int(r.get("pedido_sistema") or 0),
+                _safe_int(r.get("pedido_sistema")),
                 r.get("previsao_chegada") or "",
                 r.get("chegada_real") or "",
                 r.get("inicio_coleta") or "",
                 r.get("fim_coleta") or "",
                 r.get("status") if r.get("status") is not None else "",
                 r.get("obs") or "",
-                int(r.get("bipado") or 0)
+                _safe_int(r.get("bipado"))
             ))
             
         # Upsert KPIs
-        sum_prev = sum(int(r.get("pedido_sistema") or 0) for r in records)
-        previsto = int(kpis.get("previsto")) if (kpis.get("previsto") is not None and int(kpis.get("previsto")) > 0) else sum_prev
-        bipados = sum(int(r.get("bipado") or 0) for r in records)
+        sum_prev = sum(_safe_int(r.get("pedido_sistema")) for r in records)
+        previsto = _safe_int(kpis.get("previsto")) if (kpis.get("previsto") is not None and _safe_int(kpis.get("previsto")) > 0) else sum_prev
+        bipados = sum(_safe_int(r.get("bipado")) for r in records)
         
         if data_dict.get("coletas") is not None:
-            coletas = int(data_dict.get("coletas") or 0)
+            coletas = _safe_int(data_dict.get("coletas"))
         elif kpis.get("coletas") is not None:
-            coletas = int(kpis.get("coletas") or 0)
+            coletas = _safe_int(kpis.get("coletas"))
         else:
-            coletas = 0
+            coletas = 10790
             
         total_piso = bipados + coletas
         diferenca = bipados - previsto
@@ -409,9 +441,9 @@ def save_volumetria_data(data_dict, replace_all=False):
             eficiencia, total_viagens, viagens_finalizadas, updated_at
         ))
         
-        # Salva dados de carregamento de veículos se fornecidos
+        # Salva dados de carregamento de veículos se fornecidos compartilhando o mesmo cursor/transação
         if "carregamento" in data_dict and data_dict["carregamento"] is not None:
-            save_volumetria_carregamento(data_dict["carregamento"])
+            save_volumetria_carregamento(data_dict["carregamento"], cursor=cursor)
 
         conn.commit()
     return True
@@ -541,6 +573,7 @@ def get_volumetria_data(data_ref=None):
             "data_referencia": _format_date_br(data_ref_val),
             "updated_at": updated_at,
             "kpis": kpis,
+            "coletas": _safe_int(kpis.get("coletas"), 10790),
             "records": records,
             "carregamento": carregamento_list,
             "status_viagem_dist": status_viagem_dist,
@@ -570,13 +603,13 @@ def get_volumetria_carregamento():
             rows = cursor.fetchall()
         return [dict(r) for r in rows]
 
-def save_volumetria_carregamento(records):
+def save_volumetria_carregamento(records, cursor=None):
     """Salva a lista completa de veículos do painel de carregamento."""
     if records is None:
         return False
-    with get_connection() as conn:
-        cursor = conn.cursor()
-        cursor.execute("DELETE FROM tb_volumetria_carregamento;")
+        
+    def _do_save(cur):
+        cur.execute("DELETE FROM tb_volumetria_carregamento;")
         for idx, r in enumerate(records):
             c_id = str(r.get("id") or f"carr_{idx+1}_{int(time.time()*1000)}").strip()
             veiculo = str(r.get("veiculo") or "").strip()
@@ -588,11 +621,19 @@ def save_volumetria_carregamento(records):
             obs = str(r.get("obs") or "").strip()
             ordem = int(r.get("ordem") if r.get("ordem") is not None else idx + 1)
             
-            cursor.execute("""
+            cur.execute("""
                 INSERT INTO tb_volumetria_carregamento (
                     id, veiculo, inicio, termino, tempo_total, volume, status, obs, ordem, updated_at
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP);
             """, (c_id, veiculo, inicio, termino, tempo_total, volume, status, obs, ordem))
+
+    if cursor is not None:
+        _do_save(cursor)
+        return True
+
+    with get_connection() as conn:
+        cur = conn.cursor()
+        _do_save(cur)
         conn.commit()
         return True
 

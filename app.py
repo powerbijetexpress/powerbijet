@@ -5289,9 +5289,29 @@ def save_volumetria_data():
         with open(VOLUMETRIA_JSON_FILE, "w", encoding="utf-8") as f:
             json.dump(payload, f, ensure_ascii=False, indent=2)
             
+        # Sincroniza imediatamente com ranking_data.json se coletas ou previsto foram alterados
+        try:
+            r_data = db.get_ranking_data(check_expiration=False) or _load_ranking_data_internal()
+            if r_data and "kpis" in r_data:
+                k = payload.get("kpis") or {}
+                col = payload.get("coletas") if payload.get("coletas") is not None else k.get("coletas")
+                if col is not None:
+                    r_data["kpis"]["coletas"] = db._safe_int(col)
+                if k.get("previsto") is not None and db._safe_int(k.get("previsto")) > 0:
+                    r_data["kpis"]["previsto"] = db._safe_int(k.get("previsto"))
+                db.save_ranking_data(r_data)
+                with open(RANKING_JSON_FILE, "w", encoding="utf-8") as rf:
+                    json.dump(r_data, rf, ensure_ascii=False, indent=2)
+        except Exception as sync_ex:
+            print("Erro ao sincronizar ranking a partir da volumetria:", sync_ex)
+
         processed = db.get_volumetria_data()
+        if not processed:
+            processed = payload
         return jsonify({"success": True, "data": processed})
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route('/api/volumetria/delete', methods=['POST'])
@@ -5336,22 +5356,37 @@ def add_cors_headers(response):
 
 
 # ==============================================================================
-# MÓDULO DE RANKING DE PRODUTIVIDADE E HORA A HORA
+# MÓDULO DE RANKING DE PRODUTIVIDADE E HORA A HORA (COLETA, LOTE, EXPEDIÇÃO)
 # ==============================================================================
 RANKING_JSON_FILE = "ranking_data.json"
+
+OPERATOR_NAME_MAP = {
+    'TTSIDCBAU': 'TEMPORARIO TSI DCBAU',
+    '01877120': 'Kauê Willi santos de Jesus',
+    '01765507': 'João Batista Ferreira',
+    '01801690': 'Thyago Oliveira Souza',
+    '01865960': 'Amanda Laureano Magalhães',
+    '01946199': 'PETERSON LUIZ DIAS TEIXEIRA',
+    '01914197': 'Igor William Romão',
+    '01899858DCBAU': 'Juliano Pires Filho',
+    '01930491': 'João victor marin mariano',
+    '01801689': 'Pablo Antônio Garcia Silva',
+    '01930584': 'João Batista Ferreira',
+    '01930502': 'Juliano Pires Filho',
+    '01897865DCBAU': 'TEMPORARIO TSI DCBAU'
+}
 
 def _detect_sector_from_name(name):
     n = str(name).lower()
     if any(k in n for k in ['coleta', 'chegada', 'inbound', 'receb', 'descarga']):
-        return 'Coleta de Chegadas'
-    elif any(k in n for k in ['lote', 'inserid', 'triagem', 'gaiola', 'sorting', 'bipagem lote']):
+        return 'Coleta de Chegada'
+    elif any(k in n for k in ['lote', 'inserid', 'triagem', 'gaiola', 'sorting', 'bipagem lote', 'criação', 'criacao']):
         return 'Inserido em Lote'
     elif any(k in n for k in ['exped', 'despacho', 'saida', 'saída', 'outbound', 'carreg']):
         return 'Expedição'
     return None
 
 def _deduplicate_columns(df):
-    """Garante que todos os nomes de colunas do DataFrame sejam únicos."""
     if df is None:
         return None
     cols = []
@@ -5368,89 +5403,102 @@ def _deduplicate_columns(df):
     return df
 
 def _clean_dataframe_headers(df):
-    """Detecta se o cabeçalho real está nas primeiras 10 linhas e o ajusta em memória."""
     if df is None or len(df) == 0:
         return df
     df = _deduplicate_columns(df)
     cols_str = " ".join([str(c).lower() for c in df.columns])
-    if any(k in cols_str for k in ['digitaliz', 'operador', 'colaborador', 'hora', 'tempo', 'bip', 'tipo', 'qtd', 'volume', 'nome', 'user', 'pacote', 'status']):
+    keywords = ['digitaliz', 'operador', 'colaborador', 'hora', 'tempo', 'bip', 'tipo', 'qtd', 'volume', 'nome', 'user', 'pacote', 'status', 'rastreamento', 'chegada', 'lote', 'expedi']
+    if any(k in cols_str for k in keywords):
         return df
-    for idx in range(min(10, len(df))):
+    for idx in range(min(15, len(df))):
         row_vals = [str(x).lower() for x in df.iloc[idx].values if pd.notna(x)]
         row_str = " ".join(row_vals)
-        if any(k in row_str for k in ['digitaliz', 'operador', 'colaborador', 'hora', 'tempo', 'bip', 'tipo', 'qtd', 'volume', 'nome', 'user', 'pacote', 'status']):
+        if any(k in row_str for k in keywords):
             df.columns = [str(c).strip() for c in df.iloc[idx]]
             df = _deduplicate_columns(df)
             return df.iloc[idx + 1:].reset_index(drop=True)
     return df
 
 def _read_dataframe_fast(file_path, sheet_name=0):
-    """Lê arquivo CSV ou Excel de forma ultra rápida com calamine e passagem única."""
     ext = file_path.rsplit('.', 1)[-1].lower()
-    if ext == 'csv':
+    if ext in ['csv', 'txt']:
         for enc in ['utf-8', 'utf-8-sig', 'latin-1', 'cp1252']:
-            for sep in [',', ';', '\t', '|']:
+            for sep in ['\t', ';', ',', '|']:
                 try:
                     df = pd.read_csv(file_path, sep=sep, encoding=enc, low_memory=False)
-                    if len(df.columns) > 1 and len(df) > 0:
+                    if len(df.columns) >= 2 and len(df) > 0:
                         return _clean_dataframe_headers(df)
                 except Exception:
                     continue
         try:
-            return _clean_dataframe_headers(pd.read_csv(file_path, low_memory=False))
+            return _clean_dataframe_headers(pd.read_csv(file_path, sep=None, engine='python', low_memory=False))
         except Exception:
-            return None
-    else:
-        # Tenta com engine calamine (ultra-rápido em C/Rust)
+            pass
+
+    for engine in ['calamine', 'openpyxl', 'xlrd']:
         try:
-            df = pd.read_excel(file_path, sheet_name=sheet_name, engine='calamine')
-            return _clean_dataframe_headers(df)
-        except Exception:
-            try:
-                df = pd.read_excel(file_path, sheet_name=sheet_name)
+            df = pd.read_excel(file_path, sheet_name=sheet_name, engine=engine)
+            if df is not None and len(df) > 0:
                 return _clean_dataframe_headers(df)
-            except Exception:
-                try:
-                    df = pd.read_excel(file_path, sheet_name=sheet_name, engine='openpyxl')
+        except Exception:
+            continue
+            
+    try:
+        df = pd.read_excel(file_path, sheet_name=sheet_name)
+        if df is not None and len(df) > 0:
+            return _clean_dataframe_headers(df)
+    except Exception:
+        pass
+
+    try:
+        html_tables = pd.read_html(file_path)
+        if html_tables and len(html_tables) > 0:
+            return _clean_dataframe_headers(html_tables[0])
+    except Exception:
+        pass
+
+    for enc in ['utf-8', 'latin-1', 'cp1252']:
+        for sep in ['\t', ';', ',']:
+            try:
+                df = pd.read_csv(file_path, sep=sep, encoding=enc, low_memory=False)
+                if df is not None and len(df.columns) >= 2 and len(df) > 0:
                     return _clean_dataframe_headers(df)
-                except Exception:
-                    return None
+            except Exception:
+                continue
+                
+    return None
 
 def _parse_ranking_file(file_path, sector_hint=None):
-    """Processa relatórios do B.I / WMS / J&T com alta performance e suporte a arquivos massivos."""
     ext = file_path.rsplit('.', 1)[-1].lower()
     sheet_dataframes = []
 
-    if ext == 'csv':
+    if ext in ['csv', 'txt']:
         df = _read_dataframe_fast(file_path)
         if df is not None and len(df) > 0:
-            sheet_dataframes.append(("CSV", df))
+            sheet_dataframes.append(("Texto/CSV", df))
     else:
-        try:
-            xl = pd.ExcelFile(file_path, engine='calamine')
-            for s_name in xl.sheet_names:
-                try:
-                    df = pd.read_excel(xl, sheet_name=s_name)
-                    df = _clean_dataframe_headers(df)
-                    if df is not None and len(df) > 0:
-                        sheet_dataframes.append((s_name, df))
-                except Exception as e:
-                    print(f"Erro ao ler aba {s_name}: {e}")
-        except Exception:
+        loaded = False
+        for engine in ['calamine', 'openpyxl', 'xlrd']:
             try:
-                xl = pd.ExcelFile(file_path)
+                xl = pd.ExcelFile(file_path, engine=engine)
                 for s_name in xl.sheet_names:
                     try:
                         df = pd.read_excel(xl, sheet_name=s_name)
                         df = _clean_dataframe_headers(df)
                         if df is not None and len(df) > 0:
                             sheet_dataframes.append((s_name, df))
-                    except Exception as e:
-                        print(f"Erro ao ler aba {s_name}: {e}")
+                    except Exception:
+                        pass
+                if sheet_dataframes:
+                    loaded = True
+                    break
             except Exception:
-                df = _read_dataframe_fast(file_path, 0)
-                if df is not None and len(df) > 0:
-                    sheet_dataframes.append(("Sheet1", df))
+                continue
+
+        if not loaded:
+            df = _read_dataframe_fast(file_path, 0)
+            if df is not None and len(df) > 0:
+                sheet_dataframes.append(("Sheet1", df))
 
     if not sheet_dataframes:
         print(f"Não foi possível extrair dados de {file_path}")
@@ -5468,7 +5516,7 @@ def _parse_ranking_file(file_path, sector_hint=None):
 
     for s_name, df in sheet_dataframes:
         sheet_sector = _detect_sector_from_name(str(s_name)) if isinstance(s_name, str) else None
-        current_fallback_sector = sheet_sector or fallback_sector or 'Coleta de Chegadas'
+        current_fallback_sector = sheet_sector or fallback_sector or 'Coleta de Chegada'
 
         col_op = None
         col_time = None
@@ -5477,53 +5525,77 @@ def _parse_ranking_file(file_path, sector_hint=None):
 
         for col in df.columns:
             c_clean = str(col).strip().lower()
-            if any(k in c_clean for k in ['digitalizador', 'operador', 'colaborador', 'usuario', 'usuário', 'user', 'login', 'nome', 'funcionario', 'funcionário', 'responsavel', 'responsável', 'pessoa']):
+            if any(k in c_clean for k in ['digitalizador', 'operador', 'colaborador', 'usuario', 'usuário', 'user', 'login', 'nome', 'funcionario', 'funcionário', 'responsavel', 'responsável', 'pessoa', 'scanner', 'criador', 'criado por']):
                 if not any(x in c_clean for x in ['no.', 'código', 'codigo', 'id_', 'id ']) and not col_op:
                     col_op = col
             elif any(k in c_clean for k in ['tempo de digitaliza', 'tempo de bipagem', 'tempo', 'horário', 'horario', 'hora', 'data/hora', 'data hora', 'data e hora', 'timestamp', 'scan time', 'criado']):
                 if not col_time:
                     col_time = col
-            elif any(k in c_clean for k in ['tipo de bipagem', 'tipo de digitaliza', 'tipo de operação', 'tipo de operacao', 'tipo', 'setor', 'operacao', 'operação', 'status', 'etapa', 'categoria', 'atividade', 'processo']):
+            elif any(k in c_clean for k in ['tipo de bipagem', 'tipo de digitaliza', 'tipo de operação', 'tipo de operacao', 'tipo de escaneamento', 'tipo', 'setor', 'operacao', 'operação', 'status', 'etapa', 'categoria', 'atividade', 'processo', 'modo']):
                 if not col_tipo:
                     col_tipo = col
             elif any(k in c_clean for k in ['quantidade de volume', 'quantidade', 'qtd', 'volume', 'volumes', 'peças', 'pecas', 'total', 'bipes', 'bipagens', 'contagem']):
                 if not col_qtd:
                     col_qtd = col
 
-        if not col_op and len(df.columns) > 0:
-            col_op = df.columns[0]
+        if not col_op:
+            for col in df.columns:
+                c_clean = str(col).strip().lower()
+                if any(k in c_clean for k in ['operador', 'digitalizador', 'user', 'colaborador', 'scanner']):
+                    col_op = col
+                    break
 
-        # Filtra linhas válidas
+        if not col_time:
+            for col in df.columns:
+                sample = df[col].dropna().astype(str).head(20)
+                if sample.str.contains(r'\d{1,2}:\d{2}', regex=True).any():
+                    col_time = col
+                    break
+
+        if not col_op:
+            if len(df.columns) >= 3 and col_time == df.columns[1]:
+                col_op = df.columns[2]
+            else:
+                for col in df.columns:
+                    if col == col_time or col == col_tipo or col == col_qtd:
+                        continue
+                    sample = df[col].dropna().astype(str).head(20)
+                    has_text = sample.apply(lambda s: len(s) > 2 and not s.isdigit() and any(c.isalpha() for c in s)).mean() > 0.5
+                    if has_text:
+                        col_op = col
+                        break
+
+        if not col_op and len(df.columns) > 0:
+            col_op = df.columns[-1] if len(df.columns) > 1 else df.columns[0]
+
         df = df[df[col_op].notna()].copy()
         df[col_op] = df[col_op].astype(str).str.strip()
         df = df[~df[col_op].str.lower().isin(['nan', 'none', 'null', '', 'total', 'total geral', 'digitalizador', 'operador'])]
         if len(df) == 0:
             continue
 
-        # Quantidade vetorizada
+        df['op_mapped'] = df[col_op].apply(lambda op: OPERATOR_NAME_MAP.get(str(op).strip(), str(op).strip()))
+
         if col_qtd and col_qtd in df.columns:
             df['qtd_calc'] = pd.to_numeric(df[col_qtd].astype(str).str.replace(',', '.'), errors='coerce').fillna(1).astype(int)
             df['qtd_calc'] = df['qtd_calc'].apply(lambda x: x if x > 0 else 1)
         else:
             df['qtd_calc'] = 1
 
-        # Setor vetorizado
         if col_tipo and col_tipo in df.columns:
             s_types = df[col_tipo].astype(str).str.lower()
             df['sector_calc'] = current_fallback_sector
-            df.loc[s_types.str.contains('coleta|chegada|inbound|receb|descarga', regex=True), 'sector_calc'] = 'Coleta de Chegadas'
-            df.loc[s_types.str.contains('lote|inserid|triagem|gaiola|sorting|bipagem lote', regex=True), 'sector_calc'] = 'Inserido em Lote'
+            df.loc[s_types.str.contains('coleta|chegada|inbound|receb|descarga', regex=True), 'sector_calc'] = 'Coleta de Chegada'
+            df.loc[s_types.str.contains('lote|inserid|triagem|gaiola|sorting|bipagem lote|criação|criacao', regex=True), 'sector_calc'] = 'Inserido em Lote'
             df.loc[s_types.str.contains('exped|despacho|saida|saída|outbound|carreg', regex=True), 'sector_calc'] = 'Expedição'
         else:
             df['sector_calc'] = current_fallback_sector
 
-        # Extração de Hora vetorizada
         if col_time and col_time in df.columns:
             time_series = df[col_time].astype(str).str.strip()
             extracted_hours = time_series.str.extract(r'(\d{1,2}):\d{2}')[0]
             df['hour_calc'] = pd.to_numeric(extracted_hours, errors='coerce').fillna(12).astype(int).apply(lambda h: f"{min(max(h, 0), 23):02d}")
             
-            # Detecta data do turno se houver
             try:
                 date_m = time_series.str.extract(r'(\d{2})[/.-](\d{2})[/.-](\d{4})')
                 if date_m[0].notna().any():
@@ -5539,14 +5611,12 @@ def _parse_ranking_file(file_path, sector_hint=None):
         else:
             df['hour_calc'] = "12"
 
-        # Agrupamento vetorizado por Operador e Setor
-        op_sec = df.groupby([col_op, 'sector_calc'])['qtd_calc'].sum().unstack(fill_value=0)
-        # Agrupamento vetorizado por Operador e Hora
-        op_hour = df.groupby([col_op, 'hour_calc'])['qtd_calc'].sum().unstack(fill_value=0)
+        op_sec = df.groupby(['op_mapped', 'sector_calc'])['qtd_calc'].sum().unstack(fill_value=0)
+        op_hour = df.groupby(['op_mapped', 'hour_calc'])['qtd_calc'].sum().unstack(fill_value=0)
 
         for op_name, sec_row in op_sec.iterrows():
-            c = int(sec_row.get('Coleta de Chegadas', 0))
-            l = int(sec_row.get('Inserido em Lote', 0))
+            c = int(sec_row.get('Coleta de Chegada', 0)) + int(sec_row.get('Coleta de Chegadas', 0))
+            l = int(sec_row.get('Inserido em Lote', 0)) + int(sec_row.get('Criação de Lote', 0))
             e = int(sec_row.get('Expedição', 0))
             tot = c + l + e
             if tot == 0:
@@ -5572,24 +5642,23 @@ def _parse_ranking_file(file_path, sector_hint=None):
             cur["bipes_expedicao"] += e
             cur["total_bipes"] += tot
 
-            # Atualiza horas do operador
             if op_name in op_hour.index:
                 h_row = op_hour.loc[op_name]
                 for h_col, val in h_row.items():
                     hk = str(h_col).zfill(2)
                     cur["horas"][hk] = cur["horas"].get(hk, 0) + int(val)
 
-        # Atualiza totais hora a hora por setor
         sec_hour = df.groupby(['sector_calc', 'hour_calc'])['qtd_calc'].sum().unstack(fill_value=0)
         for sec_name, h_row in sec_hour.iterrows():
+            sec_clean = str(sec_name)
             for h_col, val in h_row.items():
                 hk = str(h_col).zfill(2)
                 v = int(val)
-                if sec_name == 'Coleta de Chegadas':
+                if 'coleta' in sec_clean.lower():
                     hora_coleta[hk] = hora_coleta.get(hk, 0) + v
-                elif sec_name == 'Inserido em Lote':
+                elif 'lote' in sec_clean.lower():
                     hora_lote[hk] = hora_lote.get(hk, 0) + v
-                elif sec_name == 'Expedição':
+                elif 'exped' in sec_clean.lower():
                     hora_exp[hk] = hora_exp.get(hk, 0) + v
                 else:
                     hora_coleta[hk] = hora_coleta.get(hk, 0) + v
@@ -5605,7 +5674,7 @@ def _parse_ranking_file(file_path, sector_hint=None):
         l = op["bipes_lote"]
         e = op["bipes_expedicao"]
         if c >= l and c >= e:
-            op["setor"] = "Coleta de Chegadas"
+            op["setor"] = "Coleta de Chegada"
         elif l >= c and l >= e:
             op["setor"] = "Inserido em Lote"
         else:
@@ -5622,15 +5691,28 @@ def _parse_ranking_file(file_path, sector_hint=None):
     tot_lote = sum(o["bipes_lote"] for o in operadores_list)
     tot_exp = sum(o["bipes_expedicao"] for o in operadores_list)
 
+    vol_previsto = 74602
+    vol_coletas = 10790
+    try:
+        vd = db.get_volumetria_data()
+        if vd:
+            vol_coletas = db._safe_int(vd.get("coletas") if vd.get("coletas") is not None else vd.get("kpis", {}).get("coletas"), 10790)
+            if vd.get("kpis", {}).get("previsto"):
+                vol_previsto = db._safe_int(vd["kpis"]["previsto"])
+            elif vd.get("records"):
+                vol_previsto = sum(db._safe_int(r.get("pedido_sistema")) for r in vd.get("records", []))
+    except Exception:
+        pass
+
     return {
         "updated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "data_referencia": ref_date,
         "sector_identified": fallback_sector or 'Geral (B.I)',
         "kpis": {
-            "previsto": 28511,
+            "previsto": vol_previsto,
             "bipado": tot_coleta,
-            "coletas": 10790,
-            "diferenca": 28511 - tot_coleta - 10790,
+            "coletas": vol_coletas,
+            "diferenca": tot_coleta - vol_previsto,
             "total_bipes": tot_bipes,
             "total_coleta": tot_coleta,
             "total_lote": tot_lote,
@@ -5652,12 +5734,11 @@ def _parse_ranking_file(file_path, sector_hint=None):
     }
 
 def _merge_ranking_datasets(existing_data, new_parsed_list):
-    """Funde de forma inteligente planilhas dos 3 setores (Coleta, Lote, Expedição)."""
     if not existing_data:
         existing_data = {
             "updated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "data_referencia": datetime.now().strftime("%d/%m/%Y"),
-            "kpis": {"previsto": 28511, "total_bipes": 0, "total_coleta": 0, "total_lote": 0, "total_expedicao": 0},
+            "kpis": {"previsto": 74602, "bipado": 0, "coletas": 10790, "total_bipes": 0, "total_coleta": 0, "total_lote": 0, "total_expedicao": 0},
             "hora_a_hora": {
                 "total": {str(h).zfill(2): 0 for h in range(24)},
                 "coleta": {str(h).zfill(2): 0 for h in range(24)},
@@ -5667,13 +5748,11 @@ def _merge_ranking_datasets(existing_data, new_parsed_list):
             "operadores": []
         }
 
-    # Mapas de operadores existentes
     op_dict = {o["operador"]: dict(o) for o in existing_data.get("operadores", [])}
     hora_coleta = dict(existing_data.get("hora_a_hora", {}).get("coleta", {str(h).zfill(2): 0 for h in range(24)}))
     hora_lote = dict(existing_data.get("hora_a_hora", {}).get("lote", {str(h).zfill(2): 0 for h in range(24)}))
     hora_exp = dict(existing_data.get("hora_a_hora", {}).get("expedicao", {str(h).zfill(2): 0 for h in range(24)}))
     ref_date = existing_data.get("data_referencia") or datetime.now().strftime("%d/%m/%Y")
-    previsto = existing_data.get("kpis", {}).get("previsto") or 28511
 
     for parsed in new_parsed_list:
         if not parsed:
@@ -5681,15 +5760,14 @@ def _merge_ranking_datasets(existing_data, new_parsed_list):
         if parsed.get("data_referencia"):
             ref_date = parsed.get("data_referencia")
 
-        sec = parsed.get("sector_identified")
+        sec = str(parsed.get("sector_identified") or "")
         p_horas = parsed.get("hora_a_hora", {})
 
-        # Atualiza a curva horária do setor correspondente
-        if sec == 'Coleta de Chegadas':
+        if 'coleta' in sec.lower():
             hora_coleta = dict(p_horas.get("coleta") or hora_coleta)
-        elif sec == 'Inserido em Lote':
+        elif 'lote' in sec.lower():
             hora_lote = dict(p_horas.get("lote") or hora_lote)
-        elif sec == 'Expedição':
+        elif 'exped' in sec.lower():
             hora_exp = dict(p_horas.get("expedicao") or hora_exp)
         else:
             for h in range(24):
@@ -5701,30 +5779,29 @@ def _merge_ranking_datasets(existing_data, new_parsed_list):
                 if p_horas.get("expedicao", {}).get(hk, 0) > 0:
                     hora_exp[hk] = p_horas["expedicao"][hk]
 
-        # Atualiza ou insere operadores
         for op in parsed.get("operadores", []):
             name = op["operador"]
             if name not in op_dict:
                 op_dict[name] = {
                     "operador": name,
-                    "setor": op.get("setor", sec or "Coleta de Chegadas"),
+                    "setor": op.get("setor", sec or "Coleta de Chegada"),
                     "bipes_coleta": op.get("bipes_coleta", 0),
                     "bipes_lote": op.get("bipes_lote", 0),
                     "bipes_expedicao": op.get("bipes_expedicao", 0),
                     "total_bipes": op.get("total_bipes", 0),
                     "horas": op.get("horas", {str(h).zfill(2): 0 for h in range(24)}),
-                    "primeiro_bipe": op.get("primeiro_bipe", ""),
-                    "ultimo_bipe": op.get("ultimo_bipe", ""),
+                    "primeiro_bipe": "",
+                    "ultimo_bipe": "",
                     "pph": op.get("pph", 0.0),
                     "obs": op.get("obs", "")
                 }
             else:
                 target = op_dict[name]
-                if sec == 'Coleta de Chegadas':
+                if 'coleta' in sec.lower():
                     target["bipes_coleta"] = op.get("bipes_coleta", 0)
-                elif sec == 'Inserido em Lote':
+                elif 'lote' in sec.lower():
                     target["bipes_lote"] = op.get("bipes_lote", 0)
-                elif sec == 'Expedição':
+                elif 'exped' in sec.lower():
                     target["bipes_expedicao"] = op.get("bipes_expedicao", 0)
                 else:
                     target["bipes_coleta"] = max(target.get("bipes_coleta", 0), op.get("bipes_coleta", 0))
@@ -5733,18 +5810,16 @@ def _merge_ranking_datasets(existing_data, new_parsed_list):
 
                 target["total_bipes"] = target["bipes_coleta"] + target["bipes_lote"] + target["bipes_expedicao"]
                 
-                # Setor predominante
                 c = target["bipes_coleta"]
                 l = target["bipes_lote"]
                 e = target["bipes_expedicao"]
                 if c >= l and c >= e:
-                    target["setor"] = "Coleta de Chegadas"
+                    target["setor"] = "Coleta de Chegada"
                 elif l >= c and l >= e:
                     target["setor"] = "Inserido em Lote"
                 else:
                     target["setor"] = "Expedição"
 
-                # Horas
                 op_horas = op.get("horas", {})
                 for h in range(24):
                     hk = str(h).zfill(2)
@@ -5761,7 +5836,6 @@ def _merge_ranking_datasets(existing_data, new_parsed_list):
                 act_h = sum(1 for v in target["horas"].values() if v > 0) or 1
                 target["pph"] = round(target["total_bipes"] / act_h, 1)
 
-    # Recompõe totais hora a hora global
     hora_total = {str(h).zfill(2): (hora_coleta.get(str(h).zfill(2), 0) + hora_lote.get(str(h).zfill(2), 0) + hora_exp.get(str(h).zfill(2), 0)) for h in range(24)}
     
     operadores_final = list(op_dict.values())
@@ -5774,9 +5848,28 @@ def _merge_ranking_datasets(existing_data, new_parsed_list):
 
     pico_h = max(hora_total.items(), key=lambda x: x[1], default=("12", 0))
 
-    coletas = existing_data.get("kpis", {}).get("coletas") if (existing_data.get("kpis", {}).get("coletas") is not None) else 10790
-    bipado = tot_coleta
-    diferenca = previsto - bipado - coletas
+    vol_previsto = 74602
+    vol_coletas = 10790
+    vol_bipados = 0
+    try:
+        vol_data = db.get_volumetria_data()
+        if not vol_data or not vol_data.get("records"):
+            vol_data = _load_volumetria_data_internal()
+        if vol_data:
+            vol_coletas = db._safe_int(vol_data.get("coletas") if vol_data.get("coletas") is not None else vol_data.get("kpis", {}).get("coletas"), 10790)
+            v_kpis = vol_data.get("kpis", {})
+            if v_kpis.get("previsto") is not None and db._safe_int(v_kpis.get("previsto")) > 0:
+                vol_previsto = db._safe_int(v_kpis.get("previsto"))
+            elif vol_data.get("records"):
+                vol_previsto = sum(db._safe_int(r.get("pedido_sistema")) for r in vol_data.get("records", []))
+            vol_bipados = sum(db._safe_int(r.get("bipado")) for r in vol_data.get("records", []))
+    except Exception as ex:
+        print("Erro ao sincronizar volumetria no merge de ranking:", ex)
+
+    previsto = vol_previsto
+    coletas = vol_coletas
+    bipado = tot_coleta if tot_coleta > 0 else vol_bipados
+    diferenca = bipado - previsto
 
     return {
         "updated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -5807,14 +5900,15 @@ def _merge_ranking_datasets(existing_data, new_parsed_list):
     }
 
 def _load_ranking_data_internal(force_reset=False):
-    """Carrega dados do arquivo JSON local ou cria/reseta um modelo padrão caso não existam ou estejam expirados."""
     horas_padrao = {str(h).zfill(2): 0 for h in range(24)}
     empty_template = {
-        "updated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "data_referencia": datetime.now().strftime("%d/%m/%Y"),
+        "updated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "kpis": {
-            "previsto": 28511,
+            "previsto": 74602,
             "bipado": 0,
+            "coletas": 10790,
+            "diferenca": -74602,
             "total_bipes": 0,
             "total_coleta": 0,
             "total_lote": 0,
@@ -5857,18 +5951,20 @@ def _load_ranking_data_internal(force_reset=False):
 @app.route('/api/ranking/data')
 def get_ranking_data():
     vol_coletas = 10790
-    vol_previsto = 27262
+    vol_previsto = 74602
+    vol_bipados = 0
     try:
         vol_data = db.get_volumetria_data()
         if not vol_data or not vol_data.get("records"):
             vol_data = _load_volumetria_data_internal()
         if vol_data:
-            vol_coletas = int(vol_data.get("coletas") if vol_data.get("coletas") is not None else (vol_data.get("kpis", {}).get("coletas") or 10790))
+            vol_coletas = db._safe_int(vol_data.get("coletas") if vol_data.get("coletas") is not None else vol_data.get("kpis", {}).get("coletas"), 10790)
             v_kpis = vol_data.get("kpis", {})
-            if v_kpis.get("previsto") is not None and int(v_kpis.get("previsto")) > 0:
-                vol_previsto = int(v_kpis.get("previsto"))
+            if v_kpis.get("previsto") is not None and db._safe_int(v_kpis.get("previsto")) > 0:
+                vol_previsto = db._safe_int(v_kpis.get("previsto"))
             elif vol_data.get("records"):
-                vol_previsto = sum(int(r.get("pedido_sistema") or 0) for r in vol_data.get("records", []))
+                vol_previsto = sum(db._safe_int(r.get("pedido_sistema")) for r in vol_data.get("records", []))
+            vol_bipados = sum(db._safe_int(r.get("bipado")) for r in vol_data.get("records", []))
     except Exception as e:
         print("Erro ao obter volumetria para ranking:", e)
 
@@ -5878,6 +5974,9 @@ def get_ranking_data():
             if "kpis" in data:
                 data["kpis"]["coletas"] = vol_coletas
                 data["kpis"]["previsto"] = vol_previsto
+                tot_c = data["kpis"].get("total_coleta", 0)
+                data["kpis"]["bipado"] = tot_c if tot_c > 0 else vol_bipados
+                data["kpis"]["diferenca"] = data["kpis"]["bipado"] - vol_previsto
             return jsonify(data)
     except Exception as err:
         print("Erro ao carregar ranking do banco:", err)
@@ -5885,6 +5984,9 @@ def get_ranking_data():
     if data and "kpis" in data:
         data["kpis"]["coletas"] = vol_coletas
         data["kpis"]["previsto"] = vol_previsto
+        tot_c = data["kpis"].get("total_coleta", 0)
+        data["kpis"]["bipado"] = tot_c if tot_c > 0 else vol_bipados
+        data["kpis"]["diferenca"] = data["kpis"]["bipado"] - vol_previsto
     return jsonify(data)
 
 @app.route('/api/ranking/clear', methods=['POST'])
@@ -5904,7 +6006,6 @@ def clear_ranking():
 
 @app.route('/api/ranking/upload', methods=['POST'])
 def upload_ranking_file():
-    # Coleta arquivos enviados (suporta 'files', 'file' ou múltiplos inputs)
     uploaded_files = request.files.getlist('files')
     if not uploaded_files:
         if 'file' in request.files:
@@ -5916,11 +6017,12 @@ def upload_ranking_file():
     sector_param = request.form.get('sector')
     sector_hint = None
     if sector_param:
-        if 'coleta' in sector_param.lower() or 'chegada' in sector_param.lower():
-            sector_hint = 'Coleta de Chegadas'
-        elif 'lote' in sector_param.lower() or 'inserid' in sector_param.lower() or 'triagem' in sector_param.lower():
+        sp = sector_param.lower()
+        if 'coleta' in sp or 'chegada' in sp:
+            sector_hint = 'Coleta de Chegada'
+        elif 'lote' in sp or 'inserid' in sp or 'triagem' in sp:
             sector_hint = 'Inserido em Lote'
-        elif 'exped' in sector_param.lower() or 'despacho' in sector_param.lower():
+        elif 'exped' in sp or 'despacho' in sp:
             sector_hint = 'Expedição'
 
     try:
@@ -5929,29 +6031,30 @@ def upload_ranking_file():
             if not file or file.filename == '':
                 continue
             ext = file.filename.rsplit('.', 1)[-1].lower()
-            if ext not in ['xlsx', 'xls', 'csv']:
+            if ext not in ['xlsx', 'xls', 'csv', 'txt']:
                 continue
 
-            temp_path = os.path.join(os.getcwd(), f"temp_ranking_{len(parsed_list)}_{file.filename}")
+            temp_dir = os.path.join(os.getcwd(), "temp_uploads")
+            os.makedirs(temp_dir, exist_ok=True)
+            temp_path = os.path.join(temp_dir, f"ranking_{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}_{file.filename}")
             file.save(temp_path)
 
-            parsed = _parse_ranking_file(temp_path, sector_hint=sector_hint)
-            if parsed and len(parsed.get("operadores", [])) > 0:
-                parsed_list.append(parsed)
-                db.log_upload("Ranking & Produtividade", file.filename, len(parsed.get("operadores", [])))
-
-            if os.path.exists(temp_path):
-                try:
-                    os.remove(temp_path)
-                except Exception:
-                    pass
+            try:
+                parsed = _parse_ranking_file(temp_path, sector_hint=sector_hint)
+                if parsed and len(parsed.get("operadores", [])) > 0:
+                    parsed_list.append(parsed)
+                    db.log_upload("Ranking & Produtividade", file.filename, len(parsed.get("operadores", [])))
+            finally:
+                if os.path.exists(temp_path):
+                    try:
+                        os.remove(temp_path)
+                    except Exception:
+                        pass
 
         if not parsed_list:
-            return jsonify({"success": False, "error": "Não foi possível extrair dados válidos dos arquivos enviados (.xlsx, .xls ou .csv). Verifique se o arquivo contém as colunas da bipagem/digitalização."}), 200
+            return jsonify({"success": False, "error": "Não foi possível extrair dados válidos dos arquivos enviados (.xlsx, .xls, .csv ou .txt). Verifique se o arquivo contém os bipes/digitalizações de operadores."}), 200
 
-        # Carrega base existente (se for do turno anterior expirado, já vem zerado e limpo)
         existing_data = db.get_ranking_data(check_expiration=True) or _load_ranking_data_internal()
-        # Se os dados existentes eram de outro turno expirado, garante replace completo
         merged_data = _merge_ranking_datasets(existing_data, parsed_list)
 
         db.save_ranking_data(merged_data, replace_all=True)
@@ -5988,6 +6091,23 @@ def save_ranking_data():
         payload["updated_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         db.save_ranking_data(payload)
+
+        try:
+            r_kpis = payload.get("kpis", {})
+            vol_data = db.get_volumetria_data() or _load_volumetria_data_internal()
+            if vol_data:
+                if not vol_data.get("kpis"):
+                    vol_data["kpis"] = {}
+                if r_kpis.get("coletas") is not None:
+                    vol_data["coletas"] = db._safe_int(r_kpis.get("coletas"))
+                    vol_data["kpis"]["coletas"] = db._safe_int(r_kpis.get("coletas"))
+                if r_kpis.get("previsto") is not None and db._safe_int(r_kpis.get("previsto")) > 0:
+                    vol_data["kpis"]["previsto"] = db._safe_int(r_kpis.get("previsto"))
+                db.save_volumetria_data(vol_data)
+                with open(VOLUMETRIA_JSON_FILE, "w", encoding="utf-8") as f:
+                    json.dump(vol_data, f, ensure_ascii=False, indent=2)
+        except Exception as sync_ex:
+            print("Erro ao sincronizar volumetria a partir do ranking:", sync_ex)
 
         with open(RANKING_JSON_FILE, "w", encoding="utf-8") as f:
             json.dump(payload, f, ensure_ascii=False, indent=2)

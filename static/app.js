@@ -3992,12 +3992,17 @@ async function saveVolumetriaChanges() {
         });
         if (resp.ok) {
             const resJson = await resp.json();
-            if (resJson.success && resJson.data) {
-                volumetriaData.updated_at = resJson.data.updated_at || volumetriaData.updated_at;
-                const elLastUpdate = document.getElementById("volumetria-last-update");
-                if (elLastUpdate) elLastUpdate.textContent = volumetriaData.updated_at;
+            if (resJson.success) {
+                if (resJson.data && resJson.data.updated_at) {
+                    volumetriaData.updated_at = resJson.data.updated_at;
+                    const elLastUpdate = document.getElementById("volumetria-last-update");
+                    if (elLastUpdate) elLastUpdate.textContent = volumetriaData.updated_at;
+                }
+                showVolumetriaSaveStatus("saved");
+            } else {
+                console.error("Erro retornado ao salvar volumetria:", resJson.error);
+                showVolumetriaSaveStatus("error");
             }
-            showVolumetriaSaveStatus("saved");
         } else {
             showVolumetriaSaveStatus("error");
         }
@@ -4193,6 +4198,7 @@ function filterAndRenderVolumetria() {
                         if (!rankingData.kpis) rankingData.kpis = {};
                         rankingData.kpis.coletas = parsed;
                         filterAndRenderRanking();
+                        await saveRankingChanges();
                     }
                 }
             }
@@ -4354,7 +4360,7 @@ function renderVolumetriaTable(records, sumPrevisto, sumBipados) {
             const field = e.target.getAttribute("data-field");
             let val = e.target.value;
             if (field === "bipado" || field === "pedido_sistema") {
-                val = Number(val) || 0;
+                val = parseInt(String(val).replace(/\./g, "").replace(/,/g, "").replace(/\s/g, ""), 10) || 0;
             }
             if (volumetriaData && volumetriaData.records) {
                 const targetRow = volumetriaData.records.find(r => r.id_transporte === trId);
@@ -5217,33 +5223,28 @@ function filterAndRenderRanking() {
     const totExp = sumExpTurno > 0 ? sumExpTurno : ops.reduce((acc, o) => acc + (Number(o.bipes_expedicao) || 0), 0);
     const totBipesGeral = totColeta + totLote + totExp || ops.reduce((acc, o) => acc + (Number(o.total_bipes) || 0), 0);
     
-    // Bipado: EXATAMENTE o volume total da coluna de Coleta de Chegada do ranking
-    let bipadoVal = totColeta;
-    
-    // Previsto: obtém diretamente da Volumetria Diária (ou dos KPIs sincronizados)
-    let previstoVal = 0;
-    if (volumetriaData) {
-        if (volumetriaData.kpis && volumetriaData.kpis.previsto !== undefined && volumetriaData.kpis.previsto !== null) {
-            previstoVal = Number(volumetriaData.kpis.previsto);
-        } else if (volumetriaData.records && volumetriaData.records.length > 0) {
-            previstoVal = volumetriaData.records.reduce((acc, r) => acc + (Number(r.pedido_sistema) || 0), 0);
-        }
-    }
-    if (!previstoVal && rankingData.kpis && rankingData.kpis.previsto) {
-        previstoVal = Number(rankingData.kpis.previsto);
-    }
-    if (!previstoVal || isNaN(previstoVal) || previstoVal <= 0) {
-        previstoVal = 27262;
-    }
-    
-    // Coletas: obtém diretamente da Volumetria Diária
+    // 1. Previsto: diretamente da Volumetria Diária (ou KPIs sincronizados)
+    let previstoVal = (volumetriaData?.kpis?.previsto) 
+        || (volumetriaData?.records ? volumetriaData.records.reduce((acc, r) => acc + (Number(r.pedido_sistema) || 0), 0) : 0) 
+        || (rankingData?.kpis?.previsto) 
+        || 74602;
+
+    // 2. Coletas: diretamente da Volumetria Diária (ou KPIs sincronizados)
     let coletasVal = (volumetriaData && volumetriaData.coletas !== undefined && volumetriaData.coletas !== null) 
         ? Number(volumetriaData.coletas) 
         : (volumetriaData?.kpis?.coletas !== undefined && volumetriaData?.kpis?.coletas !== null) 
             ? Number(volumetriaData.kpis.coletas) 
-            : (rankingData.kpis?.coletas !== undefined && rankingData.kpis?.coletas !== null)
-                ? Number(rankingData.kpis.coletas)
+            : (rankingData?.kpis?.coletas !== undefined && rankingData?.kpis?.coletas !== null) 
+                ? Number(rankingData.kpis.coletas) 
                 : 10790;
+
+    // 3. Bipado: se houver bipes de coleta no ranking, usa totColeta; senão bipados da Volumetria Diária
+    let bipadoVal = totColeta > 0 
+        ? totColeta 
+        : ((volumetriaData?.kpis?.bipados) 
+            || (volumetriaData?.records ? volumetriaData.records.reduce((acc, r) => acc + (Number(r.bipado) || 0), 0) : 0) 
+            || (rankingData?.kpis?.bipado) 
+            || 0);
                 
     // 3. Renderiza os 3 Cards de Topo
     const elPrevisto = document.getElementById("val-ranking-previsto");
@@ -5361,7 +5362,7 @@ function filterAndRenderRanking() {
     
     // A) Coleta de Chegada (Top 10)
     const opsColetaAll = ops
-        .filter(o => (Number(o.bipes_coleta) > 0) || (o.setor === 'Coleta de Chegadas'))
+        .filter(o => (Number(o.bipes_coleta) > 0) || (o.setor && o.setor.toLowerCase().includes('coleta')))
         .map(o => ({ ...o, qtd_setor: Number(o.bipes_coleta) > 0 ? Number(o.bipes_coleta) : Number(o.total_bipes) || 0 }))
         .filter(o => o.qtd_setor > 0)
         .sort((a, b) => b.qtd_setor - a.qtd_setor);
@@ -5394,7 +5395,7 @@ function filterAndRenderRanking() {
     
     // B) Expedição (Top 10)
     const opsExpAll = ops
-        .filter(o => (Number(o.bipes_expedicao) > 0) || (o.setor === 'Expedição'))
+        .filter(o => (Number(o.bipes_expedicao) > 0) || (o.setor && o.setor.toLowerCase().includes('exped')))
         .map(o => ({ ...o, qtd_setor: Number(o.bipes_expedicao) > 0 ? Number(o.bipes_expedicao) : Number(o.total_bipes) || 0 }))
         .filter(o => o.qtd_setor > 0)
         .sort((a, b) => b.qtd_setor - a.qtd_setor);
@@ -5427,7 +5428,7 @@ function filterAndRenderRanking() {
     
     // C) Criação de Lote (Top 10)
     const opsLoteAll = ops
-        .filter(o => (Number(o.bipes_lote) > 0) || (o.setor === 'Inserido em Lote'))
+        .filter(o => (Number(o.bipes_lote) > 0) || (o.setor && (o.setor.toLowerCase().includes('lote') || o.setor.toLowerCase().includes('cria'))))
         .map(o => ({ ...o, qtd_setor: Number(o.bipes_lote) > 0 ? Number(o.bipes_lote) : Number(o.total_bipes) || 0 }))
         .filter(o => o.qtd_setor > 0)
         .sort((a, b) => b.qtd_setor - a.qtd_setor);
