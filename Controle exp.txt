@@ -896,3 +896,67 @@ SRTR22607056080
 Volume Previsto: 15436
 Volume Recebido: 13004
 Expedido não chegou SN RAO: 2112
+
+Data 12.11.2026
+
+SETR22607203280
+Volume Previsto: 12564
+Volume Recebido: 11203
+Expedido não chegou SN RAO 1: 
+
+SRTR22607095631
+Volume Previsto: 601
+Volume Recebido: 577
+Expedido não chegou F IBG-SP: 20
+
+SRTR22607112600
+Volume Previsto: 12156
+Volume Recebido: 39850
+Expedido não chegou SP BRE 4: 1732
+
+SETR22607200040
+Volume Previsto: 13485
+Volume Recebido: 12058
+Expedido não chegou SP BRE 5: 698
+
+SRTR22607094271
+Volume Previsto: 12053
+Volume Recebido: 8095
+Expedido não chegou SP BRE 6: 3790
+
+Data 13.11.2026
+
+SETR22607207680
+Volume Previsto: 12734
+Volume Recebido: 20494
+Expedido não chegou SP BRE 4: 115
+
+SRTR22607132760
+Volume Previsto: 14522
+Volume Recebido: 7499
+Expedido não chegou SP BRE 5: 6868
+
+SRTR22607134191
+Volume Previsto: 823
+Volume Recebido: 788
+Expedido não chegou F IBG-SP: 25
+
+SRTR22607132880
+Volume Previsto: 8949
+Volume Recebido: 8190
+Expedido não chegou SN RAO: 453
+
+SRTR22607138680
+Volume Previsto: 9150
+Volume Recebido: 6757
+Expedido não chegou SP BRE 1: 5319
+
+SETR22607207671
+Volume Previsto: 20755
+Volume Recebido: 14342
+Expedido não chegou SP BRE 2: 18034
+
+SRTR22607134300
+Volume Previsto: 7669
+Volume Recebido: 9339
+Expedido não chegou SP BRE 3: 218
