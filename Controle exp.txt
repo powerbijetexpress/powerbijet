@@ -1044,3 +1044,35 @@ SETR22607379891
 Volume Previsto: 7878
 Volume Recebido: 7618
 Expedido não chegou SP GRU: 433
+
+Data 21.11.2026
+
+SRTR22607459151
+Volume Previsto: 12526
+Volume Recebido: 12590
+Expedido não chegou SP GRU: 292
+
+SRTR22607432451
+Volume Previsto: 129
+Volume Recebido: 130
+Expedido não chegou F IBG-SP: 0
+
+SRTR22607390491
+Volume Previsto: 7016
+Volume Recebido: 5603
+Expedido não chegou SP BRE 1: 67
+
+SRTR22607436251
+Volume Previsto: 4297
+Volume Recebido: 3737
+Expedido não chegou SP BRE 2: 66
+
+SRTR22607431311
+Volume Previsto: 9779
+Volume Recebido: 9500
+Expedido não chegou SP BRE 3: 360
+
+SRTR22607431431
+Volume Previsto: 10196
+Volume Recebido: 9339
+Expedido não chegou SN RAO: 682
