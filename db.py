@@ -449,7 +449,7 @@ def save_volumetria_data(data_dict, replace_all=False):
     return True
 
 def _sort_volumetria_records(records):
-    """Ordena os registros da Volumetria Diária agrupando por base (SP BRE, SN RAO, IBG, EXT) e horário."""
+    """Ordena os registros da Volumetria Diária agrupando por base (SP BRE, SP RBP, IBG, DC EXT-SP) e horário."""
     if not records:
         return []
         
@@ -457,7 +457,7 @@ def _sort_volumetria_records(records):
         pdd = str(r.get("pdd_saida") or "").strip().upper()
         if "SP BRE" in pdd or "BRE" in pdd:
             pdd_prio = 1
-        elif "SN RAO" in pdd or "RAO" in pdd:
+        elif "SP RBP" in pdd or "RBP" in pdd or "SN RAO" in pdd or "RAO" in pdd:
             pdd_prio = 2
         elif "IBG" in pdd:
             pdd_prio = 3
@@ -589,7 +589,7 @@ def get_volumetria_carregamento():
         if not rows:
             # Insere os 3 veículos padrão solicitados pelo usuário se ainda não existirem
             default_vehicles = [
-                {"id": "carr-1", "veiculo": "SN RAO", "ordem": 1},
+                {"id": "carr-1", "veiculo": "SP RBP", "ordem": 1},
                 {"id": "carr-2", "veiculo": "SP BRE", "ordem": 2},
                 {"id": "carr-3", "veiculo": "DC PPB-SP", "ordem": 3}
             ]

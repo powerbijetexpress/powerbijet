@@ -4106,7 +4106,7 @@ function filterAndRenderVolumetria() {
     function getPddPrio(pdd) {
         const p = (pdd || "").toUpperCase();
         if (p.includes("SP BRE") || p.includes("BRE")) return 1;
-        if (p.includes("SN RAO") || p.includes("RAO")) return 2;
+        if (p.includes("SP RBP") || p.includes("RBP") || p.includes("SN RAO") || p.includes("RAO")) return 2;
         if (p.includes("IBG")) return 3;
         if (p.includes("EXT")) return 4;
         return 5;
@@ -4657,10 +4657,10 @@ function renderCarregamentoTable() {
     
     if (!volumetriaData) return;
     
-    // Garante que a lista de carregamento existe e tem os 3 veículos padrão solicitados (SN RAO, SP BRE, DC PPB-SP)
+    // Garante que a lista de carregamento existe e tem os 3 veículos padrão solicitados (SP RBP, SP BRE, DC PPB-SP)
     if (!volumetriaData.carregamento || volumetriaData.carregamento.length === 0) {
         volumetriaData.carregamento = [
-            { id: "carr-1", veiculo: "SN RAO", inicio: "", termino: "", tempo_total: "", volume: "", status: "PENDENTE", obs: "", ordem: 1 },
+            { id: "carr-1", veiculo: "SP RBP", inicio: "", termino: "", tempo_total: "", volume: "", status: "PENDENTE", obs: "", ordem: 1 },
             { id: "carr-2", veiculo: "SP BRE", inicio: "", termino: "", tempo_total: "", volume: "", status: "PENDENTE", obs: "", ordem: 2 },
             { id: "carr-3", veiculo: "DC PPB-SP", inicio: "", termino: "", tempo_total: "", volume: "", status: "PENDENTE", obs: "", ordem: 3 }
         ];
@@ -4703,7 +4703,7 @@ function renderCarregamentoTable() {
         const tr = document.createElement("tr");
         tr.innerHTML = `
             <td>
-                <input type="text" class="carregamento-cell-input carregamento-veiculo-input" data-id="${row.id}" data-field="veiculo" value="${row.veiculo ? String(row.veiculo).replace(/"/g, '&quot;') : ''}" placeholder="Ex: SN RAO..." title="Clique para editar o veículo ou destino">
+                <input type="text" class="carregamento-cell-input carregamento-veiculo-input" data-id="${row.id}" data-field="veiculo" value="${row.veiculo ? String(row.veiculo).replace(/"/g, '&quot;') : ''}" placeholder="Ex: SP RBP..." title="Clique para editar o veículo ou destino">
             </td>
             <td style="text-align: center;">
                 <input type="text" class="carregamento-cell-input carregamento-time-input" data-id="${row.id}" data-field="inicio" value="${row.inicio || ''}" placeholder="--:--" maxlength="5" title="Horário de início (HH:MM)">

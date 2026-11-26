@@ -206,7 +206,8 @@ CUTOFF_MAP = {
     'GRR': '04:00',
     'BGI': '04:00',
     'F MII': '04:00',
-    'RAO (SOC)': '04:00'
+    'RAO (SOC)': '04:00',
+    'RBP (SOC)': '04:00'
 }
 
 # Funcao de carregamento e higienizacao dos dados logisticos contidos no arquivo do Excel (leitura bruta do disco)
@@ -3008,8 +3009,8 @@ def _load_controle_bau_data_raw(file_path=CONTROLE_BAU_FILE):
                     
                     sla_val = str(row[4]).strip() if pd.notna(row[4]) else ""
                     
-                    # SN RAO e SP BRE não possuem horário de corte (status sempre OK)
-                    is_no_cutoff_route = any(x in route.upper() for x in ["BRE", "RAO", "SP BRE", "SN RAO"])
+                    # SN RAO / SP RBP e SP BRE não possuem horário de corte (status sempre OK)
+                    is_no_cutoff_route = any(x in route.upper() for x in ["BRE", "RAO", "RBP", "SP BRE", "SN RAO", "SP RBP"])
                     
                     if is_no_cutoff_route:
                         cutoff = "-"
@@ -4845,10 +4846,10 @@ def _load_volumetria_data_internal():
             print("Erro ao ler volumetria_data.json:", e)
     return None
 
-ALLOWED_VOLUMETRIA_PDD = ['SP BRE', 'SN RAO', 'F IBG-SP', 'EXT -MG']
+ALLOWED_VOLUMETRIA_PDD = ['SP BRE', 'SP RBP', 'SN RAO', 'F IBG-SP', 'DC EXT-SP', 'EXT-SP', 'EXT -MG']
 
 def _sort_volumetria_records(records):
-    """Ordena os registros da Volumetria Diária agrupando por base (SP BRE, SN RAO, IBG, EXT) e horário."""
+    """Ordena os registros da Volumetria Diária agrupando por base (SP BRE, SP RBP, IBG, DC EXT-SP) e horário."""
     if not records:
         return []
         
@@ -4856,7 +4857,7 @@ def _sort_volumetria_records(records):
         pdd = str(r.get("pdd_saida") or "").strip().upper()
         if "SP BRE" in pdd or "BRE" in pdd:
             pdd_prio = 1
-        elif "SN RAO" in pdd or "RAO" in pdd:
+        elif "SP RBP" in pdd or "RBP" in pdd or "SN RAO" in pdd or "RAO" in pdd:
             pdd_prio = 2
         elif "IBG" in pdd:
             pdd_prio = 3
@@ -4867,34 +4868,30 @@ def _sort_volumetria_records(records):
         
         prev = str(r.get("previsao_chegada") or "").strip()
         id_tr = str(r.get("id_transporte") or "")
-        return (pdd_prio, prev, id_tr)
+        return (pdd_prio, pdd, prev, id_tr)
 
     return sorted(records, key=sort_key)
 
 def resolve_volumetria_base_name(orig='', dest='', rota='', cod_p='', cod_c=''):
     """Identifica com precisão se a viagem é de uma das 4 bases de transferência de DC Bauru:
-    SP BRE, SN RAO, F IBG-SP ou EXT -MG, retornando SEMPRE o nome formatado da base e nunca códigos numéricos."""
+    SP BRE, SP RBP (antigo SN RAO), F IBG-SP ou DC EXT-SP (antigo EXT-SP / EXT -MG), retornando SEMPRE o nome formatado da base e nunca códigos numéricos."""
     text = f"{orig} {dest} {rota} {cod_p} {cod_c}".strip().upper()
-    
-    # Exclusão explícita de DC EXT / 535001 (regra operacional do DC Bauru)
-    if 'DC EXT' in text or '535001' in text:
-        return None
 
     # 1. SP BRE (código 31101 ou nome/rota contendo BRE)
     if 'SP BRE' in text or '31101' in text or 'BRE-' in text or 'BRE ' in text or text == 'BRE':
         return 'SP BRE'
         
-    # 2. SN RAO (código 31601 ou nome/rota contendo RAO)
-    if 'SN RAO' in text or '31601' in text or 'RAO-' in text or 'RAO ' in text or text == 'RAO':
-        return 'SN RAO'
+    # 2. SP RBP (antigo SN RAO - código 31601 ou nome/rota contendo RBP ou RAO)
+    if 'SP RBP' in text or 'RBP' in text or 'SN RAO' in text or '31601' in text or 'RAO-' in text or 'RAO ' in text or text == 'RAO':
+        return 'SP RBP'
         
     # 3. F IBG-SP (código 316375 ou nome/rota contendo IBG / Ibitinga)
     if 'IBG' in text or '316375' in text or 'IBITINGA' in text:
         return 'F IBG-SP'
         
-    # 4. EXT -MG (código 535104 ou rota M209 / M109 / EXT -MG)
-    if 'EXT -MG' in text or 'EXT-MG' in text or '535104' in text or 'M209' in text or 'M109' in text:
-        return 'EXT -MG'
+    # 4. DC EXT-SP (antigo EXT-SP / EXT -MG / DC EXT - códigos 535001, 535104 ou rotas M209 / M109 / EXT)
+    if 'DC EXT-SP' in text or 'EXT-SP' in text or 'DC EXT' in text or 'EXT -MG' in text or 'EXT-MG' in text or '535001' in text or '535104' in text or 'M209' in text or 'M109' in text or 'EXT' in text:
+        return 'DC EXT-SP'
         
     return None
 
@@ -5262,12 +5259,12 @@ def upload_volumetria_file():
             return jsonify({
                 "success": True, 
                 "data": processed, 
-                "message": f"Planilha importada com sucesso! {total_rec} carros de transferência filtrados (SP BRE, SN RAO, IBG, EXT)."
+                "message": f"Planilha importada com sucesso! {total_rec} carros de transferência filtrados (SP BRE, SP RBP, IBG, DC EXT-SP)."
             })
         else:
             return jsonify({
                 "success": False, 
-                "error": "Nenhum carro das bases de transferência permitidas (SP BRE, SN RAO, IBG, EXT) foi encontrado na planilha."
+                "error": "Nenhum carro das bases de transferência permitidas (SP BRE, SP RBP, IBG, DC EXT-SP) foi encontrado na planilha."
             }), 400
     except Exception as e:
         return jsonify({"success": False, "error": f"Erro ao processar o arquivo: {str(e)}"}), 500
